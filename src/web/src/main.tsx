@@ -7,6 +7,7 @@ import { lifecycleHandlers } from './bridge/hostServices';
 import { RequestRouter, type Envelope } from './bridge/RequestRouter';
 import { AdmissionGate } from './bridge/AdmissionGate';
 import { compile } from './script/compiler';
+import { renderMethods } from './bridge/renderMethods';
 import type { Asset, PreparedAsset } from './model/types';
 import './styles.css';
 
@@ -17,7 +18,7 @@ let prepareAsset: (file?: File) => Promise<Asset | null>;
 
 if (webview) {
   const engine = controller.engine;
-  const router = new RequestRouter(engine, compile, lifecycleHandlers(engine, { cancelGestures: () => controller.gestures.cancelAll() }));
+  const router = new RequestRouter(engine, compile, { ...lifecycleHandlers(engine, { cancelGestures: () => controller.gestures.cancelAll() }), ...renderMethods(engine, controller.assets) });
   const gate = new AdmissionGate((e) => router.dispatch(e), {
     checkScope: (e) => {
       const s = engine.scope();
@@ -41,7 +42,8 @@ if (webview) {
 
 createRoot(document.getElementById('root')!).render(<App controller={controller} prepareAsset={prepareAsset} />);
 
-// Test-only read API (dev/test builds): canonical state, never a mutation shortcut.
+const devRouter = new RequestRouter(controller.engine, compile, renderMethods(controller.engine, controller.assets));
+// Test-only API (dev/test builds): canonical reads and requests through the same router MCP uses.
 if (import.meta.env.DEV || location.search.includes('testapi')) {
   (window as any).__diagram = {
     snapshot: () => structuredClone(controller.engine.current()),
@@ -50,6 +52,8 @@ if (import.meta.env.DEV || location.search.includes('testapi')) {
     toClient: (p: { x: number; y: number }) => (controller as any).adapter?.pageToClient(p),
     gestureActive: () => controller.gestures.isActive(),
     status: () => controller.getState().status,
+    // The production request router (render, layout, reads, mutations) for browser tests.
+    request: (envelope: Envelope) => devRouter.dispatch({ ...envelope, origin: { source: 'mcp', connectionId: 'test' } }),
     // Simulated external (agent) request through the same engine entry point MCP uses.
     agentApply: (req: unknown) => controller.engine.execute(req as any, 'mcp'),
     scope: () => controller.engine.scope(),
