@@ -43,7 +43,6 @@ public partial class MainWindow : Window, IWebMessageChannel
         var env = await CoreWebView2Environment.CreateAsync(userDataFolder: Path.Combine(dataRoot, "webview"));
         await View.EnsureCoreWebView2Async(env);
         var core = View.CoreWebView2;
-        core.SetVirtualHostNameToFolderMapping(BridgeRouter.Origin.Host, Path.Combine(AppContext.BaseDirectory, "frontend"), CoreWebView2HostResourceAccessKind.DenyCors);
         core.Settings.AreHostObjectsAllowed = false;
         core.Settings.IsWebMessageEnabled = true;
         core.Settings.AreDefaultContextMenusEnabled = false;
@@ -53,14 +52,17 @@ public partial class MainWindow : Window, IWebMessageChannel
         core.NavigationStarting += (_, e) => { if (!BridgeRouter.IsTrustedSource(e.Uri, true)) e.Cancel = true; };
         core.NewWindowRequested += (_, e) => e.Handled = true;
         var blobs = new BlobStore(Path.Combine(dataRoot, "blobs"));
+        // The host serves the whole app origin itself: frontend files from the packaged folder and
+        // approved asset bytes from /blobs/<sha256>. (A virtual-host folder mapping would answer
+        // every request on the origin, so blob URLs never reached the blob store.)
+        var resources = new AppResourceServer(Path.Combine(AppContext.BaseDirectory, "frontend"), blobs);
         core.WebResourceRequested += (_, e) =>
         {
-            if (e.Request.Uri.StartsWith(AssetsPrefix, StringComparison.Ordinal)) ServeAsset(core, blobs, e);
+            if (e.Request.Uri.StartsWith(BridgeRouter.Origin.ToString(), StringComparison.OrdinalIgnoreCase)) Serve(core, resources, e);
             else e.Response = core.Environment.CreateWebResourceResponse(null, 403, "Forbidden", "");
         };
         core.AddWebResourceRequestedFilter("http://*", CoreWebView2WebResourceContext.All);
-        // Asset bytes are served by hash from the blob store; the frontend never sees file paths.
-        core.AddWebResourceRequestedFilter(AssetsPrefix + "*", CoreWebView2WebResourceContext.All);
+        core.AddWebResourceRequestedFilter(BridgeRouter.Origin + "*", CoreWebView2WebResourceContext.All);
         core.WebMessageReceived += (_, e) => MessageReceived?.Invoke(new WebMessage(e.Source, true, e.WebMessageAsJson));
         core.FrameCreated += (_, f) => f.Frame.WebMessageReceived += (_, e) => MessageReceived?.Invoke(new WebMessage(e.Source, false, e.WebMessageAsJson));
         core.ProcessFailed += (_, _) => ProcessFailed?.Invoke();
@@ -141,23 +143,17 @@ public partial class MainWindow : Window, IWebMessageChannel
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes).Task;
     }
 
-    private static readonly string AssetsPrefix = new Uri(BridgeRouter.Origin, "assets/").ToString();
-
-    /// <summary>Serves <c>/assets/&lt;sha256&gt;</c> from the blob store with a sniffed content type.</summary>
-    private static async void ServeAsset(CoreWebView2 core, BlobStore blobs, CoreWebView2WebResourceRequestedEventArgs e)
+    private static async void Serve(CoreWebView2 core, AppResourceServer resources, CoreWebView2WebResourceRequestedEventArgs e)
     {
         var deferral = e.GetDeferral();
-        var sha = e.Request.Uri[AssetsPrefix.Length..].Split('?', '#')[0];
         try
         {
-            var bytes = await blobs.ReadAsync(sha, CancellationToken.None);
-            var mime = AssetPreparer.Sniff(bytes.Span) ?? "application/octet-stream";
-            e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(bytes.ToArray()), 200, "OK",
-                $"Content-Type: {mime}\r\nCache-Control: max-age=31536000, immutable\r\nX-Content-Type-Options: nosniff");
+            var r = await resources.ResolveAsync(e.Request.Uri, CancellationToken.None);
+            e.Response = core.Environment.CreateWebResourceResponse(r.Body is null ? null : new MemoryStream(r.Body), r.Status, r.Reason, r.Headers);
         }
-        catch (Exception ex) when (ex is HostException or IOException or UnauthorizedAccessException)
+        catch (Exception)
         {
-            e.Response = core.Environment.CreateWebResourceResponse(null, 404, "Not Found", "");
+            e.Response = core.Environment.CreateWebResourceResponse(null, 500, "Internal Server Error", "");
         }
         finally
         {

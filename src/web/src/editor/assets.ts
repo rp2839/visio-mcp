@@ -13,7 +13,8 @@ export interface AssetResolver {
 export const HOST_ORIGIN = 'https://app.agentic-diagram.invalid';
 
 export class HostAssetResolver implements AssetResolver {
-  urlFor(asset: Asset) { return `${HOST_ORIGIN}/assets/${asset.sha256}`; }
+  /** Must match AppResourceServer.BlobPath in Diagram.Host.Core. */
+  urlFor(asset: Asset) { return `${HOST_ORIGIN}/blobs/${asset.sha256}`; }
   async dataUrlFor(asset: Asset) {
     const res = await fetch(this.urlFor(asset));
     if (!res.ok) return null;
