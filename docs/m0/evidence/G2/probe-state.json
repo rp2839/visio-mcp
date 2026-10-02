@@ -1,0 +1,122 @@
+{
+  "before": {
+    "revision": 0,
+    "rect": {
+      "id": "rect",
+      "x": 80,
+      "y": 80,
+      "width": 160,
+      "height": 80,
+      "rotation": 0,
+      "text": "Probe"
+    },
+    "ellipse": {
+      "id": "ellipse",
+      "x": 480,
+      "y": 80,
+      "width": 160,
+      "height": 80,
+      "rotation": 0,
+      "text": "Target"
+    },
+    "picture": {
+      "id": "picture",
+      "x": 80,
+      "y": 320,
+      "width": 96,
+      "height": 96,
+      "rotation": 0,
+      "assetDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAOUlEQVR42mOQL9+CFV1T18CKSFXPMGrBqAVDwAJqGYRL/agFoxYMBQtGi4pRC0YtGK0PRi0YtQCIANjN3j1FY5c3AAAAAElFTkSuQmCC"
+    },
+    "connector": {
+      "id": "connector",
+      "from": {
+        "elementId": "rect"
+      },
+      "to": {
+        "elementId": "ellipse"
+      }
+    }
+  },
+  "after": {
+    "revision": 4,
+    "rect": {
+      "id": "rect",
+      "x": 120,
+      "y": 180,
+      "width": 220,
+      "height": 110,
+      "rotation": 100,
+      "text": "Probe"
+    },
+    "ellipse": {
+      "id": "ellipse",
+      "x": 480,
+      "y": 80,
+      "width": 160,
+      "height": 80,
+      "rotation": 0,
+      "text": "Target"
+    },
+    "picture": {
+      "id": "picture",
+      "x": 80,
+      "y": 320,
+      "width": 96,
+      "height": 96,
+      "rotation": 0,
+      "assetDataUrl": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAIAAAD8GO2jAAAAOUlEQVR42mOQL9+CFV1T18CKSFXPMGrBqAVDwAJqGYRL/agFoxYMBQtGi4pRC0YtGK0PRi0YtQCIANjN3j1FY5c3AAAAAElFTkSuQmCC"
+    },
+    "connector": {
+      "id": "connector",
+      "from": {
+        "elementId": "rect"
+      },
+      "to": {
+        "elementId": "picture"
+      }
+    }
+  },
+  "gestures": [
+    {
+      "phase": "begin",
+      "kind": "move",
+      "revision": 0
+    },
+    {
+      "phase": "commit",
+      "kind": "move",
+      "revision": 0
+    },
+    {
+      "phase": "begin",
+      "kind": "resize",
+      "revision": 1
+    },
+    {
+      "phase": "commit",
+      "kind": "resize",
+      "revision": 1
+    },
+    {
+      "phase": "begin",
+      "kind": "rotate",
+      "revision": 2
+    },
+    {
+      "phase": "commit",
+      "kind": "rotate",
+      "revision": 2
+    },
+    {
+      "phase": "begin",
+      "kind": "bend",
+      "revision": 3
+    },
+    {
+      "phase": "commit",
+      "kind": "bend",
+      "revision": 3
+    }
+  ]
+}
