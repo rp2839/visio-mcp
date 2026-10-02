@@ -1,0 +1,1027 @@
+{
+  "documentId": "00000000-0000-4000-8000-000000000001",
+  "sessionId": "00000000-0000-4000-8000-000000005000",
+  "revision": 2,
+  "document": {
+    "schemaVersion": 1,
+    "id": "00000000-0000-4000-8000-000000000001",
+    "title": "Seed",
+    "revision": 2,
+    "pages": [
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "name": "Page-1",
+        "widthPt": 841.8897637795276,
+        "heightPt": 595.2755905511812,
+        "background": "#FFFFFF",
+        "grid": {
+          "visible": true,
+          "spacingPt": 14.173228346456694,
+          "snap": true
+        },
+        "guides": [],
+        "layers": [],
+        "elements": [
+          {
+            "id": "00000000-0000-4000-8000-000000000064",
+            "kind": "image",
+            "alias": "logo",
+            "name": "Company logo",
+            "layerIds": [],
+            "zIndex": 0,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 20,
+              "y": 20,
+              "width": 100,
+              "height": 40
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "assetId": "asset:logo-v2",
+            "fit": "contain",
+            "opacity": 1,
+            "preserveAspectRatio": true
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000065",
+            "kind": "shape",
+            "alias": "s0",
+            "name": "Box",
+            "layerIds": [],
+            "zIndex": 1,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 150,
+              "y": 100,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 0",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000066",
+            "kind": "shape",
+            "alias": "s1",
+            "name": "Box",
+            "layerIds": [],
+            "zIndex": 2,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 270,
+              "y": 100,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 1",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000067",
+            "kind": "shape",
+            "alias": "s2",
+            "name": "Box 2",
+            "layerIds": [],
+            "zIndex": 3,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 390,
+              "y": 100,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 2",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000068",
+            "kind": "shape",
+            "alias": "s3",
+            "name": "Box 3",
+            "layerIds": [],
+            "zIndex": 4,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 510,
+              "y": 100,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 3",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000069",
+            "kind": "shape",
+            "alias": "s4",
+            "name": "Box 4",
+            "layerIds": [],
+            "zIndex": 5,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 630,
+              "y": 100,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 4",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-00000000006a",
+            "kind": "shape",
+            "alias": "s5",
+            "name": "Box 5",
+            "layerIds": [],
+            "zIndex": 6,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 150,
+              "y": 190,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 5",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-00000000006b",
+            "kind": "shape",
+            "alias": "s6",
+            "name": "Box 6",
+            "layerIds": [],
+            "zIndex": 7,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 270,
+              "y": 190,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 6",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-00000000006c",
+            "kind": "shape",
+            "alias": "s7",
+            "name": "Box 7",
+            "layerIds": [],
+            "zIndex": 8,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 390,
+              "y": 190,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 7",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-00000000006d",
+            "kind": "shape",
+            "alias": "s8",
+            "name": "Box 8",
+            "layerIds": [],
+            "zIndex": 9,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 510,
+              "y": 190,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 8",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-00000000006e",
+            "kind": "shape",
+            "alias": "s9",
+            "name": "Box 9",
+            "layerIds": [],
+            "zIndex": 10,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 630,
+              "y": 190,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 9",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-00000000006f",
+            "kind": "shape",
+            "alias": "s10",
+            "name": "Box 10",
+            "layerIds": [],
+            "zIndex": 11,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 150,
+              "y": 280,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 10",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000070",
+            "kind": "shape",
+            "alias": "s11",
+            "name": "Box 11",
+            "layerIds": [],
+            "zIndex": 12,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 270,
+              "y": 280,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 11",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000071",
+            "kind": "shape",
+            "alias": "s12",
+            "name": "Box 12",
+            "layerIds": [],
+            "zIndex": 13,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 390,
+              "y": 280,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 12",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000072",
+            "kind": "shape",
+            "alias": "s13",
+            "name": "Box 13",
+            "layerIds": [],
+            "zIndex": 14,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 510,
+              "y": 280,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 13",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000073",
+            "kind": "shape",
+            "alias": "s14",
+            "name": "Box 14",
+            "layerIds": [],
+            "zIndex": 15,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 630,
+              "y": 280,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 14",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000074",
+            "kind": "shape",
+            "alias": "s15",
+            "name": "Box 15",
+            "layerIds": [],
+            "zIndex": 16,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 150,
+              "y": 370,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 15",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000075",
+            "kind": "shape",
+            "alias": "s16",
+            "name": "Box 16",
+            "layerIds": [],
+            "zIndex": 17,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 270,
+              "y": 370,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 16",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000076",
+            "kind": "shape",
+            "alias": "s17",
+            "name": "Box 17",
+            "layerIds": [],
+            "zIndex": 18,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 390,
+              "y": 370,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 17",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000000077",
+            "kind": "shape",
+            "alias": "s18",
+            "name": "Box 18",
+            "layerIds": [],
+            "zIndex": 19,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 510,
+              "y": 370,
+              "width": 100,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "geometry": {
+              "preset": "roundedRect",
+              "cornerRadiusPt": 6
+            },
+            "style": {
+              "fill": "#FFFFFF",
+              "fillOpacity": 1,
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            },
+            "text": {
+              "value": "Shape 18",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000005001",
+            "layerIds": [],
+            "zIndex": 20,
+            "locked": false,
+            "hidden": false,
+            "rotationDeg": 0,
+            "metadata": {},
+            "alias": "note",
+            "kind": "text",
+            "bounds": {
+              "x": 20,
+              "y": 500,
+              "width": 200,
+              "height": 30
+            },
+            "text": {
+              "value": "Note \"quoted\" ✓",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "left",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            },
+            "style": {
+              "fill": "none",
+              "fillOpacity": 1,
+              "stroke": "none",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "lineCap": "butt",
+              "lineJoin": "miter"
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000005002",
+            "layerIds": [],
+            "zIndex": 21,
+            "locked": false,
+            "hidden": false,
+            "rotationDeg": 0,
+            "metadata": {},
+            "alias": "link",
+            "kind": "connector",
+            "from": {
+              "elementId": "00000000-0000-4000-8000-000000000065",
+              "glue": "dynamic"
+            },
+            "to": {
+              "elementId": "00000000-0000-4000-8000-000000000066",
+              "glue": "static",
+              "port": "west"
+            },
+            "route": "orthogonal",
+            "waypoints": [
+              {
+                "x": 1,
+                "y": 2
+              }
+            ],
+            "style": {
+              "stroke": "#333333",
+              "strokeWidthPt": 1,
+              "dash": "solid",
+              "startArrow": "none",
+              "endArrow": "triangle"
+            },
+            "bounds": {
+              "x": 1,
+              "y": 2,
+              "width": 269,
+              "height": 128
+            },
+            "label": {
+              "value": "flows",
+              "fontFamily": "Calibri",
+              "fontSizePt": 11,
+              "bold": false,
+              "italic": false,
+              "underline": false,
+              "colour": "#000000",
+              "horizontalAlign": "center",
+              "verticalAlign": "middle",
+              "wrap": true,
+              "paddingPt": 4
+            }
+          },
+          {
+            "id": "00000000-0000-4000-8000-000000005003",
+            "kind": "group",
+            "childIds": [
+              "00000000-0000-4000-8000-00000000006a",
+              "00000000-0000-4000-8000-00000000006b"
+            ],
+            "layerIds": [],
+            "zIndex": 22,
+            "locked": false,
+            "hidden": false,
+            "bounds": {
+              "x": 150,
+              "y": 190,
+              "width": 220,
+              "height": 60
+            },
+            "rotationDeg": 0,
+            "metadata": {},
+            "alias": "grp"
+          }
+        ]
+      }
+    ],
+    "assets": [
+      {
+        "id": "asset:logo",
+        "name": "Logo v1",
+        "mimeType": "image/png",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "widthPx": 200,
+        "heightPx": 80,
+        "tags": [
+          "logo"
+        ],
+        "provenance": "approved library"
+      },
+      {
+        "id": "asset:logo-v2",
+        "name": "Logo v2",
+        "mimeType": "image/png",
+        "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "widthPx": 200,
+        "heightPx": 80,
+        "tags": [
+          "logo"
+        ],
+        "provenance": "approved library"
+      }
+    ],
+    "metadata": {}
+  }
+}

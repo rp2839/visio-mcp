@@ -1,0 +1,63 @@
+{
+  "sequence": 2,
+  "documentId": "00000000-0000-4000-8000-000000000001",
+  "sessionId": "00000000-0000-4000-8000-000000005000",
+  "revision": 2,
+  "resolvedDiff": {
+    "source": "mcp",
+    "transactionId": "00000000-0000-4000-8000-000000900001",
+    "previousRevision": 1,
+    "revision": 2,
+    "changes": [
+      {
+        "entity": "element",
+        "id": "00000000-0000-4000-8000-000000000064",
+        "pageId": "00000000-0000-4000-8000-000000000002",
+        "before": {
+          "id": "00000000-0000-4000-8000-000000000064",
+          "kind": "image",
+          "alias": "logo",
+          "name": "Company logo",
+          "layerIds": [],
+          "zIndex": 0,
+          "locked": false,
+          "hidden": false,
+          "bounds": {
+            "x": 20,
+            "y": 20,
+            "width": 100,
+            "height": 40
+          },
+          "rotationDeg": 0,
+          "metadata": {},
+          "assetId": "asset:logo",
+          "fit": "contain",
+          "opacity": 1,
+          "preserveAspectRatio": true
+        },
+        "after": {
+          "id": "00000000-0000-4000-8000-000000000064",
+          "kind": "image",
+          "alias": "logo",
+          "name": "Company logo",
+          "layerIds": [],
+          "zIndex": 0,
+          "locked": false,
+          "hidden": false,
+          "bounds": {
+            "x": 20,
+            "y": 20,
+            "width": 100,
+            "height": 40
+          },
+          "rotationDeg": 0,
+          "metadata": {},
+          "assetId": "asset:logo-v2",
+          "fit": "contain",
+          "opacity": 1,
+          "preserveAspectRatio": true
+        }
+      }
+    ]
+  }
+}

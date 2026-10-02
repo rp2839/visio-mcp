@@ -1,0 +1,9 @@
+{
+  "severity": "warning",
+  "code": "duplicate_agent_id",
+  "pageId": "00000000-0000-4000-8000-000000000002",
+  "sourceShapeId": "7",
+  "elementId": "00000000-0000-4000-8000-000000000065",
+  "action": "regenerated",
+  "detail": "copy"
+}

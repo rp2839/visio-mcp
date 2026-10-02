@@ -1,0 +1,862 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-diagram.invalid/schema/document.json",
+  "title": "Canonical diagram document (schema v1)",
+  "description": "Library-independent canonical model. Units are points (1/72 inch), top-left origin, clockwise degrees.",
+  "$ref": "#/$defs/DiagramDocument",
+  "$defs": {
+    "Uuid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    },
+    "Alias": {
+      "type": "string",
+      "pattern": "^[A-Za-z_][A-Za-z0-9_.-]{0,127}$"
+    },
+    "AssetId": {
+      "type": "string",
+      "pattern": "^asset:[A-Za-z0-9][A-Za-z0-9_.-]{0,127}(~[0-9a-f]{64})?$"
+    },
+    "Colour": {
+      "type": "string",
+      "pattern": "^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$"
+    },
+    "Paint": {
+      "description": "Solid colour or none.",
+      "type": "string",
+      "pattern": "^(none|#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?)$"
+    },
+    "Point": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        }
+      }
+    },
+    "Bounds": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "y": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "Metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "maxLength": 4096
+      },
+      "maxProperties": 256
+    },
+    "Dash": {
+      "type": "string",
+      "enum": [
+        "solid",
+        "dash",
+        "dot",
+        "dashDot"
+      ]
+    },
+    "Arrow": {
+      "type": "string",
+      "enum": [
+        "none",
+        "triangle",
+        "open",
+        "diamond",
+        "circle"
+      ]
+    },
+    "TextBlock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "fontFamily",
+        "fontSizePt",
+        "bold",
+        "italic",
+        "underline",
+        "colour",
+        "horizontalAlign",
+        "verticalAlign",
+        "wrap",
+        "paddingPt"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "fontFamily": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "fontSizePt": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "colour": {
+          "$ref": "#/$defs/Colour"
+        },
+        "horizontalAlign": {
+          "type": "string",
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        "verticalAlign": {
+          "type": "string",
+          "enum": [
+            "top",
+            "middle",
+            "bottom"
+          ]
+        },
+        "wrap": {
+          "type": "boolean"
+        },
+        "paddingPt": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "ShapeStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fill",
+        "fillOpacity",
+        "stroke",
+        "strokeWidthPt",
+        "dash",
+        "lineCap",
+        "lineJoin"
+      ],
+      "properties": {
+        "fill": {
+          "$ref": "#/$defs/Paint"
+        },
+        "fillOpacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "stroke": {
+          "$ref": "#/$defs/Paint"
+        },
+        "strokeWidthPt": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "dash": {
+          "$ref": "#/$defs/Dash"
+        },
+        "lineCap": {
+          "type": "string",
+          "enum": [
+            "butt",
+            "round",
+            "square"
+          ]
+        },
+        "lineJoin": {
+          "type": "string",
+          "enum": [
+            "miter",
+            "round",
+            "bevel"
+          ]
+        }
+      }
+    },
+    "LineStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stroke",
+        "strokeWidthPt",
+        "dash",
+        "startArrow",
+        "endArrow"
+      ],
+      "properties": {
+        "stroke": {
+          "$ref": "#/$defs/Colour"
+        },
+        "strokeWidthPt": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1000
+        },
+        "dash": {
+          "$ref": "#/$defs/Dash"
+        },
+        "startArrow": {
+          "$ref": "#/$defs/Arrow"
+        },
+        "endArrow": {
+          "$ref": "#/$defs/Arrow"
+        }
+      }
+    },
+    "Port": {
+      "description": "Static connection point in element-local normalised coordinates (0..1), fixed under rotation.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "x",
+        "y"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_-]{0,63}$"
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "Endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "glue"
+      ],
+      "properties": {
+        "elementId": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "port": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][A-Za-z0-9_-]{0,63}$"
+        },
+        "point": {
+          "$ref": "#/$defs/Point"
+        },
+        "glue": {
+          "type": "string",
+          "enum": [
+            "dynamic",
+            "static",
+            "none"
+          ]
+        }
+      }
+    },
+    "Guide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "orientation",
+        "positionPt"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "orientation": {
+          "type": "string",
+          "enum": [
+            "horizontal",
+            "vertical"
+          ]
+        },
+        "positionPt": {
+          "type": "number"
+        }
+      }
+    },
+    "Layer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "visible",
+        "locked",
+        "printable",
+        "snap",
+        "glue"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "printable": {
+          "type": "boolean"
+        },
+        "snap": {
+          "type": "boolean"
+        },
+        "glue": {
+          "type": "boolean"
+        },
+        "colourOverride": {
+          "$ref": "#/$defs/Colour"
+        }
+      }
+    },
+    "ElementCommon": {
+      "type": "object",
+      "required": [
+        "id",
+        "kind",
+        "layerIds",
+        "zIndex",
+        "locked",
+        "hidden",
+        "bounds",
+        "rotationDeg",
+        "metadata"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "alias": {
+          "$ref": "#/$defs/Alias"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "layerIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Uuid"
+          },
+          "uniqueItems": true,
+          "maxItems": 64
+        },
+        "zIndex": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "hidden": {
+          "type": "boolean"
+        },
+        "bounds": {
+          "$ref": "#/$defs/Bounds"
+        },
+        "rotationDeg": {
+          "type": "number",
+          "minimum": -360,
+          "maximum": 360
+        },
+        "metadata": {
+          "$ref": "#/$defs/Metadata"
+        }
+      }
+    },
+    "ShapeGeometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "preset": {
+          "type": "string",
+          "enum": [
+            "rectangle",
+            "roundedRect",
+            "ellipse",
+            "diamond",
+            "triangle",
+            "hexagon",
+            "parallelogram",
+            "cylinder",
+            "cloud",
+            "callout",
+            "server",
+            "database",
+            "application",
+            "user",
+            "document",
+            "custom"
+          ]
+        },
+        "svgPath": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "cornerRadiusPt": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "ShapeElement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/ElementCommon"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "kind",
+        "geometry",
+        "style"
+      ],
+      "properties": {
+        "kind": {
+          "const": "shape"
+        },
+        "geometry": {
+          "$ref": "#/$defs/ShapeGeometry"
+        },
+        "style": {
+          "$ref": "#/$defs/ShapeStyle"
+        },
+        "text": {
+          "$ref": "#/$defs/TextBlock"
+        },
+        "ports": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Port"
+          },
+          "maxItems": 64
+        }
+      }
+    },
+    "TextElement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/ElementCommon"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "kind",
+        "text",
+        "style"
+      ],
+      "properties": {
+        "kind": {
+          "const": "text"
+        },
+        "text": {
+          "$ref": "#/$defs/TextBlock"
+        },
+        "style": {
+          "$ref": "#/$defs/ShapeStyle"
+        }
+      }
+    },
+    "ImageElement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/ElementCommon"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "kind",
+        "assetId",
+        "fit",
+        "opacity",
+        "preserveAspectRatio"
+      ],
+      "properties": {
+        "kind": {
+          "const": "image"
+        },
+        "assetId": {
+          "$ref": "#/$defs/AssetId"
+        },
+        "fit": {
+          "type": "string",
+          "enum": [
+            "contain",
+            "cover",
+            "stretch"
+          ]
+        },
+        "opacity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "preserveAspectRatio": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ConnectorElement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/ElementCommon"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "kind",
+        "from",
+        "to",
+        "route",
+        "waypoints",
+        "style"
+      ],
+      "properties": {
+        "kind": {
+          "const": "connector"
+        },
+        "from": {
+          "$ref": "#/$defs/Endpoint"
+        },
+        "to": {
+          "$ref": "#/$defs/Endpoint"
+        },
+        "route": {
+          "type": "string",
+          "enum": [
+            "straight",
+            "orthogonal",
+            "curved"
+          ]
+        },
+        "waypoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Point"
+          },
+          "maxItems": 256
+        },
+        "style": {
+          "$ref": "#/$defs/LineStyle"
+        },
+        "label": {
+          "$ref": "#/$defs/TextBlock"
+        }
+      }
+    },
+    "GroupElement": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/ElementCommon"
+        }
+      ],
+      "type": "object",
+      "unevaluatedProperties": false,
+      "required": [
+        "kind",
+        "childIds"
+      ],
+      "properties": {
+        "kind": {
+          "const": "group"
+        },
+        "childIds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Uuid"
+          },
+          "minItems": 1,
+          "uniqueItems": true,
+          "maxItems": 10000
+        }
+      }
+    },
+    "Element": {
+      "discriminator": {
+        "propertyName": "kind"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ShapeElement"
+        },
+        {
+          "$ref": "#/$defs/TextElement"
+        },
+        {
+          "$ref": "#/$defs/ImageElement"
+        },
+        {
+          "$ref": "#/$defs/ConnectorElement"
+        },
+        {
+          "$ref": "#/$defs/GroupElement"
+        }
+      ]
+    },
+    "Page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "widthPt",
+        "heightPt",
+        "background",
+        "grid",
+        "guides",
+        "layers",
+        "elements"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "widthPt": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 14400
+        },
+        "heightPt": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 14400
+        },
+        "background": {
+          "$ref": "#/$defs/Paint"
+        },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "visible",
+            "spacingPt",
+            "snap"
+          ],
+          "properties": {
+            "visible": {
+              "type": "boolean"
+            },
+            "spacingPt": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 720
+            },
+            "snap": {
+              "type": "boolean"
+            }
+          }
+        },
+        "guides": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Guide"
+          },
+          "maxItems": 256
+        },
+        "layers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Layer"
+          },
+          "maxItems": 64
+        },
+        "elements": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Element"
+          },
+          "maxItems": 20000
+        }
+      }
+    },
+    "Asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "mimeType",
+        "sha256",
+        "tags"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/AssetId"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "mimeType": {
+          "type": "string",
+          "enum": [
+            "image/png",
+            "image/jpeg",
+            "image/bmp",
+            "image/svg+xml"
+          ]
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "widthPx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "heightPx": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourcePath": {
+          "type": "string",
+          "maxLength": 4096
+        },
+        "embeddedData": {
+          "type": "string"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "maxItems": 64
+        },
+        "provenance": {
+          "type": "string",
+          "maxLength": 1024
+        }
+      }
+    },
+    "DiagramDocument": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "id",
+        "title",
+        "revision",
+        "pages",
+        "assets",
+        "metadata"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "id": {
+          "$ref": "#/$defs/Uuid"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Page"
+          },
+          "minItems": 1,
+          "maxItems": 64
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Asset"
+          },
+          "maxItems": 4096
+        },
+        "metadata": {
+          "$ref": "#/$defs/Metadata"
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "format"
+          ],
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": [
+                "vsdx",
+                "native-json"
+              ]
+            },
+            "path": {
+              "type": "string",
+              "maxLength": 4096
+            }
+          }
+        }
+      }
+    }
+  }
+}

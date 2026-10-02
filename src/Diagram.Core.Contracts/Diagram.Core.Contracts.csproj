@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Schema-generated DTOs shared by host, IPC, MCP and Visio adapter (from contracts/*.schema.json).</Description>
+  </PropertyGroup>
+</Project>

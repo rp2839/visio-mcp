@@ -1,0 +1,47 @@
+{
+  "protocolVersion": 1,
+  "kind": "response",
+  "requestId": "r-9",
+  "documentId": "00000000-0000-4000-8000-000000000001",
+  "sessionId": "00000000-0000-4000-8000-000000005000",
+  "error": {
+    "code": "revision_conflict",
+    "message": "document is at revision 2, request was based on 0",
+    "retryable": true,
+    "outcome": "not_applied",
+    "details": {
+      "expected": 0,
+      "actual": 2,
+      "changesSinceExpected": [
+        {
+          "transactionId": "00000000-0000-4000-8000-000000900000",
+          "source": "mcp",
+          "revision": 1,
+          "description": "create, group (3 operations)",
+          "created": [
+            "00000000-0000-4000-8000-000000005001",
+            "00000000-0000-4000-8000-000000005002",
+            "00000000-0000-4000-8000-000000005003"
+          ],
+          "changed": [],
+          "deleted": [],
+          "nonElementChanges": [],
+          "timestamp": "2026-10-02T12:00:00.000Z"
+        },
+        {
+          "transactionId": "00000000-0000-4000-8000-000000900001",
+          "source": "mcp",
+          "revision": 2,
+          "description": "set (1 operation)",
+          "created": [],
+          "changed": [
+            "00000000-0000-4000-8000-000000000064"
+          ],
+          "deleted": [],
+          "nonElementChanges": [],
+          "timestamp": "2026-10-02T12:00:00.000Z"
+        }
+      ]
+    }
+  }
+}

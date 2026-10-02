@@ -1,0 +1,30 @@
+{
+  "name": "agentic-diagram-web",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node ../../tools/generate-contracts.mjs",
+    "test": "vitest run",
+    "test:browser": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "build": "vite build",
+    "dev": "vite",
+    "check:contracts": "node ../../tools/generate-contracts.mjs --check"
+  },
+  "dependencies": {
+    "@maxgraph/core": "0.24.0",
+    "ajv": "8.20.0",
+    "ajv-formats": "3.0.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.4",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "7.0.2",
+    "vite": "8.3.2",
+    "vitest": "5.0.3"
+  }
+}

@@ -1,0 +1,335 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-diagram.invalid/schema/operations.json",
+  "title": "Typed operation union (explicit, no JSON-Patch interpreter)",
+  "$ref": "#/$defs/Operation",
+  "$defs": {
+    "Target": {
+      "description": "UUID, page-scoped alias or exact display name (resolved in that order; names require batch pageId).",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "Targets": { "type": "array", "items": { "$ref": "#/$defs/Target" }, "minItems": 1, "maxItems": 1000 },
+    "PointPt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["xPt", "yPt"],
+      "properties": { "xPt": { "type": "number" }, "yPt": { "type": "number" } }
+    },
+    "BoundsPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number", "minimum": 0 },
+        "height": { "type": "number", "minimum": 0 }
+      }
+    },
+    "TextPatch": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string", "maxLength": 65536 },
+        "fontFamily": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "fontSizePt": { "type": "number", "exclusiveMinimum": 0, "maximum": 1000 },
+        "bold": { "type": "boolean" },
+        "italic": { "type": "boolean" },
+        "underline": { "type": "boolean" },
+        "colour": { "$ref": "document.json#/$defs/Colour" },
+        "horizontalAlign": { "type": "string", "enum": ["left", "center", "right"] },
+        "verticalAlign": { "type": "string", "enum": ["top", "middle", "bottom"] },
+        "wrap": { "type": "boolean" },
+        "paddingPt": { "type": "number", "minimum": 0 }
+      }
+    },
+    "StylePatch": {
+      "description": "Shape style leaves (shape/text) or line style leaves (connector); kind-specific validity is checked by the planner.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fill": { "$ref": "document.json#/$defs/Paint" },
+        "fillOpacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "stroke": { "$ref": "document.json#/$defs/Paint" },
+        "strokeWidthPt": { "type": "number", "minimum": 0, "maximum": 1000 },
+        "dash": { "$ref": "document.json#/$defs/Dash" },
+        "lineCap": { "type": "string", "enum": ["butt", "round", "square"] },
+        "lineJoin": { "type": "string", "enum": ["miter", "round", "bevel"] },
+        "startArrow": { "$ref": "document.json#/$defs/Arrow" },
+        "endArrow": { "$ref": "document.json#/$defs/Arrow" }
+      }
+    },
+    "ElementPatch": {
+      "description": "Nested leaf patch. Omission preserves; null clears a nullable property; arrays replace atomically. id/kind are immutable.",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "alias": { "anyOf": [{ "$ref": "document.json#/$defs/Alias" }, { "type": "null" }] },
+        "name": { "anyOf": [{ "type": "string", "maxLength": 256 }, { "type": "null" }] },
+        "locked": { "type": "boolean" },
+        "hidden": { "type": "boolean" },
+        "metadata": { "type": "object", "additionalProperties": { "anyOf": [{ "type": "string", "maxLength": 4096 }, { "type": "null" }] } },
+        "bounds": { "$ref": "#/$defs/BoundsPatch" },
+        "rotationDeg": { "type": "number", "minimum": -360, "maximum": 360 },
+        "style": { "$ref": "#/$defs/StylePatch" },
+        "text": { "anyOf": [{ "$ref": "#/$defs/TextPatch" }, { "type": "null" }] },
+        "label": { "anyOf": [{ "$ref": "#/$defs/TextPatch" }, { "type": "null" }] },
+        "geometry": { "$ref": "document.json#/$defs/ShapeGeometry" },
+        "ports": { "type": "array", "items": { "$ref": "document.json#/$defs/Port" }, "maxItems": 64 },
+        "assetId": { "$ref": "document.json#/$defs/AssetId" },
+        "fit": { "type": "string", "enum": ["contain", "cover", "stretch"] },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "preserveAspectRatio": { "type": "boolean" },
+        "from": { "$ref": "#/$defs/EndpointInput" },
+        "to": { "$ref": "#/$defs/EndpointInput" },
+        "route": { "type": "string", "enum": ["straight", "orthogonal", "curved"] },
+        "waypoints": { "type": "array", "items": { "$ref": "document.json#/$defs/Point" }, "maxItems": 256 }
+      }
+    },
+    "EndpointInput": {
+      "description": "Endpoint whose element may be a target string (resolved to a UUID before commit).",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "target": { "$ref": "#/$defs/Target" },
+        "port": { "type": "string", "pattern": "^[A-Za-z_][A-Za-z0-9_-]{0,63}$" },
+        "point": { "$ref": "document.json#/$defs/Point" },
+        "glue": { "type": "string", "enum": ["dynamic", "static", "none"] }
+      }
+    },
+    "ElementInput": {
+      "description": "New element. Omitted fields take engine defaults; id is engine-generated unless supplied.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": { "type": "string", "enum": ["shape", "text", "image", "connector"] },
+        "id": { "$ref": "document.json#/$defs/Uuid" },
+        "alias": { "$ref": "document.json#/$defs/Alias" },
+        "name": { "type": "string", "maxLength": 256 },
+        "layerIds": { "type": "array", "items": { "type": "string" }, "maxItems": 64 },
+        "locked": { "type": "boolean" },
+        "hidden": { "type": "boolean" },
+        "metadata": { "$ref": "document.json#/$defs/Metadata" },
+        "bounds": { "$ref": "document.json#/$defs/Bounds" },
+        "rotationDeg": { "type": "number", "minimum": -360, "maximum": 360 },
+        "style": { "$ref": "#/$defs/StylePatch" },
+        "text": { "$ref": "#/$defs/TextPatch" },
+        "label": { "$ref": "#/$defs/TextPatch" },
+        "geometry": { "$ref": "document.json#/$defs/ShapeGeometry" },
+        "ports": { "type": "array", "items": { "$ref": "document.json#/$defs/Port" }, "maxItems": 64 },
+        "assetId": { "$ref": "document.json#/$defs/AssetId" },
+        "fit": { "type": "string", "enum": ["contain", "cover", "stretch"] },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "preserveAspectRatio": { "type": "boolean" },
+        "from": { "$ref": "#/$defs/EndpointInput" },
+        "to": { "$ref": "#/$defs/EndpointInput" },
+        "route": { "type": "string", "enum": ["straight", "orthogonal", "curved"] },
+        "waypoints": { "type": "array", "items": { "$ref": "document.json#/$defs/Point" }, "maxItems": 256 }
+      }
+    },
+    "PageInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "document.json#/$defs/Uuid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "widthPt": { "type": "number", "exclusiveMinimum": 0, "maximum": 14400 },
+        "heightPt": { "type": "number", "exclusiveMinimum": 0, "maximum": 14400 },
+        "background": { "$ref": "document.json#/$defs/Paint" },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "visible": { "type": "boolean" },
+            "spacingPt": { "type": "number", "exclusiveMinimum": 0, "maximum": 720 },
+            "snap": { "type": "boolean" }
+          }
+        },
+        "guides": { "type": "array", "items": { "$ref": "document.json#/$defs/Guide" }, "maxItems": 256 }
+      }
+    },
+    "LayerInput": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": { "$ref": "document.json#/$defs/Uuid" },
+        "name": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "visible": { "type": "boolean" },
+        "locked": { "type": "boolean" },
+        "printable": { "type": "boolean" },
+        "snap": { "type": "boolean" },
+        "glue": { "type": "boolean" },
+        "colourOverride": { "anyOf": [{ "$ref": "document.json#/$defs/Colour" }, { "type": "null" }] }
+      }
+    },
+    "CreateOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "element"],
+      "properties": { "op": { "const": "create" }, "pageId": { "type": "string" }, "element": { "$ref": "#/$defs/ElementInput" } }
+    },
+    "SetOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "target", "patch"],
+      "properties": { "op": { "const": "set" }, "target": { "$ref": "#/$defs/Target" }, "patch": { "$ref": "#/$defs/ElementPatch" } }
+    },
+    "MoveOp": {
+      "description": "Exactly one of to (absolute top-left) or delta.",
+      "type": "object", "additionalProperties": false, "required": ["op", "target"],
+      "properties": { "op": { "const": "move" }, "target": { "$ref": "#/$defs/Target" }, "to": { "$ref": "#/$defs/PointPt" }, "delta": { "$ref": "#/$defs/PointPt" } },
+      "oneOf": [{ "required": ["to"], "not": { "required": ["delta"] } }, { "required": ["delta"], "not": { "required": ["to"] } }]
+    },
+    "ResizeOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "target"],
+      "properties": {
+        "op": { "const": "resize" }, "target": { "$ref": "#/$defs/Target" },
+        "widthPt": { "type": "number", "exclusiveMinimum": 0 }, "heightPt": { "type": "number", "exclusiveMinimum": 0 }
+      },
+      "anyOf": [{ "required": ["widthPt"] }, { "required": ["heightPt"] }]
+    },
+    "RotateOp": {
+      "description": "angleDeg (absolute; shape/text/image) xor deltaDeg (relative; any). pivot only for groups.",
+      "type": "object", "additionalProperties": false, "required": ["op", "target"],
+      "properties": {
+        "op": { "const": "rotate" }, "target": { "$ref": "#/$defs/Target" },
+        "angleDeg": { "type": "number", "minimum": -360, "maximum": 360 },
+        "deltaDeg": { "type": "number", "minimum": -3600, "maximum": 3600 },
+        "pivot": { "$ref": "#/$defs/PointPt" }
+      },
+      "oneOf": [{ "required": ["angleDeg"], "not": { "required": ["deltaDeg"] } }, { "required": ["deltaDeg"], "not": { "required": ["angleDeg"] } }]
+    },
+    "DeleteOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "target"],
+      "properties": {
+        "op": { "const": "delete" }, "target": { "$ref": "#/$defs/Target" },
+        "connectors": { "description": "How glued connectors are handled; default reject.", "type": "string", "enum": ["reject", "detach", "delete"] },
+        "subtree": { "description": "Required for groups: true deletes descendants, false ungroups first.", "type": "boolean" }
+      }
+    },
+    "DuplicateOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets"],
+      "properties": {
+        "op": { "const": "duplicate" }, "targets": { "$ref": "#/$defs/Targets" },
+        "offset": { "$ref": "#/$defs/PointPt" },
+        "aliases": { "type": "object", "additionalProperties": { "$ref": "document.json#/$defs/Alias" } },
+        "ids": { "description": "Optional explicit new UUIDs keyed by source target.", "type": "object", "additionalProperties": { "$ref": "document.json#/$defs/Uuid" } }
+      }
+    },
+    "GroupOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets"],
+      "properties": {
+        "op": { "const": "group" }, "targets": { "$ref": "#/$defs/Targets" },
+        "id": { "$ref": "document.json#/$defs/Uuid" }, "alias": { "$ref": "document.json#/$defs/Alias" }, "name": { "type": "string", "maxLength": 256 }
+      }
+    },
+    "UngroupOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "target"],
+      "properties": { "op": { "const": "ungroup" }, "target": { "$ref": "#/$defs/Target" } }
+    },
+    "AlignOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets", "edge"],
+      "properties": {
+        "op": { "const": "align" }, "targets": { "$ref": "#/$defs/Targets" },
+        "edge": { "type": "string", "enum": ["left", "center", "right", "top", "middle", "bottom"] }
+      }
+    },
+    "DistributeOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets", "axis"],
+      "properties": { "op": { "const": "distribute" }, "targets": { "$ref": "#/$defs/Targets" }, "axis": { "type": "string", "enum": ["horizontal", "vertical"] } }
+    },
+    "SetGapOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets", "axis", "gapPt"],
+      "properties": {
+        "op": { "const": "setGap" }, "targets": { "$ref": "#/$defs/Targets" },
+        "axis": { "type": "string", "enum": ["horizontal", "vertical"] }, "gapPt": { "type": "number", "minimum": 0 }
+      }
+    },
+    "ZOrderOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets", "action"],
+      "properties": {
+        "op": { "const": "zorder" }, "targets": { "$ref": "#/$defs/Targets" },
+        "action": { "type": "string", "enum": ["front", "back", "forward", "backward"] }
+      }
+    },
+    "AddPageOp": {
+      "type": "object", "additionalProperties": false, "required": ["op"],
+      "properties": { "op": { "const": "addPage" }, "page": { "$ref": "#/$defs/PageInput" }, "index": { "type": "integer", "minimum": 0 } }
+    },
+    "SetPageOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "pageId", "patch"],
+      "properties": { "op": { "const": "setPage" }, "pageId": { "type": "string" }, "patch": { "$ref": "#/$defs/PageInput" } }
+    },
+    "ReorderPageOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "pageId", "index"],
+      "properties": { "op": { "const": "reorderPage" }, "pageId": { "type": "string" }, "index": { "type": "integer", "minimum": 0 } }
+    },
+    "DuplicatePageOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "pageId"],
+      "properties": { "op": { "const": "duplicatePage" }, "pageId": { "type": "string" }, "newPageId": { "$ref": "document.json#/$defs/Uuid" }, "name": { "type": "string", "minLength": 1, "maxLength": 128 } }
+    },
+    "DeletePageOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "pageId"],
+      "properties": { "op": { "const": "deletePage" }, "pageId": { "type": "string" } }
+    },
+    "AddLayerOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "layer"],
+      "properties": { "op": { "const": "addLayer" }, "pageId": { "type": "string" }, "layer": { "$ref": "#/$defs/LayerInput" } }
+    },
+    "SetLayerOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "layer", "patch"],
+      "properties": { "op": { "const": "setLayer" }, "pageId": { "type": "string" }, "layer": { "type": "string" }, "patch": { "$ref": "#/$defs/LayerInput" } }
+    },
+    "AssignLayerOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "targets", "layers"],
+      "properties": {
+        "op": { "const": "assignLayer" }, "targets": { "$ref": "#/$defs/Targets" },
+        "layers": { "type": "array", "items": { "type": "string" }, "maxItems": 64 },
+        "mode": { "type": "string", "enum": ["set", "add", "remove"] }
+      }
+    },
+    "DeleteLayerOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "layer"],
+      "properties": { "op": { "const": "deleteLayer" }, "pageId": { "type": "string" }, "layer": { "type": "string" } }
+    },
+    "RegisterAssetOp": {
+      "description": "Registers a host-prepared asset descriptor (bytes already durable in the host blob store).",
+      "type": "object", "additionalProperties": false, "required": ["op", "asset"],
+      "properties": { "op": { "const": "registerAsset" }, "asset": { "$ref": "document.json#/$defs/Asset" } }
+    },
+    "SetAssetOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "assetId", "patch"],
+      "properties": {
+        "op": { "const": "setAsset" }, "assetId": { "$ref": "document.json#/$defs/AssetId" },
+        "patch": {
+          "type": "object", "additionalProperties": false, "minProperties": 1,
+          "properties": { "name": { "type": "string", "minLength": 1, "maxLength": 256 }, "tags": { "type": "array", "items": { "type": "string", "maxLength": 64 }, "maxItems": 64 } }
+        }
+      }
+    },
+    "ReplaceAssetGlobalOp": {
+      "description": "Explicit document-global replacement: every image referencing from now references to.",
+      "type": "object", "additionalProperties": false, "required": ["op", "fromAssetId", "toAssetId"],
+      "properties": { "op": { "const": "replaceAssetGlobal" }, "fromAssetId": { "$ref": "document.json#/$defs/AssetId" }, "toAssetId": { "$ref": "document.json#/$defs/AssetId" } }
+    },
+    "DeleteAssetOp": {
+      "type": "object", "additionalProperties": false, "required": ["op", "assetId"],
+      "properties": { "op": { "const": "deleteAsset" }, "assetId": { "$ref": "document.json#/$defs/AssetId" } }
+    },
+    "Operation": {
+      "discriminator": { "propertyName": "op" },
+      "oneOf": [
+        { "$ref": "#/$defs/CreateOp" }, { "$ref": "#/$defs/SetOp" }, { "$ref": "#/$defs/MoveOp" },
+        { "$ref": "#/$defs/ResizeOp" }, { "$ref": "#/$defs/RotateOp" }, { "$ref": "#/$defs/DeleteOp" },
+        { "$ref": "#/$defs/DuplicateOp" }, { "$ref": "#/$defs/GroupOp" }, { "$ref": "#/$defs/UngroupOp" },
+        { "$ref": "#/$defs/AlignOp" }, { "$ref": "#/$defs/DistributeOp" }, { "$ref": "#/$defs/SetGapOp" },
+        { "$ref": "#/$defs/ZOrderOp" }, { "$ref": "#/$defs/AddPageOp" }, { "$ref": "#/$defs/SetPageOp" },
+        { "$ref": "#/$defs/ReorderPageOp" }, { "$ref": "#/$defs/DuplicatePageOp" }, { "$ref": "#/$defs/DeletePageOp" },
+        { "$ref": "#/$defs/AddLayerOp" }, { "$ref": "#/$defs/SetLayerOp" }, { "$ref": "#/$defs/AssignLayerOp" },
+        { "$ref": "#/$defs/DeleteLayerOp" }, { "$ref": "#/$defs/RegisterAssetOp" }, { "$ref": "#/$defs/SetAssetOp" },
+        { "$ref": "#/$defs/ReplaceAssetGlobalOp" }, { "$ref": "#/$defs/DeleteAssetOp" }
+      ]
+    },
+    "OperationBatch": { "type": "array", "items": { "$ref": "#/$defs/Operation" }, "minItems": 1, "maxItems": 1000 }
+  }
+}

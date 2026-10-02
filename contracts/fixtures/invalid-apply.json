@@ -1,0 +1,10 @@
+[
+  { "protocolVersion": 1, "kind": "request", "requestId": "missing-session", "method": "doc.apply", "documentId": "00000000-0000-4000-8000-000000000001",
+    "params": { "transactionId": "00000000-0000-4000-8000-000000900000", "baseRevision": 0, "atomic": true, "operations": [] } },
+  { "protocolVersion": 1, "kind": "request", "requestId": "missing-tx", "method": "doc.apply", "documentId": "00000000-0000-4000-8000-000000000001",
+    "sessionId": "00000000-0000-4000-8000-000000005000", "params": { "baseRevision": 0, "atomic": true, "operations": [] } },
+  { "protocolVersion": 1, "kind": "request", "requestId": "scope-in-params", "method": "doc.apply", "documentId": "00000000-0000-4000-8000-000000000001",
+    "sessionId": "00000000-0000-4000-8000-000000005000", "params": { "sessionId": "00000000-0000-4000-8000-000000005001", "transactionId": "00000000-0000-4000-8000-000000900000", "baseRevision": 0, "atomic": true, "operations": [] } },
+  { "protocolVersion": 2, "kind": "request", "requestId": "bad-version", "method": "doc.summary", "documentId": "00000000-0000-4000-8000-000000000001",
+    "sessionId": "00000000-0000-4000-8000-000000005000", "params": {} }
+]

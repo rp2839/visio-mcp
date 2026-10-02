@@ -1,0 +1,250 @@
+[
+  {
+    "op": "create",
+    "pageId": "00000000-0000-4000-8000-000000000002",
+    "element": {
+      "kind": "shape",
+      "alias": "n1",
+      "bounds": {
+        "x": 10,
+        "y": 10,
+        "width": 50,
+        "height": 20
+      },
+      "style": {
+        "fill": "#FFFFFF"
+      },
+      "text": {
+        "value": "N1"
+      },
+      "geometry": {
+        "preset": "ellipse"
+      }
+    }
+  },
+  {
+    "op": "create",
+    "element": {
+      "kind": "connector",
+      "from": {
+        "target": "n1",
+        "port": "east"
+      },
+      "to": {
+        "point": {
+          "x": 300,
+          "y": 40
+        }
+      },
+      "route": "straight",
+      "style": {
+        "endArrow": "open"
+      }
+    }
+  },
+  {
+    "op": "set",
+    "target": "00000000-0000-4000-8000-000000000065",
+    "patch": {
+      "alias": null,
+      "name": "Renamed",
+      "style": {
+        "stroke": "#333333"
+      },
+      "text": {
+        "bold": true
+      },
+      "metadata": {
+        "k": "v",
+        "gone": null
+      }
+    }
+  },
+  {
+    "op": "move",
+    "target": "00000000-0000-4000-8000-000000000065",
+    "delta": {
+      "xPt": 8.5039,
+      "yPt": 0
+    }
+  },
+  {
+    "op": "move",
+    "target": "00000000-0000-4000-8000-000000000065",
+    "to": {
+      "xPt": 100,
+      "yPt": 100
+    }
+  },
+  {
+    "op": "resize",
+    "target": "00000000-0000-4000-8000-000000000065",
+    "widthPt": 120
+  },
+  {
+    "op": "rotate",
+    "target": "00000000-0000-4000-8000-000000000065",
+    "angleDeg": 33
+  },
+  {
+    "op": "rotate",
+    "target": "00000000-0000-4000-8000-000000000700",
+    "deltaDeg": 15,
+    "pivot": {
+      "xPt": 10,
+      "yPt": 10
+    }
+  },
+  {
+    "op": "delete",
+    "target": "00000000-0000-4000-8000-000000000069",
+    "connectors": "detach"
+  },
+  {
+    "op": "duplicate",
+    "targets": [
+      "00000000-0000-4000-8000-000000000065"
+    ],
+    "offset": {
+      "xPt": 10,
+      "yPt": 10
+    },
+    "aliases": {
+      "00000000-0000-4000-8000-000000000065": "copy"
+    }
+  },
+  {
+    "op": "group",
+    "targets": [
+      "00000000-0000-4000-8000-000000000066",
+      "00000000-0000-4000-8000-000000000067"
+    ],
+    "alias": "g"
+  },
+  {
+    "op": "ungroup",
+    "target": "g"
+  },
+  {
+    "op": "align",
+    "targets": [
+      "00000000-0000-4000-8000-000000000066",
+      "00000000-0000-4000-8000-000000000067"
+    ],
+    "edge": "center"
+  },
+  {
+    "op": "distribute",
+    "targets": [
+      "00000000-0000-4000-8000-000000000066",
+      "00000000-0000-4000-8000-000000000067",
+      "00000000-0000-4000-8000-000000000068"
+    ],
+    "axis": "horizontal"
+  },
+  {
+    "op": "setGap",
+    "targets": [
+      "00000000-0000-4000-8000-000000000066",
+      "00000000-0000-4000-8000-000000000067"
+    ],
+    "axis": "vertical",
+    "gapPt": 14.17
+  },
+  {
+    "op": "zorder",
+    "targets": [
+      "00000000-0000-4000-8000-000000000066"
+    ],
+    "action": "front"
+  },
+  {
+    "op": "addPage",
+    "page": {
+      "name": "Second",
+      "widthPt": 595,
+      "heightPt": 842
+    },
+    "index": 1
+  },
+  {
+    "op": "setPage",
+    "pageId": "00000000-0000-4000-8000-000000000002",
+    "patch": {
+      "grid": {
+        "snap": false
+      }
+    }
+  },
+  {
+    "op": "reorderPage",
+    "pageId": "00000000-0000-4000-8000-000000000002",
+    "index": 0
+  },
+  {
+    "op": "duplicatePage",
+    "pageId": "00000000-0000-4000-8000-000000000002",
+    "name": "Copy"
+  },
+  {
+    "op": "deletePage",
+    "pageId": "Copy"
+  },
+  {
+    "op": "addLayer",
+    "layer": {
+      "name": "Annotations",
+      "locked": false
+    }
+  },
+  {
+    "op": "setLayer",
+    "layer": "Annotations",
+    "patch": {
+      "visible": false,
+      "colourOverride": null
+    }
+  },
+  {
+    "op": "assignLayer",
+    "targets": [
+      "00000000-0000-4000-8000-000000000065"
+    ],
+    "layers": [
+      "Annotations"
+    ],
+    "mode": "add"
+  },
+  {
+    "op": "deleteLayer",
+    "layer": "Annotations"
+  },
+  {
+    "op": "registerAsset",
+    "asset": {
+      "id": "asset:other",
+      "name": "Other",
+      "mimeType": "image/svg+xml",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "tags": []
+    }
+  },
+  {
+    "op": "setAsset",
+    "assetId": "asset:other",
+    "patch": {
+      "tags": [
+        "x"
+      ]
+    }
+  },
+  {
+    "op": "replaceAssetGlobal",
+    "fromAssetId": "asset:logo",
+    "toAssetId": "asset:logo-v2"
+  },
+  {
+    "op": "deleteAsset",
+    "assetId": "asset:other"
+  }
+]

@@ -1,0 +1,285 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentic-diagram.invalid/schema/protocol.json",
+  "title": "Application protocol v1 (bridge and pipe)",
+  "$defs": {
+    "Scope": {
+      "type": "object", "additionalProperties": false, "required": ["documentId", "sessionId"],
+      "properties": {
+        "documentId": { "$ref": "document.json#/$defs/Uuid" },
+        "sessionId": { "$ref": "document.json#/$defs/Uuid" },
+        "pageId": { "type": "string" }
+      }
+    },
+    "MutationRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["documentId", "sessionId", "transactionId", "baseRevision", "operations"],
+      "properties": {
+        "documentId": { "$ref": "document.json#/$defs/Uuid" },
+        "sessionId": { "$ref": "document.json#/$defs/Uuid" },
+        "pageId": { "type": "string" },
+        "transactionId": { "$ref": "document.json#/$defs/Uuid" },
+        "baseRevision": { "type": "integer", "minimum": 0 },
+        "atomic": { "const": true },
+        "description": { "type": "string", "maxLength": 256 },
+        "operations": { "$ref": "operations.json#/$defs/OperationBatch" }
+      }
+    },
+    "PreparedAssetRef": {
+      "description": "Host-issued opaque capability for approved bytes; never a filesystem path.",
+      "type": "object", "additionalProperties": false, "required": ["preparationId", "asset", "expiresAt"],
+      "properties": {
+        "preparationId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "asset": { "$ref": "document.json#/$defs/Asset" },
+        "expiresAt": { "type": "string", "format": "date-time" }
+      }
+    },
+    "PreparedAsset": {
+      "type": "object", "additionalProperties": false, "required": ["ref", "byteLength"],
+      "properties": {
+        "ref": { "$ref": "#/$defs/PreparedAssetRef" },
+        "byteLength": { "type": "integer", "minimum": 0 },
+        "sanitised": { "type": "boolean" }
+      }
+    },
+    "ScriptRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["documentId", "sessionId", "transactionId", "baseRevision", "script"],
+      "properties": {
+        "documentId": { "$ref": "document.json#/$defs/Uuid" },
+        "sessionId": { "$ref": "document.json#/$defs/Uuid" },
+        "pageId": { "type": "string" },
+        "transactionId": { "$ref": "document.json#/$defs/Uuid" },
+        "baseRevision": { "type": "integer", "minimum": 0 },
+        "atomic": { "const": true },
+        "script": { "type": "string", "maxLength": 1048576 },
+        "preparedAssetRefs": { "type": "object", "additionalProperties": { "$ref": "#/$defs/PreparedAssetRef" } }
+      }
+    },
+    "UndoRequest": {
+      "type": "object", "additionalProperties": false,
+      "required": ["documentId", "sessionId", "transactionId", "baseRevision"],
+      "properties": {
+        "documentId": { "$ref": "document.json#/$defs/Uuid" },
+        "sessionId": { "$ref": "document.json#/$defs/Uuid" },
+        "transactionId": { "$ref": "document.json#/$defs/Uuid" },
+        "baseRevision": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "Diagnostic": {
+      "type": "object", "additionalProperties": false, "required": ["severity", "code", "detail"],
+      "properties": {
+        "severity": { "type": "string", "enum": ["info", "warning", "error"] },
+        "code": { "type": "string" },
+        "pageId": { "type": "string" },
+        "sourceShapeId": { "type": "string" },
+        "elementId": { "type": "string" },
+        "action": { "type": "string", "enum": ["preserved", "approximated", "dropped", "regenerated"] },
+        "detail": { "type": "string" }
+      }
+    },
+    "ErrorCode": {
+      "type": "string",
+      "enum": [
+        "not_running", "not_ready", "no_document", "session_mismatch", "document_mismatch", "unsupported_version",
+        "invalid_request", "not_found", "ambiguous_target", "revision_conflict", "locked_target", "limit_exceeded",
+        "history_unavailable", "transaction_id_conflict", "timeout_unknown", "io_error", "compatibility_loss",
+        "projection_failed", "busy", "busy_user_editing", "path_not_permitted", "consent_denied",
+        "dependency_conflict", "method_not_found", "internal_error"
+      ]
+    },
+    "AppError": {
+      "type": "object", "additionalProperties": false, "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": { "$ref": "#/$defs/ErrorCode" },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean" },
+        "outcome": { "type": "string", "enum": ["not_applied", "unknown"] },
+        "details": { "type": "object" }
+      }
+    },
+    "TransactionResult": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transactionId", "previousRevision", "revision", "noChange", "created", "changed", "deleted", "changedPageIds", "changedLayerIds", "changedAssetIds", "visuallyAffectedIds", "warnings", "projectionStatus"],
+      "properties": {
+        "transactionId": { "type": "string" },
+        "previousRevision": { "type": "integer" },
+        "revision": { "type": "integer" },
+        "noChange": { "type": "boolean" },
+        "created": { "type": "array", "items": { "type": "string" } },
+        "changed": { "type": "array", "items": { "type": "string" } },
+        "deleted": { "type": "array", "items": { "type": "string" } },
+        "changedPageIds": { "type": "array", "items": { "type": "string" } },
+        "changedLayerIds": { "type": "array", "items": { "type": "string" } },
+        "changedAssetIds": { "type": "array", "items": { "type": "string" } },
+        "visuallyAffectedIds": { "type": "array", "items": { "type": "string" } },
+        "warnings": { "type": "array", "items": { "$ref": "#/$defs/Diagnostic" } },
+        "projectionStatus": { "type": "string", "enum": ["applied", "failed"] },
+        "aliases": { "description": "Alias → UUID for elements created in this batch.", "type": "object", "additionalProperties": { "type": "string" } },
+        "operations": { "description": "Compiled operations (script requests only).", "type": "array", "items": { "$ref": "operations.json#/$defs/Operation" } }
+      }
+    },
+    "EntityChange": {
+      "description": "Resolved change of one entity. before/after are full canonical values (null = absent). Deterministic: replay never generates IDs.",
+      "type": "object", "additionalProperties": false, "required": ["entity", "id", "before", "after"],
+      "properties": {
+        "entity": { "type": "string", "enum": ["document", "page", "element", "asset"] },
+        "id": { "type": "string" },
+        "pageId": { "type": "string" },
+        "before": { "anyOf": [{ "type": "object" }, { "type": "null" }] },
+        "after": { "anyOf": [{ "type": "object" }, { "type": "null" }] }
+      }
+    },
+    "ResolvedDiff": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source", "transactionId", "previousRevision", "revision", "changes"],
+      "properties": {
+        "source": { "type": "string", "enum": ["gui", "script", "mcp", "import", "undo", "redo"] },
+        "transactionId": { "type": "string" },
+        "previousRevision": { "type": "integer" },
+        "revision": { "type": "integer" },
+        "changes": { "type": "array", "items": { "$ref": "#/$defs/EntityChange" } }
+      }
+    },
+    "CommittedEvent": {
+      "type": "object", "additionalProperties": false, "required": ["sequence", "documentId", "sessionId", "revision", "resolvedDiff"],
+      "properties": {
+        "sequence": { "type": "integer", "minimum": 1 },
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "revision": { "type": "integer" },
+        "resolvedDiff": { "$ref": "#/$defs/ResolvedDiff" }
+      }
+    },
+    "TransactionSummary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["transactionId", "source", "revision", "description", "created", "changed", "deleted", "nonElementChanges", "timestamp"],
+      "properties": {
+        "transactionId": { "type": "string" },
+        "source": { "type": "string", "enum": ["gui", "script", "mcp", "import", "undo", "redo"] },
+        "revision": { "type": "integer" },
+        "description": { "type": "string" },
+        "created": { "type": "array", "items": { "type": "string" } },
+        "changed": { "type": "array", "items": { "type": "string" } },
+        "deleted": { "type": "array", "items": { "type": "string" } },
+        "nonElementChanges": { "type": "array", "items": { "type": "string" } },
+        "timestamp": { "type": "string" }
+      }
+    },
+    "ChangeSet": {
+      "type": "object", "additionalProperties": false, "required": ["documentId", "sessionId", "revision", "earliestRetainedRevision", "transactions"],
+      "properties": {
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "revision": { "type": "integer" },
+        "earliestRetainedRevision": { "type": "integer" },
+        "transactions": { "type": "array", "items": { "$ref": "#/$defs/TransactionSummary" } }
+      }
+    },
+    "Snapshot": {
+      "type": "object", "additionalProperties": false, "required": ["documentId", "sessionId", "revision", "document"],
+      "properties": {
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "pageId": { "type": "string" },
+        "revision": { "type": "integer" },
+        "document": { "$ref": "document.json#/$defs/DiagramDocument" }
+      }
+    },
+    "ConnectorProjection": {
+      "type": "object", "additionalProperties": false, "required": ["routePoints", "visualBounds"],
+      "properties": {
+        "routePoints": { "type": "array", "items": { "$ref": "document.json#/$defs/Point" } },
+        "visualBounds": { "$ref": "document.json#/$defs/Bounds" }
+      }
+    },
+    "Projection": {
+      "description": "Non-canonical derived sidecar computed from one committed snapshot.",
+      "type": "object", "additionalProperties": false, "required": ["documentId", "sessionId", "revision", "connectors", "groupVisualBounds"],
+      "properties": {
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "pageId": { "type": "string" },
+        "revision": { "type": "integer" },
+        "connectors": { "type": "object", "additionalProperties": { "$ref": "#/$defs/ConnectorProjection" } },
+        "groupVisualBounds": { "type": "object", "additionalProperties": { "$ref": "document.json#/$defs/Bounds" } }
+      }
+    },
+    "ExportSnapshot": {
+      "type": "object", "additionalProperties": false, "required": ["documentId", "sessionId", "revision", "document", "projection"],
+      "properties": {
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "pageId": { "type": "string" },
+        "revision": { "type": "integer" },
+        "document": { "$ref": "document.json#/$defs/DiagramDocument" },
+        "projection": { "$ref": "#/$defs/Projection" }
+      }
+    },
+    "Origin": {
+      "description": "Host-stamped telemetry; caller-supplied values are discarded; never an idempotency key.",
+      "type": "object", "additionalProperties": false, "required": ["source"],
+      "properties": {
+        "source": { "type": "string", "enum": ["gui", "mcp", "host"] },
+        "clientLabel": { "type": "string", "maxLength": 128 },
+        "connectionId": { "type": "string" }
+      }
+    },
+    "RequestEnvelope": {
+      "type": "object", "additionalProperties": false, "required": ["protocolVersion", "kind", "requestId", "method", "params"],
+      "properties": {
+        "protocolVersion": { "const": 1 },
+        "kind": { "const": "request" },
+        "requestId": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "method": { "type": "string", "pattern": "^[a-z]+\\.[A-Za-z]+$" },
+        "documentId": { "$ref": "document.json#/$defs/Uuid" },
+        "sessionId": { "$ref": "document.json#/$defs/Uuid" },
+        "deadlineMs": { "type": "integer", "minimum": 1, "maximum": 300000 },
+        "origin": { "$ref": "#/$defs/Origin" },
+        "params": {
+          "type": "object",
+          "not": { "anyOf": [{ "required": ["documentId"] }, { "required": ["sessionId"] }] }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "method": { "enum": ["doc.apply", "doc.executeScript", "doc.undo", "doc.redo"] } } },
+          "then": {
+            "required": ["documentId", "sessionId"],
+            "properties": { "params": { "required": ["transactionId", "baseRevision"] } }
+          }
+        },
+        {
+          "if": { "properties": { "method": { "pattern": "^doc\\." } } },
+          "then": { "required": ["documentId", "sessionId"] }
+        }
+      ]
+    },
+    "ResponseEnvelope": {
+      "type": "object", "additionalProperties": false, "required": ["protocolVersion", "kind", "requestId"],
+      "properties": {
+        "protocolVersion": { "const": 1 },
+        "kind": { "const": "response" },
+        "requestId": { "type": "string" },
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "result": {},
+        "error": { "$ref": "#/$defs/AppError" }
+      },
+      "oneOf": [{ "required": ["result"] }, { "required": ["error"] }]
+    },
+    "EventEnvelope": {
+      "type": "object", "additionalProperties": false, "required": ["protocolVersion", "kind", "method", "sequence", "payload"],
+      "properties": {
+        "protocolVersion": { "const": 1 },
+        "kind": { "const": "event" },
+        "method": { "type": "string", "enum": ["editor.ready", "doc.opened", "doc.closed", "doc.committed", "doc.dirtyChanged", "editor.gesture"] },
+        "sequence": { "type": "integer", "minimum": 1 },
+        "documentId": { "type": "string" },
+        "sessionId": { "type": "string" },
+        "revision": { "type": "integer" },
+        "payload": { "type": "object" }
+      }
+    }
+  }
+}
