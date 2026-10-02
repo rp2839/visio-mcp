@@ -43,10 +43,58 @@
           "result": "GREEN: 16 passed / 16 from clean lockfile install"
         }
       ]
+    },
+    {
+      "package": "I01-I04",
+      "date": "2026-10-02",
+      "os": "Ubuntu 24.04.4 LTS (cloud container), Linux 6.18",
+      "node": "24.21.0 (official tarball, sha256 verified)",
+      "npm": "11.19.0",
+      "dotnet": "SDK 10.0.112 / runtime 10.0.x from Ubuntu noble-updates (dotnet-sdk-10.0 10.0.112-0ubuntu1~24.04.1). Pinned 10.0.401 could not be fetched: builds.dotnet.microsoft.com blocked by egress policy (403).",
+      "browser": "Chromium 141.0.7390.37 pre-installed at /opt/pw-browsers/chromium (Playwright 1.63.0 bundled revision 1243 not downloaded)",
+      "git": "rp2839/visio-mcp branch claude/eager-goodall-f9jmub",
+      "steps": [
+        {
+          "package": "I01",
+          "command": "dotnet test spikes/vsdx.tests/VsdxProbe.Tests.csproj",
+          "result": "RED 9/9 on stubs, then GREEN 9/9"
+        },
+        {
+          "package": "I01",
+          "command": "dotnet run --project spikes/vsdx -- --output docs/m0/evidence/G1/generated.vsdx",
+          "result": "generated; OfficeIMO 3.4.4 independently loads it (docs/m0/evidence/G1/officeimo-crosscheck.txt)"
+        },
+        {
+          "package": "I02",
+          "command": "PROBE_CHROMIUM=/opt/pw-browsers/chromium npm --prefix spikes/canvas run test:browser",
+          "result": "RED 2/2 with commit listener disabled; GREEN 7/7 (incl. I04 bridge.spec); --repeat-each=3 stable"
+        },
+        {
+          "package": "I03",
+          "command": "dotnet test spikes/ipc.tests/IpcProbe.Tests.csproj",
+          "result": "RED 4/11, then GREEN 11/11"
+        },
+        {
+          "package": "I04",
+          "command": "dotnet test spikes/webview.tests/WebViewProbe.Tests.csproj; dotnet build spikes/webview/WebViewProbe.csproj",
+          "result": "GREEN 11/11 (mutation red 3/11); WPF shell compiles, not run"
+        }
+      ],
+      "limitations": [
+        "No Windows, WebView2 runtime, Visio or Word",
+        "Unix-socket named pipes; Windows ACL/peer checks not exercised",
+        "Timings from a headless container are not target-machine evidence"
+      ]
     }
   ],
   "windowsAcceptance": {
     "status": "NOT RUN",
     "note": "Q1: Windows/Visio/Word machine still to be identified."
+  },
+  "evidence": {
+    "G1": "docs/m0/evidence/G1/",
+    "G2": "docs/m0/evidence/G2/",
+    "G3": "docs/m0/evidence/G3/",
+    "G4": "spikes/webview/README.md (no Windows evidence)"
   }
 }

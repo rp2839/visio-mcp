@@ -36,7 +36,7 @@
         "I03",
         "I04"
       ],
-      "status": "pinned only; not installed on the I00 machine",
+      "status": "pinned 10.0.401 not installable here (Microsoft download host blocked); I01-I04 built with Ubuntu-packaged SDK 10.0.112. Re-run on 10.0.401 on Windows.",
       "artifact": "deferred: I01/I03 record the platform-specific SDK installer/archive URL and checksum when they install it"
     }
   ],
@@ -84,7 +84,7 @@
         "I02",
         "I04"
       ],
-      "status": "pinned only; pre-1.0, API stability is part of what G2 tests"
+      "status": "installed via spikes/canvas/package-lock.json; used by I02/I04"
     },
     {
       "name": "@playwright/test",
@@ -95,7 +95,7 @@
       "usedBy": [
         "I02"
       ],
-      "status": "pinned only; browser build to be recorded by I02 after 'npx playwright install'"
+      "status": "installed via spikes/canvas/package-lock.json; used by I02/I04 (browser: pre-installed Chromium 141 via executablePath)"
     },
     {
       "name": "vite",
@@ -106,7 +106,7 @@
         "I00 (transitive, via vitest)",
         "I02"
       ],
-      "status": "installed transitively by spikes/contract-tests/package-lock.json (same integrity); not yet used as I02 build tool"
+      "status": "installed via spikes/canvas/package-lock.json; I02 dev server"
     },
     {
       "name": "typescript",
@@ -117,7 +117,7 @@
       "usedBy": [
         "I02"
       ],
-      "status": "pinned only; I00 tests do not typecheck (vitest strips types)"
+      "status": "installed via spikes/canvas/package-lock.json; used by I02/I04"
     }
   ],
   "nuget": [
@@ -142,7 +142,7 @@
       "usedBy": [
         "I01"
       ],
-      "status": "pinned only; glue/ID/image capability unproven until G1"
+      "status": "installed (spikes/vsdx lockfile). Finding: no picture/ForeignData API; used as independent parser oracle, not exporter"
     },
     {
       "id": "OfficeIMO.Core",
@@ -152,7 +152,7 @@
       "usedBy": [
         "I01"
       ],
-      "status": "transitive of OfficeIMO.Visio; pinned only"
+      "status": "installed (spikes/vsdx lockfile). Finding: no picture/ForeignData API; used as independent parser oracle, not exporter"
     },
     {
       "id": "ModelContextProtocol",
@@ -164,7 +164,7 @@
       "usedBy": [
         "I03"
       ],
-      "status": "pinned only"
+      "status": "installed (spikes/mcp, spikes/ipc.tests lockfiles); G3 Linux tests pass"
     },
     {
       "id": "Microsoft.Web.WebView2",
@@ -174,7 +174,7 @@
       "usedBy": [
         "I04"
       ],
-      "status": "pinned only; Evergreen runtime version to be recorded on the Windows machine"
+      "status": "installed (spikes/webview lockfile); compiles on Linux, runtime NOT RUN"
     },
     {
       "id": "xunit.v3",
@@ -188,7 +188,7 @@
         "I03",
         "I04"
       ],
-      "status": "pinned only"
+      "status": "installed via probe test lockfiles; tests pass on Linux"
     },
     {
       "id": "xunit.runner.visualstudio",
@@ -202,7 +202,7 @@
         "I03",
         "I04"
       ],
-      "status": "pinned only"
+      "status": "installed via probe test lockfiles; tests pass on Linux"
     },
     {
       "id": "Microsoft.NET.Test.Sdk",
@@ -216,7 +216,25 @@
         "I03",
         "I04"
       ],
-      "status": "pinned only"
+      "status": "installed via probe test lockfiles; tests pass on Linux"
+    },
+    {
+      "id": "Microsoft.Extensions.Hosting",
+      "version": "10.0.10",
+      "licence": "MIT",
+      "usedBy": [
+        "I03"
+      ],
+      "status": "added in I03 for the SDK stdio host; resolved from nuget.org flat container (latest stable 10.x on 2026-10-02)"
+    },
+    {
+      "id": "Microsoft.Testing.Platform runner",
+      "version": "via xunit.v3 4.0.1",
+      "licence": "MIT",
+      "usedBy": [
+        "I01-I04"
+      ],
+      "status": "global.json selects Microsoft.Testing.Platform; .NET 10 SDK no longer supports VSTest mode for MTP projects"
     }
   ]
 }
