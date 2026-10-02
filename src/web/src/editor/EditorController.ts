@@ -236,6 +236,7 @@ export class EditorController {
   }
 
   setUnits(units: Unit) { this.set({ units }); }
+  recordResult(result: TransactionResult) { this.set({ lastResult: result, status: `Revision ${result.revision}` }); }
   setStatus(status: string) { this.set({ status }); }
 
   setPage(pageId: string) {
