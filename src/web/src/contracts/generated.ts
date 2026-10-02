@@ -606,7 +606,7 @@ export type Diagnostic = {
   detail: string;
 };
 
-export type ErrorCode = "not_running" | "not_ready" | "no_document" | "session_mismatch" | "document_mismatch" | "unsupported_version" | "invalid_request" | "not_found" | "ambiguous_target" | "revision_conflict" | "locked_target" | "limit_exceeded" | "history_unavailable" | "transaction_id_conflict" | "timeout_unknown" | "io_error" | "compatibility_loss" | "projection_failed" | "busy" | "busy_user_editing" | "path_not_permitted" | "consent_denied" | "dependency_conflict" | "method_not_found" | "internal_error";
+export type ErrorCode = "not_running" | "not_ready" | "no_document" | "session_mismatch" | "document_mismatch" | "unsupported_version" | "invalid_request" | "not_found" | "ambiguous_target" | "revision_conflict" | "locked_target" | "limit_exceeded" | "history_unavailable" | "transaction_id_conflict" | "timeout_unknown" | "io_error" | "compatibility_loss" | "projection_failed" | "busy" | "busy_user_editing" | "path_not_permitted" | "consent_denied" | "dependency_conflict" | "method_not_found" | "checkpoint_required" | "internal_error";
 
 export type AppError = {
   code: ErrorCode;

@@ -8,6 +8,8 @@ import { RequestRouter, type Envelope } from './bridge/RequestRouter';
 import { AdmissionGate } from './bridge/AdmissionGate';
 import { compile } from './script/compiler';
 import { renderMethods } from './bridge/renderMethods';
+import { RecoveryForwarder } from './commands/recovery';
+import { err, ok } from './model/result';
 import type { Asset, PreparedAsset } from './model/types';
 import './styles.css';
 
@@ -31,6 +33,12 @@ if (webview) {
   controller.gestures.onGestureState((active) => gate.setGestureActive(active));
   // Host-stamped origin decides the path: MCP traffic is admitted per connection; host lifecycle calls are barriers.
   const client = connectHost(webview, engine, (m) => (m.origin?.source === 'mcp' ? gate.accept(m.origin.connectionId ?? 'mcp', m as Envelope) : router.dispatch(m as Envelope)));
+  // Durable recovery: committed resolved diffs go to the host journal; checkpoints on gaps/sessions.
+  const recovery = new RecoveryForwarder(engine, {
+    append: async (event) => { const r = await client.request('host.recoveryAppend', { event }); return r.ok ? ok(r.result as any) : err(r.error.code, r.error.message); },
+    checkpoint: async (snapshot, sequence) => { const r = await client.request('host.recoveryCheckpoint', { snapshot, sequence }); return r.ok ? ok(r.result as any) : err(r.error.code, r.error.message); },
+  });
+  void recovery.start();
   prepareAsset = async () => {
     const r = await client.request('host.prepareAsset');
     if (!r.ok) throw new Error(r.error.message);

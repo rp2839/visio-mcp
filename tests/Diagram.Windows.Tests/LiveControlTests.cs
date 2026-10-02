@@ -9,12 +9,14 @@ namespace Diagram.Windows.Tests;
 /// </summary>
 public sealed class LiveControlTests
 {
-    private static bool OnWindows => OperatingSystem.IsWindows();
+    // Always skipped: no automated Windows/WebView2 harness exists yet, so an empty body must never
+    // report a pass. Each case is a manual acceptance item until it is implemented.
+    private const string NotRun = "NOT RUN: needs an interactive Windows desktop with WebView2; no automated harness yet";
 
-    [Fact] public void ReconnectAfterLostCommittedReplyReturnsIdenticalResult() => Assert.SkipUnless(OnWindows, "Windows live control only");
-    [Fact] public void StaleHumanRevisionRemainsUntouched() => Assert.SkipUnless(OnWindows, "Windows live control only");
-    [Fact] public void ChangedPayloadConflicts() => Assert.SkipUnless(OnWindows, "Windows live control only");
-    [Fact] public void ScriptCreateDuplicatesOnce() => Assert.SkipUnless(OnWindows, "Windows live control only");
-    [Fact] public void ReadsShowCurrentCanonicalStore() => Assert.SkipUnless(OnWindows, "Windows live control only");
-    [Fact] public void SecondUserIsRefused() => Assert.SkipUnless(OnWindows, "Windows pipe ACLs only");
+    [Fact] public void ReconnectAfterLostCommittedReplyReturnsIdenticalResult() => Assert.Skip(NotRun);
+    [Fact] public void StaleHumanRevisionRemainsUntouched() => Assert.Skip(NotRun);
+    [Fact] public void ChangedPayloadConflicts() => Assert.Skip(NotRun);
+    [Fact] public void ScriptCreateDuplicatesOnce() => Assert.Skip(NotRun);
+    [Fact] public void ReadsShowCurrentCanonicalStore() => Assert.Skip(NotRun);
+    [Fact] public void SecondUserIsRefused() => Assert.Skip(NotRun);
 }

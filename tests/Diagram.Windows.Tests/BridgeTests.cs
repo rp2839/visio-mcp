@@ -8,11 +8,13 @@ namespace Diagram.Windows.Tests;
 /// </summary>
 public sealed class BridgeTests
 {
-    private static bool OnWindows => OperatingSystem.IsWindows();
+    // Always skipped: no automated Windows/WebView2 harness exists yet, so an empty body must never
+    // report a pass. Each case is a manual acceptance item until it is implemented.
+    private const string NotRun = "NOT RUN: needs an interactive Windows desktop with WebView2; no automated harness yet";
 
-    [Fact] public void NotReadyRejects() => Assert.SkipUnless(OnWindows, "Windows/WebView2 only (I11 Windows acceptance)");
-    [Fact] public void WrongOriginOrChildFrameRejects() => Assert.SkipUnless(OnWindows, "Windows/WebView2 only");
-    [Fact] public void CorrelationsDoNotCollide() => Assert.SkipUnless(OnWindows, "Windows/WebView2 only");
-    [Fact] public void AppStartsReadyWithA4Snapshot() => Assert.SkipUnless(OnWindows, "Windows/WebView2 only");
-    [Fact] public void PendingMutationCrashIsUnknown() => Assert.SkipUnless(OnWindows, "Windows/WebView2 only");
+    [Fact] public void NotReadyRejects() => Assert.Skip(NotRun);
+    [Fact] public void WrongOriginOrChildFrameRejects() => Assert.Skip(NotRun);
+    [Fact] public void CorrelationsDoNotCollide() => Assert.Skip(NotRun);
+    [Fact] public void AppStartsReadyWithA4Snapshot() => Assert.Skip(NotRun);
+    [Fact] public void PendingMutationCrashIsUnknown() => Assert.Skip(NotRun);
 }

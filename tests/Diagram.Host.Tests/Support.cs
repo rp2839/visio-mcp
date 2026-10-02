@@ -94,6 +94,8 @@ public sealed class FakeEditor : IEditorChannel
             case "doc.exportSnapshot":
                 var projection = new Projection { DocumentId = Document.Id, SessionId = SessionId, Revision = Document.Revision };
                 return Ok(new ExportSnapshot { DocumentId = Document.Id, SessionId = SessionId, Revision = Document.Revision, Document = Document, Projection = projection });
+            case "doc.renderSvg":
+                return Ok(new JsonObject { ["svg"] = "<svg xmlns=\"http://www.w3.org/2000/svg\"/>", ["revision"] = Document.Revision });
             case "asset.rasterize":
                 if (RasterPng is null) return Result<JsonElement>.Fail("not_found", "no raster");
                 return Ok(new JsonObject { ["mimeType"] = "image/png", ["data"] = Convert.ToBase64String(RasterPng) });

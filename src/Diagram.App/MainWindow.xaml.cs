@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows;
 using Diagram.Core.Contracts;
@@ -21,6 +22,9 @@ public partial class MainWindow : Window, IWebMessageChannel
     private VsdxCoordinator? vsdx;
     private AssetPreparer? preparer;
     private AssetLibrary? library;
+    private RecoveryJournal? journal;
+    private CheckpointStore? checkpoints;
+    private bool recoveryOffered;
     private string? currentPath;
     private HostRequestHandler? hostRequests;
     private readonly CancellationTokenSource shutdown = new();
@@ -60,6 +64,30 @@ public partial class MainWindow : Window, IWebMessageChannel
         sessions = new SessionCoordinator(bridge, blobs, preparer);
         vsdx = new VsdxCoordinator(bridge, blobs, preparer);
         library = new AssetLibrary(Path.Combine(dataRoot, "library"), blobs, preparer);
+        journal = new RecoveryJournal(Path.Combine(dataRoot, "recovery"), blobs);
+        checkpoints = new CheckpointStore(Path.Combine(dataRoot, "recovery"), blobs, journal);
+        // Read the previous run's durable state before this run's first checkpoint replaces it.
+        var pendingRecovery = await checkpoints.ReadRecoveryAsync(shutdown.Token);
+        bridge.RegisterHostHandler("host.recoveryAppend", async (p, ct) =>
+        {
+            var ev = p["event"].Deserialize<CommittedEvent>(ContractJson.Options);
+            if (ev is null) return Result<JsonNode?>.Fail("invalid_request", "event required");
+            var r = await journal.AppendDurableAsync(ev, ct);
+            return r.Ok ? Result<JsonNode?>.Success(new JsonObject { ["revision"] = r.Value!.Revision, ["sequence"] = r.Value.Sequence }) : Result<JsonNode?>.From(r.Error!);
+        });
+        bridge.RegisterHostHandler("host.recoveryCheckpoint", async (p, ct) =>
+        {
+            if (pendingRecovery is not null && !recoveryOffered) return Result<JsonNode?>.Fail("busy", "recovery decision pending", retryable: true);
+            var snap = p["snapshot"].Deserialize<Snapshot>(ContractJson.Options);
+            if (snap is null) return Result<JsonNode?>.Fail("invalid_request", "snapshot required");
+            var r = await checkpoints.PublishAsync(snap, p["sequence"]?.GetValue<long>() ?? 0, ct);
+            return r.Ok ? Result<JsonNode?>.Success(new JsonObject { ["revision"] = r.Value!.Revision }) : Result<JsonNode?>.From(r.Error!);
+        });
+        bridge.EventReceived += e =>
+        {
+            if (e["method"]?.GetValue<string>() != "editor.ready" || recoveryOffered) return;
+            Dispatcher.InvokeAsync(async () => await OfferRecoveryAsync(pendingRecovery));
+        };
         bridge.RegisterHostHandler("host.prepareAsset", PrepareAssetAsync);
         bridge.RegisterHostHandler("host.readBlob", async (p, ct) =>
         {
@@ -71,10 +99,40 @@ public partial class MainWindow : Window, IWebMessageChannel
         core.Navigate(new Uri(BridgeRouter.Origin, "index.html").ToString());
 
         // Live MCP control: per-user pipe; requests reach the frontend engine through the bridge.
-        hostRequests = new HostRequestHandler(bridge, [new AssetsListService(library, new AssetResolver(library, preparer, bridge), bridge)], preparer, blobs);
+        var exports = new ExportService(bridge, vsdx, new ExportPathPolicy(Path.Combine(dataRoot, "exports"), new DialogConsent(this)), () => currentPath);
+        hostRequests = new HostRequestHandler(bridge, [new AssetsListService(library, new AssetResolver(library, preparer, bridge), bridge), exports], preparer, blobs);
         var pipe = new Diagram.Ipc.PipeServer(Diagram.Ipc.Handshake.PipeName());
         _ = pipe.StartAsync((req, conn, ct) => hostRequests.HandleAsync(req, ct), shutdown.Token);
         Closed += (_, _) => shutdown.Cancel();
+    }
+
+    /// <summary>After a crash: offer the last durable state (validated replay in the frontend, new dirty session).</summary>
+    private async Task OfferRecoveryAsync(RecoveryCandidate? candidate)
+    {
+        recoveryOffered = true;
+        if (candidate is null || CurrentScope() is not { } scope) return;
+        var lost = candidate.Report.Count(d => d.Action == "dropped");
+        var ask = $"Recover the unsaved diagram (revision {candidate.Revision})?" + (lost > 0 ? $"\n\n{lost} damaged journal item(s) could not be recovered." : "");
+        if (MessageBox.Show(this, ask, "Agentic Diagram — recovery", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return;
+        var snap = await bridge!.CallAsync("doc.snapshot", scope, new JsonObject(), CancellationToken.None);
+        if (!snap.Ok) return;
+        var r = await bridge.CallAsync("recovery.restore", scope, new JsonObject
+        {
+            ["baseRevision"] = snap.Value.GetProperty("revision").GetInt64(),
+            ["candidate"] = new JsonObject
+            {
+                ["base"] = JsonNode.Parse(ContractJson.Serialize(candidate.Base)),
+                ["tail"] = JsonNode.Parse(JsonSerializer.Serialize(candidate.Tail, ContractJson.Options)),
+            },
+        }, CancellationToken.None);
+        Status.Text = r.Ok ? $"Recovered revision {candidate.Revision}; old agent sessions must re-read the document." : $"Recovery failed: {r.Error!.Message}";
+    }
+
+    private sealed class DialogConsent(MainWindow owner) : IExportConsent
+    {
+        public Task<bool> RequestAsync(string client, string path, string reason, CancellationToken ct) =>
+            owner.Dispatcher.InvokeAsync(() => MessageBox.Show(owner, $"{client} wants to export to\n{path}\n\nThis {reason}. Allow?", "Export approval",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes).Task;
     }
 
     public void PostJson(string json) => Dispatcher.InvokeAsync(() => View.CoreWebView2?.PostWebMessageAsJson(json));

@@ -2,6 +2,7 @@ import type { CommandEngine } from '../commands/CommandEngine';
 import { err, ok } from '../model/result';
 import { SnapshotProjector } from '../canvas/SnapshotProjector';
 import { renderSnapshot } from '../render/renderRegion';
+import { renderSvg } from '../render/SnapshotRenderer';
 import { inspectLayout } from '../layout/inspectLayout';
 import { canvasMeasure } from '../render/text';
 import type { AssetResolver } from '../editor/assets';
@@ -30,6 +31,24 @@ export function renderMethods(engine: CommandEngine, assets: AssetResolver): Rec
         pageId: page.id, format: p.format, mode: p.mode, maxWidth: p.maxWidth, maxHeight: p.maxHeight,
         ...(p.region ? { region: { bounds: p.region.bounds ?? undefined, elementIds: p.region.elementIds ?? undefined, paddingPt: p.region.paddingPt } } : {}),
       });
+    },
+    // Standalone SVG of one page (used by doc.export format=svg); assets are embedded as data URLs.
+    'doc.renderSvg': async (scope, p) => {
+      const snap = await engine.snapshot(scope);
+      if (!snap.ok) return snap;
+      const page = snap.value.document.pages.find((x) => x.id === p.pageId || x.name === p.pageId) ?? (p.pageId ? undefined : snap.value.document.pages[0]);
+      if (!page) return err('not_found', `page ${p.pageId} not found`);
+      const used = new Set(page.elements.flatMap((e) => (e.kind === 'image' ? [e.assetId] : [])));
+      const data = new Map<string, string>();
+      for (const a of snap.value.document.assets.filter((x) => used.has(x.id))) {
+        const url = await assets.dataUrlFor(a);
+        if (url) data.set(a.sha256, url);
+      }
+      const projection = projector.project(snap.value);
+      if (!projection.ok) return projection;
+      const svg = renderSvg(snap.value, projection.value, { pageId: page.id, mode: 'clean', crop: { x: 0, y: 0, width: page.widthPt, height: page.heightPt }, assetData: data, measure: canvasMeasure() });
+      if (!svg.ok) return svg;
+      return ok({ documentId: snap.value.documentId, sessionId: snap.value.sessionId, revision: snap.value.revision, pageId: page.id, svg: svg.value.svg });
     },
     'doc.inspectLayout': async (scope, p) => {
       const snap = await engine.snapshot(scope);

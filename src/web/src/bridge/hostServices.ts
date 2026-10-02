@@ -3,6 +3,7 @@ import type { DiagramDocument, Scope } from '../model/types';
 import type { Result } from '../model/result';
 import { err, ok } from '../model/result';
 import type { AssetResolver } from '../editor/assets';
+import { restoreRecovery, type RecoveryCandidateDto } from '../commands/recovery';
 
 type Json = Record<string, any>;
 export type MethodHandler = (scope: Scope, params: Json, envelope?: unknown) => Promise<Result<unknown>>;
@@ -23,6 +24,13 @@ export function lifecycleHandlers(engine: CommandEngine, hooks: { cancelGestures
       // Lifecycle barriers cancel uncommitted gestures before replacing state.
       hooks.cancelGestures?.();
       return engine.replaceDocument(p.document as DiagramDocument, { ...scope, baseRevision: p.baseRevision }, { savedRevision: p.savedRevision ?? null, path: p.path ?? null });
+    },
+    // Restore the last durable state after a crash: validated replay, then a new dirty session.
+    'recovery.restore': (scope, p) => {
+      const restored = restoreRecovery(p.candidate as RecoveryCandidateDto);
+      if (!restored.ok) return Promise.resolve(restored);
+      hooks.cancelGestures?.();
+      return engine.replaceDocument(restored.value, { ...scope, baseRevision: p.baseRevision }, { savedRevision: null, path: null });
     },
     // PNG derivative of an SVG asset for VSDX export (Visio pictures need raster bytes).
     'asset.rasterize': async (scope, p) => {
