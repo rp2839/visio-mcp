@@ -1,0 +1,31 @@
+I’ve completed the research and turned it into a coding-agent-ready MVP specification.
+
+A few conclusions materially shaped the proposed architecture.
+
+Microsoft Visio’s most important interaction patterns for this project are not its more advanced diagram types, but the core drawing model: stencils/shape libraries, finite pages, direct manipulation, static and dynamic connector glue, rulers/grid/guides, align/distribute, a detailed Format Shape inspector, and per-page layers with properties such as Visible, Print, Lock, Snap and Glue. Those are the behaviours I’ve treated as the baseline for the GUI. [Microsoft Support](https://support.microsoft.com/en-us/visio/use-the-shapes-window-to-organize-and-find-shapes?utm_source=chatgpt.com)
+
+For the drawing engine, I recommend **maxGraph rather than building the canvas from scratch or forking the whole draw.io application**. maxGraph is the actively maintained TypeScript successor to mxGraph, is Apache-2.0 licensed, and specifically targets developers creating custom diagramming tools; it already provides vertices, edges, resize/move/rotate, custom shapes, routing and layout machinery. [GitHub](https://github.com/maxGraph/maxGraph?utm_source=chatgpt.com) Draw.io remains extremely useful as a UX/architecture reference—its current embed protocol even supports incremental diff/patch synchronisation—but its current Desktop wrapper is GPL-3.0-only, whereas the core has different licensing. [draw.io](https://www.drawio.com/docs/reference/embed-mode/)
+
+The most significant technical uncertainty is **native VSDX interoperability**. VSDX itself is a documented XML/ZIP package format, so this is feasible without automating an installed copy of Visio. [Microsoft Learn](https://learn.microsoft.com/en-us/office/client-developer/visio/visio-file-format-reference) More importantly, the open-source position has improved considerably: **OfficeIMO.Visio** now has APIs for creating/loading/editing pages, shapes, text, connectors, layers and other Visio constructs, including explicit object IDs and headless image export. [GitHub](https://github.com/EvotecIT/OfficeIMO/blob/master/OfficeIMO.Visio/VisioPage.Shapes.cs?utm_source=chatgpt.com) `vsdx-go` also appeared in 2026 and claims substantial read/write support, but it is much younger and currently has a very small user base, so I would use it initially as an independent validation/fallback implementation rather than the primary dependency. [GitHub](https://github.com/wijnberg-net/vsdx-go/blob/main/README.md)
+
+The specification therefore deliberately starts with an **M0 VSDX feasibility gate**. Before anyone spends significant effort on the GUI, the coding agent should generate a real `.vsdx` containing editable shapes, glued connectors, formatting, a logo, layers and persistent agent IDs; open it in desktop Visio; edit it; embed it in Word; save it; and reopen it through the library. Failure at that stage means we change the VSDX backend before building the rest of the application.
+
+For the agent side, the design uses **persistent object IDs + typed atomic operations + revision numbers**, rather than asking the LLM to generate SVG/XML. This is closely aligned with the strongest existing agentic-diagram work: `excalidraw-mcp`, for example, deliberately exposes semantic operations and keeps geometry and binding integrity inside the diagram service. [GitHub](https://github.com/dtour/excalidraw-mcp) The MCP implementation can stay entirely in the proposed .NET stack because there is now an official Tier-1 C# MCP SDK. [GitHub](https://github.com/modelcontextprotocol/csharp-sdk?utm_source=chatgpt.com)
+
+The resulting proposed POC stack is:
+
+- **React + TypeScript + maxGraph** for the editor and canonical live document model.
+- **.NET 10 WPF + WebView2** for a Windows-first desktop host.
+- **OfficeIMO.Visio** as the first VSDX backend.
+- A separate **`Diagram.Mcp.exe` stdio MCP server**, proxying to the running GUI over a local named pipe.
+- A compact **DrawScript** language that compiles to the same typed operations used by MCP.
+- Persistent UUIDs written into Visio user cells such as `User.AgentId`, so an agent can still refer to the same object after a Visio round trip.
+- A local **asset/logo library with stable IDs**, specifically addressing the wrong-logo problem.
+- `render_page` / `render_region` MCP tools returning PNG/JPEG plus a machine-readable layout inspector, so the model can visually assess the result and make small corrective patches.
+- Optimistic revision checking and atomic transactions so a human edit cannot silently be overwritten by an LLM working from stale state.
+
+The document also contains the canonical document model, GUI layout, element/style models, DrawScript syntax and examples, full MCP tool surface, VSDX compatibility contract, security model, testing strategy, agent regression tests, repository layout, milestones M0–M5, explicit non-goals, risks/mitigations, and a concrete Definition of Done.
+
+**:chatgpt-content-reference{index="9"}[Download the complete Agentic Visio MVP specification](sandbox:/mnt/data/agentic-visio-mvp-spec.md)**
+
+I think the particularly strong part of this architecture is that the **MCP/command/document model is deliberately independent of both maxGraph and the Visio library**. If either dependency turns out to be the wrong choice during the spikes, the coding agent can replace `CanvasAdapter` or `VisioAdapter` without redesigning the scripting language or the agent interface.

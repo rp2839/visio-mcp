@@ -1,0 +1,222 @@
+{
+  "description": "I00 pinned versions for isolated M0 probes. Resolved from official registries on 2026-10-02. Pinned does not mean installed or proven: see per-entry status. Production packages must record their own resolutions (overview plan, 'Verification conventions').",
+  "resolvedAt": "2026-10-02",
+  "resolutionCommands": [
+    "npm view <name> version license gitHead dist.integrity",
+    "GET https://api.nuget.org/v3-flatcontainer/<id>/index.json (latest versions)",
+    "GET https://api.nuget.org/v3-flatcontainer/<id>/<ver>/<id>.nuspec (licence, repository commit, target frameworks)",
+    "GET https://api.nuget.org/v3/registration5-gz-semver2/<id>/<ver>.json -> catalogEntry.packageHash",
+    "GET https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/10.0/releases.json",
+    "GET https://nodejs.org/dist/index.json; verify tarball against SHASUMS256.txt"
+  ],
+  "toolchains": [
+    {
+      "name": "Node.js",
+      "version": "24.21.0",
+      "channel": "LTS (Krypton)",
+      "licence": "MIT",
+      "source": "https://nodejs.org/dist/v24.21.0/node-v24.21.0-linux-x64.tar.xz",
+      "verification": "sha256sum -c against official SHASUMS256.txt: OK (value above)",
+      "usedBy": [
+        "I00",
+        "I02"
+      ],
+      "status": "installed (session scratch, not system-wide) and used for I00 tests",
+      "sha256": "fd8e59d5a511510f6a298afb548f18c7d2b1be404d8b4a27d94fbe49f56cb2d6"
+    },
+    {
+      "name": ".NET SDK",
+      "version": "10.0.401",
+      "runtime": "10.0.12",
+      "channel": "active support",
+      "licence": "MIT",
+      "source": "https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/10.0/releases.json",
+      "usedBy": [
+        "I01",
+        "I03",
+        "I04"
+      ],
+      "status": "pinned only; not installed on the I00 machine",
+      "artifact": "deferred: I01/I03 record the platform-specific SDK installer/archive URL and checksum when they install it"
+    }
+  ],
+  "npm": [
+    {
+      "name": "vitest",
+      "version": "5.0.3",
+      "licence": "MIT",
+      "integrity": "sha512-xMw97S3rjdtj5dkVat7jCsqWBpvchs3RlpQctUqwJD0KkERk40vz2fJ77lDwW/Vzh/pk18eItYAzkodhSes3jQ==",
+      "usedBy": [
+        "I00",
+        "I02"
+      ],
+      "status": "installed via spikes/contract-tests/package-lock.json; tests pass"
+    },
+    {
+      "name": "ajv",
+      "version": "8.20.0",
+      "licence": "MIT",
+      "gitHead": "0fba0b8e649909613cfce0999b149cd08f4a4987",
+      "integrity": "sha512-Thbli+OlOj+iMPYFBVBfJ3OmCAnaSyNn4M1vz9T6Gka5Jt9ba/HIR56joy65tY6kx/FCF5VXNB819Y7/GUrBGA==",
+      "usedBy": [
+        "I00"
+      ],
+      "status": "installed via spikes/contract-tests/package-lock.json; tests pass"
+    },
+    {
+      "name": "ajv-formats",
+      "version": "3.0.1",
+      "licence": "MIT",
+      "gitHead": "1fb3fa7d967f919ff924bb34aef73a2f39ab0de3",
+      "integrity": "sha512-8iUql50EUR+uUcdRQ3HDqa6EVyo3docL8g5WJ3FNcWmu62IbkGUue/pEyLBW8VGKKucTPgqeks4fIU1DA4yowQ==",
+      "usedBy": [
+        "I00"
+      ],
+      "status": "installed via spikes/contract-tests/package-lock.json; tests pass"
+    },
+    {
+      "name": "@maxgraph/core",
+      "version": "0.24.0",
+      "licence": "Apache-2.0",
+      "gitHead": "1264b068272baf147b26680c540df047a7d22d79",
+      "integrity": "sha512-OgzCL86pTEa/8MpxbIX44S+xk0qAfmlAu0yZhQ9RFaEB8E5M2rJlPHNWeFpsD/ybWb5J5oPmZYszIcvzG/Kg4g==",
+      "usedBy": [
+        "I02",
+        "I04"
+      ],
+      "status": "pinned only; pre-1.0, API stability is part of what G2 tests"
+    },
+    {
+      "name": "@playwright/test",
+      "version": "1.63.0",
+      "licence": "Apache-2.0",
+      "gitHead": "1b025d7e20a026371cd5f98ba0cdce48892737c8",
+      "integrity": "sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==",
+      "usedBy": [
+        "I02"
+      ],
+      "status": "pinned only; browser build to be recorded by I02 after 'npx playwright install'"
+    },
+    {
+      "name": "vite",
+      "version": "8.3.2",
+      "licence": "MIT",
+      "integrity": "sha512-SQr1x6W5vVSbROg7vsyXIaxK9b0G7zsT68acdWWRmnBUsgDieLCRG+Rep9WdZgcposvv/GSnr4GUUBqB3vXq6w==",
+      "usedBy": [
+        "I00 (transitive, via vitest)",
+        "I02"
+      ],
+      "status": "installed transitively by spikes/contract-tests/package-lock.json (same integrity); not yet used as I02 build tool"
+    },
+    {
+      "name": "typescript",
+      "version": "7.0.2",
+      "licence": "Apache-2.0",
+      "gitHead": "2bd066d87f5bafd315be9f40889d0a60b9e58e0b",
+      "integrity": "sha512-8FYau96o3NKOhbjKi/qNvG/W5jhzxkbdm5sj9AbZ/5T5sWqn3hJgLfGx27sRKZWTvyzCP8dLRBTf5tBTSRVUNA==",
+      "usedBy": [
+        "I02"
+      ],
+      "status": "pinned only; I00 tests do not typecheck (vitest strips types)"
+    }
+  ],
+  "nuget": [
+    {
+      "id": "OfficeIMO.Visio",
+      "version": "3.4.4",
+      "licence": "MIT",
+      "repository": "https://github.com/EvotecIT/OfficeIMO",
+      "commit": "7ea881d08359b4fddddef8e2aa7782d1ee2265b8",
+      "sha512": "PgLOjHmbelVe1J/TKdL9Jn+vWXOHfYtHw0M9boRvwZR674v74beyCTHd7IG8vaAVi0dmPizMdj99TKECzEL9Hg==",
+      "targetFrameworks": [
+        "net472",
+        "netstandard2.0",
+        "net8.0",
+        "net10.0"
+      ],
+      "dependencies": [
+        "OfficeIMO.Core 3.4.4",
+        "System.IO.Packaging 10.0.8",
+        "Microsoft.Bcl.AsyncInterfaces 10.0.9"
+      ],
+      "usedBy": [
+        "I01"
+      ],
+      "status": "pinned only; glue/ID/image capability unproven until G1"
+    },
+    {
+      "id": "OfficeIMO.Core",
+      "version": "3.4.4",
+      "licence": "MIT",
+      "sha512": "YhMjq7fpm9DlmJSv9c2ESwhcPVFc4o5ChQt+ds7almta4AWlxik7DEa4eCQNhLEq97TziLMAHIj0yh83kV+Jjw==",
+      "usedBy": [
+        "I01"
+      ],
+      "status": "transitive of OfficeIMO.Visio; pinned only"
+    },
+    {
+      "id": "ModelContextProtocol",
+      "version": "2.2.0",
+      "licence": "Apache-2.0",
+      "repository": "https://github.com/modelcontextprotocol/csharp-sdk",
+      "commit": "6fa3825973949a9c4f0cd8af344e15a8db09dc35",
+      "sha512": "gpbmIn/FEP7cb0saSox9dwWu9avJJgGv5jVOedgykpGQsSSP1U9Y0PQq2PyuynMNh9qBty/finIPXhNBu/vvew==",
+      "usedBy": [
+        "I03"
+      ],
+      "status": "pinned only"
+    },
+    {
+      "id": "Microsoft.Web.WebView2",
+      "version": "1.0.4258.31",
+      "licence": "LicenseRef-Microsoft-WebView2-SDK (BSD-3-Clause-style text in package LICENSE.txt; inspected)",
+      "sha512": "HlGVwvyP/IWiXAU8K57Vmg59khY3DWMOxMnH4AHusFRy0/vDAjKItXUIVNXiXXaq4CLfSZyNUic1wOIlnPLsPQ==",
+      "usedBy": [
+        "I04"
+      ],
+      "status": "pinned only; Evergreen runtime version to be recorded on the Windows machine"
+    },
+    {
+      "id": "xunit.v3",
+      "version": "4.0.1",
+      "licence": "Apache-2.0",
+      "repository": "https://github.com/xunit/xunit",
+      "commit": "8ed8aa354c7298e157a0fc2dcd61b95df345256a",
+      "sha512": "20X21QzOidd8u+A0gXm8kJmxa622kaQvFJ7f4oCRMznZ0q8dAbXLSyTqSdp2LZc4uQ0tgX8yc2hW/mxnAfY8SQ==",
+      "usedBy": [
+        "I01",
+        "I03",
+        "I04"
+      ],
+      "status": "pinned only"
+    },
+    {
+      "id": "xunit.runner.visualstudio",
+      "version": "4.0.0",
+      "licence": "Apache-2.0",
+      "repository": "https://github.com/xunit/visualstudio.xunit",
+      "commit": "05679a7ab5ca2461d06880faaefe26770e0fdf77",
+      "sha512": "+uqyEZQt1G/tWjSyXkvCs7Xn3XXbnPyRz688bINaJUzEwflYHGZXcJK2E9dVVXxJDYoOdXlzQOUjwl15xKaeOQ==",
+      "usedBy": [
+        "I01",
+        "I03",
+        "I04"
+      ],
+      "status": "pinned only"
+    },
+    {
+      "id": "Microsoft.NET.Test.Sdk",
+      "version": "18.10.1",
+      "licence": "MIT",
+      "repository": "https://github.com/microsoft/vstest",
+      "commit": "87dfd4b2d2bacd91ad69e009ade6f4715b3b46ec",
+      "sha512": "a6948m6qXF9YN+on655ksENmiL0k9jtYs5WlI8LAI7Ql3rUjid6/yrzxmfamk6YS1GL3uagsvQOFkNFb4Gmlvg==",
+      "usedBy": [
+        "I01",
+        "I03",
+        "I04"
+      ],
+      "status": "pinned only"
+    }
+  ]
+}

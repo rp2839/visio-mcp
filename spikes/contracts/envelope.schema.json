@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:visio-mcp:spike:envelope:v1",
+  "title": "Probe request envelope (M0 spikes only)",
+  "description": "Isolated I00 prototype used to validate the later production protocol schema (I10). Not a competing production model. Requests only: response and event envelopes get their own schemas in the packages that first need them (I03/I04).",
+  "type": "object",
+  "required": [
+    "protocolVersion",
+    "kind",
+    "requestId",
+    "method",
+    "params"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "protocolVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "request"
+    },
+    "requestId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "method": {
+      "type": "string",
+      "pattern": "^[a-z][a-zA-Z]*(\\.[a-z][a-zA-Z]*)+$"
+    },
+    "documentId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "sessionId": {
+      "$ref": "#/$defs/uuid"
+    },
+    "params": {
+      "type": "object",
+      "description": "Scope lives only at the envelope top level; scope copies in params are invalid for every method.",
+      "propertyNames": {
+        "not": {
+          "enum": [
+            "documentId",
+            "sessionId"
+          ]
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "method"
+        ],
+        "properties": {
+          "method": {
+            "const": "doc.apply"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "documentId",
+          "sessionId"
+        ],
+        "properties": {
+          "documentId": {
+            "$ref": "#/$defs/uuid"
+          },
+          "sessionId": {
+            "$ref": "#/$defs/uuid"
+          },
+          "params": {
+            "$ref": "#/$defs/applyParams"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "applyParams": {
+      "description": "Scope lives only at the envelope top level; duplicated scope in params is invalid.",
+      "type": "object",
+      "required": [
+        "transactionId",
+        "baseRevision",
+        "atomic",
+        "operations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "pageId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "transactionId": {
+          "$ref": "#/$defs/uuid"
+        },
+        "baseRevision": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "atomic": {
+          "const": true
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

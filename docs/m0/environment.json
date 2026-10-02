@@ -1,0 +1,52 @@
+{
+  "description": "Environments in which M0 probe commands actually ran. I05 adds evidence links. A gate with no Windows/Office entry is NOT RUN, not PASS.",
+  "runs": [
+    {
+      "package": "I00",
+      "date": "2026-10-02",
+      "os": "Fedora Linux 44, kernel 7.2.7-200.fc44.x86_64",
+      "node": "24.21.0 (official tarball, sha256 verified, session-scratch install; PATH prepended for the run)",
+      "npm": "11.19.0",
+      "dotnet": "not installed",
+      "workingDirectory": "spikes/contract-tests",
+      "lockfiles": [
+        "spikes/contract-tests/package-lock.json"
+      ],
+      "limitations": [
+        "No .NET, Windows, WebView2, Visio or Word available; I01-I05 remain not started",
+        "No git metadata in workspace; no commit recorded"
+      ],
+      "steps": [
+        {
+          "command": "npm install --no-fund --no-audit && npm test",
+          "schema": "placeholder {\"type\":\"object\"}",
+          "result": "RED: 6 failed / 2 passed (behavioural assertion failures, not environment errors)"
+        },
+        {
+          "command": "npm test",
+          "schema": "envelope.schema.json (first version)",
+          "result": "GREEN: 8 passed / 8"
+        },
+        {
+          "command": "npm ci --no-fund --no-audit && npm test",
+          "schema": "envelope.schema.json (first version)",
+          "result": "GREEN: 8 passed / 8 from clean lockfile install"
+        },
+        {
+          "command": "npm test",
+          "schema": "pre-review schema, with review regression tests added",
+          "result": "RED: 1 failed / 15 passed (conflicting scope in doc.summary params accepted)"
+        },
+        {
+          "command": "npm ci --no-fund --no-audit && npm test",
+          "schema": "envelope.schema.json after Codex review corrections",
+          "result": "GREEN: 16 passed / 16 from clean lockfile install"
+        }
+      ]
+    }
+  ],
+  "windowsAcceptance": {
+    "status": "NOT RUN",
+    "note": "Q1: Windows/Visio/Word machine still to be identified."
+  }
+}
