@@ -1,0 +1,6 @@
+using OfficeIMO.Visio;
+var d = VisioDocument.Load(args[0]);
+foreach (var p in d.Pages) { Console.WriteLine($"page {p.Name} {p.Width}x{p.Height} shapes={p.Shapes.Count} connectors={p.Connectors.Count}");
+ foreach (var s in p.Shapes) Console.WriteLine($"  {s.Id} {s.NameU} text={s.Text} agent={s.GetUserCellValue("AgentId")}");
+ foreach (var c in p.Connectors) Console.WriteLine($"  conn {c.From?.Id}->{c.To?.Id}"); }
+var issues = d.Validate(); Console.WriteLine("validate: " + string.Join("; ", issues));

@@ -1,0 +1,62 @@
+{
+  "PageWidthPt": 841.8897637795277,
+  "PageHeightPt": 595.2755905511812,
+  "DrawableCount": 5,
+  "RectangleAgentId": "6f1c2b9e-3a4d-4c5e-8f70-112233445566",
+  "RectangleId": "1",
+  "EllipseId": "2",
+  "ConnectorFromShapeId": "1",
+  "ConnectorToShapeId": "2",
+  "ConnectorFromPort": null,
+  "ConnectorToPort": null,
+  "RectangleText": "Probe",
+  "RectangleFill": "#1F77B4",
+  "RectangleRotationDeg": 0,
+  "RectangleLayers": [
+    "Agents"
+  ],
+  "ImageHash": "230e6f6a9e725f80c2a873d6b1e194a80236ff355251f20ee80242589e9732ac",
+  "HasPageBitmap": false,
+  "PreservedSvgSource": "\u003Csvg xmlns=\u0022http://www.w3.org/2000/svg\u0022 viewBox=\u00220 0 4 4\u0022\u003E\u003Crect width=\u00224\u0022 height=\u00224\u0022 fill=\u0022#1F77B4\u0022/\u003E\u003C/svg\u003E",
+  "AgentIds": [
+    "6f1c2b9e-3a4d-4c5e-8f70-112233445566",
+    "a0000000-0000-4000-8000-000000000002",
+    "a0000000-0000-4000-8000-000000000003",
+    "a0000000-0000-4000-8000-000000000004",
+    "a0000000-0000-4000-8000-000000000005"
+  ],
+  "Bounds": {
+    "6f1c2b9e-3a4d-4c5e-8f70-112233445566": {
+      "X": 72,
+      "Y": 72,
+      "Width": 144,
+      "Height": 72
+    },
+    "a0000000-0000-4000-8000-000000000002": {
+      "X": 360,
+      "Y": 72,
+      "Width": 144,
+      "Height": 72
+    },
+    "a0000000-0000-4000-8000-000000000003": {
+      "X": 72,
+      "Y": 216,
+      "Width": 216,
+      "Height": 36
+    },
+    "a0000000-0000-4000-8000-000000000004": {
+      "X": 360,
+      "Y": 216,
+      "Width": 72,
+      "Height": 72
+    }
+  },
+  "Diagnostics": [
+    {
+      "Severity": "info",
+      "Code": "svg_rasterised",
+      "Action": "approximated",
+      "Detail": "shape 4 is a PNG derivative; standalone SVG source preserved in package"
+    }
+  ]
+}

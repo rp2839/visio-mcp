@@ -1,0 +1,7 @@
+page Page-1 11.692913385826774x8.267716535433072 shapes=4 connectors=1
+  1 Rectangle text=Probe agent=6f1c2b9e-3a4d-4c5e-8f70-112233445566
+  2 Ellipse text=Target agent=a0000000-0000-4000-8000-000000000002
+  3 TextBox text=Independent text agent=a0000000-0000-4000-8000-000000000003
+  4 Picture text= agent=a0000000-0000-4000-8000-000000000004
+  conn 1->2
+validate: 
