@@ -1,29 +1,14 @@
-import Ajv2020 from 'ajv/dist/2020';
-import addFormats from 'ajv-formats';
-import documentSchema from '../../../../contracts/document.schema.json';
-import operationsSchema from '../../../../contracts/operations.schema.json';
-import protocolSchema from '../../../../contracts/protocol.schema.json';
 import type { DiagramDocument, Element, Operation, Page } from './types';
 import { err, ok, type Result } from './result';
 import { deriveGroupBounds, indexPage, EPS } from './geometry';
 import { DEFAULT_PORTS } from './defaults';
+// Precompiled by tools/generate-contracts.mjs: no runtime code generation (CSP-safe).
+import {
+  validateDocumentSchema as documentValidator, validateElementSchemaFn as elementValidator, validateOperationBatch as batchValidator,
+  validateRequestEnvelope as requestValidator, validateMutationRequest as mutationValidator,
+} from '../contracts/validators.js';
 
 export { toPoints } from './units';
-
-const ajv = new Ajv2020({ allErrors: false, strict: false, discriminator: true });
-addFormats(ajv);
-ajv.addSchema(documentSchema).addSchema(operationsSchema).addSchema(protocolSchema);
-
-const getValidator = (ref: string) => {
-  const v = ajv.getSchema(ref);
-  if (!v) throw new Error(`schema ${ref} not found`);
-  return v;
-};
-const documentValidator = getValidator('https://agentic-diagram.invalid/schema/document.json');
-const elementValidator = getValidator('https://agentic-diagram.invalid/schema/document.json#/$defs/Element');
-const batchValidator = getValidator('https://agentic-diagram.invalid/schema/operations.json#/$defs/OperationBatch');
-const requestValidator = getValidator('https://agentic-diagram.invalid/schema/protocol.json#/$defs/RequestEnvelope');
-const mutationValidator = getValidator('https://agentic-diagram.invalid/schema/protocol.json#/$defs/MutationRequest');
 
 function schemaError<T>(what: string, v: { errors?: unknown[] | null }): Result<T> {
   const e = (v.errors?.[0] ?? {}) as { instancePath?: string; message?: string; params?: unknown };
