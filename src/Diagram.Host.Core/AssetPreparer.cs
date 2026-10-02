@@ -79,6 +79,19 @@ public sealed partial class AssetPreparer(BlobStore blobs, TimeProvider? clock =
         });
     }
 
+    /// <summary>Issues a fresh preparation for bytes that are already approved and durable (library assets).</summary>
+    public Result<PreparedAsset> Issue(Asset asset, long byteLength, string owner = "local")
+    {
+        if (!blobs.Contains(asset.Sha256)) return Result<PreparedAsset>.Fail("not_found", $"asset {asset.Id} bytes are not in the blob store");
+        var record = new PreparationRecord($"prep-{Guid.NewGuid():N}", asset.Sha256, clock.GetUtcNow() + PreparationLifetime, owner);
+        preparations[record.PreparationId] = record;
+        return Result<PreparedAsset>.Success(new PreparedAsset
+        {
+            Ref = new PreparedAssetRef { PreparationId = record.PreparationId, Asset = asset with { SourcePath = null, EmbeddedData = null }, ExpiresAt = record.ExpiresAt.ToString("O") },
+            ByteLength = byteLength,
+        });
+    }
+
     /// <summary>Checked only after a queue-head cache miss: unknown, expired, foreign or tampered refs reject.</summary>
     public Result<bool> Verify(PreparedAssetRef r, string owner = "local")
     {

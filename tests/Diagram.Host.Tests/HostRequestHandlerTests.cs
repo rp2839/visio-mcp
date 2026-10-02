@@ -45,3 +45,36 @@ public sealed class HostRequestHandlerTests
         Assert.Equal(["doc.summary"], view.Methods);
     }
 }
+
+public sealed class AssetGuardTests : IDisposable
+{
+    private readonly TempDir tmp = new();
+    public void Dispose() => tmp.Dispose();
+
+    private static RequestEnvelope Req(string method, object p) => new() { ProtocolVersion = 1, Kind = "request", RequestId = "r", Method = method, DocumentId = "d", SessionId = "s", Params = JsonSerializer.SerializeToElement(p, ContractJson.Options) };
+
+    [Fact]
+    public async Task McpMutationsOnlyReferenceApprovedBytes()
+    {
+        var blobs = new BlobStore(tmp.File("b"));
+        var preparer = new AssetPreparer(blobs);
+        var h = new HostRequestHandler(new BridgeRouter(new NullView()), null, preparer, blobs);
+        var prepared = (await preparer.PrepareBytesAsync(Png.Create(2, 2), "image/png", new AssetPreparer.Options("x"), CancellationToken.None)).Value!;
+        Assert.Null(h.CheckAssetReferences(Req("doc.executeScript", new { script = "", preparedAssetRefs = new Dictionary<string, PreparedAssetRef> { ["logo"] = prepared.Ref } })));
+        var forged = prepared.Ref with { PreparationId = "prep-forged" };
+        Assert.Equal("not_found", h.CheckAssetReferences(Req("doc.executeScript", new { preparedAssetRefs = new Dictionary<string, PreparedAssetRef> { ["logo"] = forged } }))!.Error!.Code);
+        var tampered = prepared.Ref with { Asset = prepared.Ref.Asset with { Sha256 = new string('e', 64) } };
+        Assert.Equal("invalid_request", h.CheckAssetReferences(Req("doc.executeScript", new { preparedAssetRefs = new Dictionary<string, PreparedAssetRef> { ["logo"] = tampered } }))!.Error!.Code);
+        Assert.Null(h.CheckAssetReferences(Req("doc.apply", new { operations = new object[] { new { op = "registerAsset", asset = prepared.Ref.Asset } } })));
+        var unknown = h.CheckAssetReferences(Req("doc.apply", new { operations = new object[] { new { op = "registerAsset", asset = prepared.Ref.Asset with { Sha256 = new string('f', 64) } } } }));
+        Assert.Equal(("not_found", "not_applied"), (unknown!.Error!.Code, unknown.Error.Outcome));
+        Assert.Equal("not_found", h.CheckAssetReferences(Req("doc.apply", new { operations = new object[] { new { op = "registerAsset", asset = new { sha256 = "../../etc" } } } }))!.Error!.Code);
+    }
+
+    private sealed class NullView : IWebMessageChannel
+    {
+        public event Action<WebMessage>? MessageReceived { add { } remove { } }
+        public event Action? ProcessFailed { add { } remove { } }
+        public void PostJson(string json) { }
+    }
+}

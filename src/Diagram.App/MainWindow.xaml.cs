@@ -20,6 +20,7 @@ public partial class MainWindow : Window, IWebMessageChannel
     private SessionCoordinator? sessions;
     private VsdxCoordinator? vsdx;
     private AssetPreparer? preparer;
+    private AssetLibrary? library;
     private string? currentPath;
     private HostRequestHandler? hostRequests;
     private readonly CancellationTokenSource shutdown = new();
@@ -58,6 +59,7 @@ public partial class MainWindow : Window, IWebMessageChannel
         bridge = new BridgeRouter(this);
         sessions = new SessionCoordinator(bridge, blobs, preparer);
         vsdx = new VsdxCoordinator(bridge, blobs, preparer);
+        library = new AssetLibrary(Path.Combine(dataRoot, "library"), blobs, preparer);
         bridge.RegisterHostHandler("host.prepareAsset", PrepareAssetAsync);
         bridge.RegisterHostHandler("host.readBlob", async (p, ct) =>
         {
@@ -69,7 +71,7 @@ public partial class MainWindow : Window, IWebMessageChannel
         core.Navigate(new Uri(BridgeRouter.Origin, "index.html").ToString());
 
         // Live MCP control: per-user pipe; requests reach the frontend engine through the bridge.
-        hostRequests = new HostRequestHandler(bridge);
+        hostRequests = new HostRequestHandler(bridge, [new AssetsListService(library, new AssetResolver(library, preparer, bridge), bridge)], preparer, blobs);
         var pipe = new Diagram.Ipc.PipeServer(Diagram.Ipc.Handshake.PipeName());
         _ = pipe.StartAsync((req, conn, ct) => hostRequests.HandleAsync(req, ct), shutdown.Token);
         Closed += (_, _) => shutdown.Cancel();
@@ -92,6 +94,9 @@ public partial class MainWindow : Window, IWebMessageChannel
         };
         await using var stream = File.OpenRead(path);
         var prepared = await preparer!.PrepareAsync(stream, mime, new AssetPreparer.Options(Path.GetFileNameWithoutExtension(path), SourcePath: path), ct);
+        // A file the user picked is approved: also publish it to the per-user library (new slugs only).
+        if (prepared.Ok && library is not null)
+            await library.AddAsync(await File.ReadAllBytesAsync(path, ct), mime, new AssetPreparer.Options(Path.GetFileNameWithoutExtension(path)), ct);
         return prepared.Ok ? Result<JsonNode?>.Success(JsonNode.Parse(ContractJson.Serialize(prepared.Value!))) : Result<JsonNode?>.From(prepared.Error!);
     }
 

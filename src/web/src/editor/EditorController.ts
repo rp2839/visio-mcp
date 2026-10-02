@@ -1,3 +1,4 @@
+import { prepareDocumentAsset } from '../commands/assetVersions';
 import { CommandEngine } from '../commands/CommandEngine';
 import type { Asset, Bounds, DiagramDocument, Element, Operation, Page, Snapshot, TransactionResult, TransactionSummary } from '../model/types';
 import type { Result } from '../model/result';
@@ -83,7 +84,8 @@ export class EditorController {
   private async refresh(projectAll = false) {
     const snapshot = this.engine.current();
     const pageId = this.pageIdFor(snapshot);
-    const ids = new Set(snapshot.document.pages.flatMap((p) => p.elements.map((e) => e.id)));
+    // Selection keeps only elements that still exist and are visible (hidden element or layer → deselected).
+    const ids = new Set(snapshot.document.pages.flatMap((p) => p.elements.filter((e) => isVisible(p, e)).map((e) => e.id)));
     const changes = await this.engine.getChanges(this.engine.scope(), Math.max(0, snapshot.revision - 20));
     this.set({
       snapshot, pageId, selection: this.state.selection.filter((id) => ids.has(id)),
@@ -167,14 +169,17 @@ export class EditorController {
     return this.apply([{ op: 'create', pageId: this.state.pageId, element: { kind: 'text', bounds, text: { value } } }], 'Add text');
   }
 
-  /** Registers a prepared asset and creates its image in one transaction. */
+  /**
+   * Registers a prepared asset (a new hash for a pinned slug becomes asset:<slug>~<sha256>)
+   * and creates its image in one transaction.
+   */
   insertImage(asset: Asset, at: { x: number; y: number } = { x: 72, y: 72 }) {
     const w = Math.min(200, asset.widthPx ?? 100), h = w * ((asset.heightPx ?? 100) / (asset.widthPx ?? 100));
-    const exists = this.state.snapshot.document.assets.some((a) => a.id === asset.id);
+    const { operations, resolvedAssetId, versioned } = prepareDocumentAsset(this.state.snapshot, { preparationId: 'local', asset, expiresAt: '' });
     return this.apply([
-      ...(exists ? [] : [{ op: 'registerAsset', asset } as Operation]),
-      { op: 'create', pageId: this.state.pageId, element: { kind: 'image', assetId: asset.id, bounds: { x: at.x, y: at.y, width: w, height: h } } },
-    ], `Insert image ${asset.name}`);
+      ...operations,
+      { op: 'create', pageId: this.state.pageId, element: { kind: 'image', assetId: resolvedAssetId, bounds: { x: at.x, y: at.y, width: w, height: h } } },
+    ], versioned ? `Insert image ${asset.name} (new version ${resolvedAssetId.slice(0, 24)}…)` : `Insert image ${asset.name}`);
   }
 
   async undo() {
@@ -240,7 +245,11 @@ export class EditorController {
   setStatus(status: string) { this.set({ status }); }
 
   setPage(pageId: string) {
-    if (!this.state.snapshot.document.pages.some((p) => p.id === pageId)) return;
+    if (!this.state.snapshot.document.pages.some((p) => p.id === pageId)) {
+      // Just committed (e.g. Add page) but the UI state has not refreshed yet: refresh, then switch.
+      if (this.engine.current().document.pages.some((p) => p.id === pageId)) void this.refresh().then(() => this.setPage(pageId));
+      return;
+    }
     this.gestures.cancelAll();
     this.adapter?.cancelGesture();
     this.set({ pageId, selection: [] });

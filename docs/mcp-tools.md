@@ -34,3 +34,25 @@ Client configuration: command `dotnet path/to/Diagram.Mcp.dll`, or the published
   Retry the same `transactionId`, or reconcile with `get_changes`.
 - Reopening or recovering a document starts a new session; old-session requests fail with
   `session_mismatch`.
+
+## Assets
+
+`list_assets` returns document assets (`scope: "document"`, `version: "pinned"`, or the
+12-character hash prefix for `asset:<slug>~<sha256>` versions, plus `usedBy`) and per-user
+library assets (`scope: "library"`, an integer `version`). Library entries include:
+
+- `documentAssetId`: the ID the asset will have in this document. It is
+  `asset:<slug>~<full-sha256>` when the document already pins that slug with different bytes.
+- `preparedRef`: a host-issued capability that is valid for 30 minutes.
+
+To use a library asset, either:
+
+- run `execute_script` with `preparedAssetRefs: {"logo": <preparedRef>}` and `asset import ref=logo`, or
+- run `apply_operations` with `{"op":"registerAsset","asset": <preparedRef.asset>}` in the same batch as the
+  `set`/`create` that uses it.
+
+The host checks both forms before forwarding: unknown, expired, foreign or modified refs are
+rejected, and a `registerAsset` hash that is not in the approved blob store returns `not_found` with
+`outcome: "not_applied"`. Because this check runs at the host boundary, a cached retry that still
+carries an expired ref is also refused. Retry within 30 minutes, or call `list_assets` again for a
+fresh ref.

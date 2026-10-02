@@ -9,7 +9,7 @@ export function PageTabs() {
   const status = useEditorState((s) => s.status);
   const revision = useEditorState((s) => s.snapshot.revision);
   const dirty = useEditorState((s) => s.dirty);
-  const add = async () => { const r = await c.apply([{ op: 'addPage', index: pages.length }], 'Add page'); if (r.ok) c.setPage(c.getState().snapshot.document.pages[pages.length].id); };
+  const add = async () => { const r = await c.apply([{ op: 'addPage', index: pages.length }], 'Add page'); if (r.ok) c.setPage(c.engine.current().document.pages[pages.length].id); };
   return (
     <footer className="page-tabs">
       {pages.map((p, i) => (
