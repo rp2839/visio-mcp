@@ -294,7 +294,7 @@ public sealed class DirectVsdxExporter : IVsdxExporter
                 var sub = GeometryMap.Preset(e is ShapeElement se ? se.Geometry.Preset : "rectangle", b.Width, b.Height, (e as ShapeElement)?.Geometry.CornerRadiusPt, (e as ShapeElement)?.Geometry.SvgPath);
                 var noLine = style.Stroke == "none" || style.StrokeWidthPt == 0;
                 var noFill = style.Fill == "none";
-                var extras = new List<(string, string)> { ("AgentPreset", e is TextElement ? "text" : preset), ("AgentGeomHash", GeometryMap.Hash(GeometryMap.FromSections(V, GeometryMap.ToSections(V, sub, false, false, false), 1, 1).Subpaths)) };
+                var extras = new List<(string, string)> { ("AgentPreset", e is TextElement ? "text" : preset), ("AgentGeomHash", GeometryMap.ExportHash(sub)) };
                 if (e is ShapeElement { Geometry.CornerRadiusPt: { } r }) extras.Add(("AgentCornerRadius", r.ToString("R", System.Globalization.CultureInfo.InvariantCulture)));
                 if (text is { Wrap: false }) extras.Add(("AgentTextWrap", "0"));
                 if (style.LineJoin != "miter" || style.LineCap != "butt") extras.Add(("AgentLineStyle", $"{style.LineCap};{style.LineJoin}"));

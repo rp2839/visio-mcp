@@ -1,93 +1,77 @@
 # Implementation progress
 
-Updated: 2026-10-02 (Europe/London).
+Updated: 2026-10-02. Branch `claude/eager-goodall-f9jmub`.
 
-Status: **I00 implemented and reviewed by Codex (approve with corrections; corrections applied)**; all other packages not started. This file splits future implementation into bounded work
-packages. It is a progress and dependency register, not a claim that feasibility
-spikes, builds, tests or Windows acceptance have run.
+**Status: all packages I00–I52 are implemented to the extent possible on Linux. The POC is NOT
+complete.**
 
-The current request is to create an implementation design and have Claude review it.
-The [implementation plan](docs/superpowers/plans/2026-10-02-agentic-diagram-implementation.md)
-has been reviewed by Claude; Codex incorporated the requested corrections. Product
-implementation is still not started.
-No product scaffolding or dependencies are needed for this request.
-Package ownership below is proposed: Claude currently
-has read-only broker access, so a future implementation session must either enable
-write-capable delegation or have Claude return reviewable patches for Codex to apply.
+- The M0 gate is **NOT PASSED**: Windows, Visio and Word acceptance has not been run (`docs/m0/decision.md`).
+- Production packages went ahead **provisionally** at the user's request.
+- Every Windows/WebView2/Visio/Word check is recorded as **NOT RUN**. Library reopening was never substituted for Office acceptance.
+- The §27 evidence map is in [docs/acceptance/definition-of-done.md](docs/acceptance/definition-of-done.md).
 
-| ID | Milestone / package | Proposed implementer | Depends on | Status | Exit evidence |
+| ID | Package | Status | Commit | Evidence (Linux) | Not run / remaining |
 |---|---|---|---|---|---|
-| I00 | Freeze shared contracts, dependency versions/licences for isolated probes | Claude (implemented); Codex review | Design review | done (Codex review 68fcf783 corrections applied) | `spikes/contract-tests` 16/16 pass; versions in `docs/m0/dependencies.json` |
-| I01 | M0: OfficeIMO editable VSDX round-trip harness | Claude design / Codex execution | I00 | not started | Generated and Visio-saved fixtures; glue/IDs/images verified |
-| I02 | M0: maxGraph interaction and PNG probe | Codex | I00 | not started | Move/resize/connect/image and render demonstrated |
-| I03 | M0: stdio MCP → pipe → test host probe | Claude design / Codex execution | I00 | not started | Tool result, rejection, disconnect and framing evidence |
-| I04 | M0: WebView2 → live frontend operation probe | Codex | I00, I02 | not started | Visible change plus matching document revision |
-| I05 | M0: Windows Visio/Word acceptance and backend decision | Codex + Windows tester | I01–I04 | not started | All four probes pass; Visio/Word manual evidence |
-| I10 | M1: minimal canonical store, transaction engine, inverse history | Codex | I05 | not started | Atomic rollback, revision race, patch preservation tests |
-| I11 | M1: WPF/WebView2 shell and JSON debug save/load | Codex; Claude review | I05, I10 | not started | Startup, ready handshake and file round-trip |
-| I12 | M1: one-page canvas, basic elements and inspector | Codex | I10, I11 | not started | GUI commands use store; glue and undo verified |
-| I20 | M2: full model and operations, groups, arrange, target resolution | Codex | I12 | not started | Every mutation tested with unaffected-object assertions |
-| I21 | M2: DrawScript parser/compiler and transaction drawer | Codex; Claude review | I20 | not started | Script/API equivalence and source error locations |
-| I30 | M3: production IPC routing and stdio MCP tools | Codex; Claude review | I11, I20, I21 | not started | Live GUI control, retry/conflict/session isolation |
-| I31 | M3: render snapshots, layout checks and change queries | Codex | I12, I20, I30 | not started | Revision-labelled previews and bounded history recovery |
-| I40 | M4: production VSDX mappings and compatibility diagnostics | Codex; Claude review | I01, I20, I30, I31 | not started | Feature matrix and supported-subset round-trip tests |
-| I41 | M4: Visio/Word manual acceptance suite | Windows tester + Codex | I40 | not started | Editable objects, glue, UUID retention, Word activation |
-| I50 | M5: multipage/layers and approved asset library | Codex; Claude review | I20, I40 | not started | Page/layer operations; one-logo and global-replace tests |
-| I51 | M5: durable recovery, security limits and failure handling | Codex; Claude review | I11, I30, I40, I50 | not started | Crash recovery and hostile-input boundary tests |
-| I52 | M5: performance measurements and complete demo | Codex + Windows tester | I31, I41, I50, I51 | not started | Spec §23 demo; every §27 criterion evidenced |
+| I00 | Contracts and pinned probe dependencies | done | 9dcfb86 | `spikes/contract-tests` 16/16 | — |
+| I01 | M0 VSDX round-trip probe | done (portable) | 19abf2b | `spikes/vsdx.tests` 9/9; backend decision: direct OPC (OfficeIMO has no picture API, so it is used as an oracle only) | Visio/Word open (G1) |
+| I02 | M0 maxGraph canvas probe | done | 210f24c | `spikes/canvas` 7/7, including real-pointer gestures and an offscreen PNG | — |
+| I03 | M0 stdio MCP → pipe probe | done (portable) | e18f5ff | `spikes/ipc.tests` 11/11 | Windows named-pipe ACLs |
+| I04 | M0 WebView2 bridge probe | partial | c17670a | portable bridge rules 11/11; WPF compiles | WebView2 run |
+| I05 | M0 results and decision | recorded | 61351e8 | `docs/m0/results.md`, `decision.md`: **gate NOT PASSED** | G1–G4 on Windows |
+| I10 | Contracts, canonical store, engine, history | done | 4cad0a0 | schema bundle → generated TS/C# (+ Ajv standalone); `Diagram.Contracts.Tests` 16/16 parity | — |
+| I11 | Host core and WPF shell | done (portable) | 1436955 | atomic IO, blob store, asset preparer, JSON lifecycle, bridge router (`Diagram.Host.Tests`) | WPF launch |
+| I12 | Canvas projection and React editor | done | 17eb705 | `editor.spec.ts`, `gestures.spec.ts`, `canvas.test.ts` | — |
+| I20 | Full mutations, groups, arrange | done | aad9d67 | `targets`/`structure`/`geometry`/`arrange` tests, `arrange.spec.ts` | — |
+| I21 | DrawScript and drawers | done | 4f00b5c | `script.test.ts`, `script.spec.ts`, `docs/drawscript.md` | — |
+| I30 | Production IPC, admission gate, MCP tools | done (portable) | 443acb6 | `Diagram.Ipc.Tests` 9, `Diagram.Mcp.Tests` 7, `admission.test.ts` | live MCP client → WPF (`LiveControlTests`) |
+| I31 | Render, region crops, layout inspection | done | da1a789 | `render.spec.ts` with golden PNG, `layout.test.ts` | WebView2 renderer |
+| I40 | VSDX mapping, guarded import, native open/export | done (library level) | 252163f | `Diagram.Visio.Tests` (mapping, identity, package guard, OfficeIMO oracle), `VsdxLifecycleTests`, [compatibility matrix](docs/vsdx-compatibility.md) | any Visio open or save |
+| I41 | Visio/Word acceptance | **NOT RUN** | 9215222 | [checklist](docs/acceptance/visio-word-checklist.md), app-authored fixture | WA-01…WA-12 |
+| I50 | Pages/layers and asset library | done | e113071 | `AssetLibraryTests`, `AssetGuardTests`, `assetVersions.test.ts`, `pages-layers-assets.spec.ts` | — |
+| I51 | Durable recovery and boundary hardening | done (portable) | 5b92f9c | `RecoveryTests` 9, `ExportPathTests` 20, `recovery.test.ts` 6, [hardening notes](docs/recovery-and-hardening.md) | `CrashRecoveryTests` (Windows), NTFS junctions |
+| I52 | Performance and §23 demo | done (portable) | this commit | [performance](docs/acceptance/performance.md); `verify-demo.mjs`: 11 PASS / 0 FAIL / 3 NOT RUN | Windows timings; Visio/Word demo steps 11–13; a real LLM client |
 
-Input validation and safe IO are introduced in the first package that accepts
-input, then tested and hardened in I51. They are not postponed until M5.
-M1 includes a minimal command engine because its GUI and undo must already use
-canonical transactions; M2 expands it instead of introducing a competing engine.
+## Final test run (2026-10-02, Linux x64, Node 24.21.0, .NET 10.0.112, Chromium 141)
 
-## Evidence register
+| Suite | Command | Result |
+|---|---|---|
+| .NET portable | `dotnet test --solution Diagram.Portable.slnx` | **149 passed**: Contracts 16, Host 76, Ipc 9, Mcp 7, Visio 41 |
+| Web unit | `npm --prefix src/web test` | **134 passed** (16 files) |
+| Web browser | `PW_CHROMIUM=/opt/pw-browsers/chromium npm --prefix src/web run test:browser` | **20 passed** (10 specs) |
+| Typecheck / build / contracts | `tsc --noEmit`, `vite build`, `generate-contracts --check` | clean |
+| Windows | `dotnet build Diagram.Windows.slnx` | builds. `dotnet test` cannot launch on Linux (no Microsoft.WindowsDesktop.App); its tests always skip as NOT RUN |
+| §23 demo | `node tools/demo/verify-demo.mjs` (after the browser demo and `DemoRoundTripTests`) | 11 PASS, 0 FAIL, 3 NOT RUN |
 
-Planning evidence: four plan documents (overview, M0, editor, host/integration),
-covering all 18 packages. Claude review task `7a968559-bffe-4a68-bbf1-150eaf5f4323`
-returned **approve with corrections**. Codex incorporated all eight important
-findings and the minor contract/coverage corrections. The exact verdict is preserved
-in [Claude's review](docs/design/collaboration/claude-implementation-plan-review.md),
-with [dispositions](docs/design/collaboration/implementation-review-disposition.md).
-No additional post-correction Claude verdict is claimed.
+## How red/green was shown
 
-Document verification passed: all packages covered once, no dependency cycles,
-all local links/code fences valid, review-required interfaces/test cases present
-and stale field/interface names removed. Production tasks retain their not-started
-status; these checks are not runtime, build or feasibility evidence.
+Where tests were written after the code, the red state was demonstrated by **mutation**: a
+guard was disabled, the owning test failed, and the guard was restored. This was done for these
+groups:
 
-I00 (2026-10-02, Fedora 44, Node 24.21.0): in `spikes/contract-tests`, `npm test` went red
-(6/8 failed on a placeholder schema) then green (8/8). Codex review task
-`68fcf783-d9e6-430e-8423-4bab0b5cfe95` returned **approve with corrections** (2 important,
-4 minor), all applied: the schema is now request-only and rejects scope in `params` for every
-method; the regression tests went red (1/16) on the old schema, then `npm ci && npm test` passed 16/16. Probe versions, licences and
-hashes are in [dependencies.json](docs/m0/dependencies.json); run details in
-[environment.json](docs/m0/environment.json). .NET was not installed, so only npm deps were
-installed; NuGet/.NET entries are pinned from registry metadata, not built.
+- VSDX lifecycle: Save As and lossy-clean guards.
+- Asset library and asset guard.
+- Recovery: blob-before-record, head regression, compaction, torn tail.
+- Export path policy: links, late consent, alternate data streams.
+- Incremental canvas projection.
+- Demo verifier: tampered evidence makes two steps FAIL.
 
-For each completed package record: exact dependency
-versions, commands, environment, fixture paths, observed results and remaining
-limitations. Manual checks include Windows, Visio and Word versions and screenshots
-or an acceptance report. Automated reopening alone cannot satisfy desktop acceptance.
+New tests also found real bugs, which were fixed:
 
-## Design outcome and remaining dependencies
+- Elements stayed selected after their layer was hidden.
+- *Add page* threw before the UI state refreshed.
+- Single-edit canvas latency was 355 ms (full rebuild); now 23 ms.
+- `-0`/`0` geometry hashes differed, so ellipses re-imported as `custom`.
+- The Windows test stubs would have passed with empty bodies on Windows; they now always skip as NOT RUN.
 
-R1–R4 are resolved in [QUESTIONS.md](docs/design/QUESTIONS.md). Their implementation
-checks cover explicit session scope, deduplication before revision validation,
-per-connection FIFO gesture admission and canonical-only group bounds. Document
-completion does not mark an implementation package complete.
+## Environment notes
 
-The architectural design and reviewed implementation plan are ready for user review.
-Q1 identifies the Windows/Visio/Word acceptance
-environment; Q2 retains the source's best-effort lossy-import policy; Q3 concerns SVG
-fallback only if native support fails. M0 functional evidence remains the production
-gate. No dependency was installed and no feasibility probe was run during design.
+- The Microsoft .NET download host is blocked here, so the Ubuntu `dotnet-sdk-10.0` 10.0.112 is used. `global.json` selects the Microsoft.Testing.Platform runner.
+- Playwright uses the pre-installed Chromium through `PW_CHROMIUM`; browsers are never downloaded.
+- The app and VSDX tests use Server GC (see performance.md).
 
-## Current dependencies
+## Design inputs
 
 - [Design progress](DESIGN_PROGRESS.md)
 - [Feasibility and acceptance design](docs/design/feasibility-and-acceptance.md)
-- [Questions for later review](docs/design/QUESTIONS.md)
-
-Linux can support portable frontend/model tests and some .NET library work. WPF,
-WebView2 and genuine Visio/Word interoperability require a Windows acceptance environment.
+- [Implementation plan](docs/superpowers/plans/2026-10-02-agentic-diagram-implementation.md)
+- [Questions](docs/design/QUESTIONS.md)

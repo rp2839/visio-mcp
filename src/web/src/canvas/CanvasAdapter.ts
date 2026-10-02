@@ -1,5 +1,5 @@
 import type { Result } from '../model/result';
-import type { Point, Snapshot } from '../model/types';
+import type { Point, ResolvedDiff, Snapshot } from '../model/types';
 
 export type GestureKind = 'move' | 'resize' | 'rotate' | 'bend' | 'text';
 
@@ -24,6 +24,8 @@ export type Viewport = { scale: number; translateX: number; translateY: number; 
 export interface CanvasAdapter {
   mount(container: HTMLElement): void;
   project(snapshot: Snapshot, pageId: string): Result<void>;
+  /** Optional incremental path for one committed diff; implementations may fall back to project(). */
+  projectChanges?(snapshot: Snapshot, pageId: string, diff: ResolvedDiff): Result<void>;
   setSelection(ids: string[]): void;
   getSelection(): string[];
   onIntent(listener: (intent: CanvasIntent) => void): () => void;

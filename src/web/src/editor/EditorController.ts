@@ -49,7 +49,11 @@ export class EditorController {
     this.gestures = new GestureController(this.engine, { onStatus: (m) => this.set({ status: m }) });
     this.gestures.onGestureState((active) => this.set({ gestureActive: active }));
     this.engine.setSnapshotProjector((s) => this.projector.project(s));
-    this.engine.setProjector((snapshot) => this.adapter ? this.adapter.project(snapshot, this.pageIdFor(snapshot)) : { ok: true, value: undefined });
+    this.engine.setProjector((snapshot, diff) => {
+      if (!this.adapter) return { ok: true, value: undefined };
+      const pageId = this.pageIdFor(snapshot);
+      return this.adapter.projectChanges ? this.adapter.projectChanges(snapshot, pageId, diff) : this.adapter.project(snapshot, pageId);
+    });
     this.engine.onCommitted((e) => {
       // Backstop: a mutation admitted before the gesture started has landed; the preview is stale.
       if (this.token && e.revision > this.token.baseRevision) {

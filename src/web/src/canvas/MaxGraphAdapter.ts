@@ -1,8 +1,8 @@
 import {
   Graph, InternalEvent, GeometryChange, StyleChange, ValueChange, TerminalChange, Point as MxPoint, ConnectionConstraint,
-  VertexHandlerConfig, type Cell, type CellStyle, type CellState,
+  VertexHandlerConfig, Geometry as MxGeometry, type Cell, type CellStyle, type CellState,
 } from '@maxgraph/core';
-import type { Asset, Element, Page, Point, Snapshot } from '../model/types';
+import type { Asset, Element, Page, Point, ResolvedDiff, Snapshot } from '../model/types';
 import { ok, err, type Result } from '../model/result';
 import { DEFAULT_PORTS } from '../model/defaults';
 import type { CanvasAdapter, CanvasChange, CanvasIntent, GestureKind, Viewport } from './CanvasAdapter';
@@ -167,6 +167,80 @@ export class MaxGraphAdapter implements CanvasAdapter {
     }
     if (firstProjection) this.fit('page');
     this.drawPage();
+    return ok(undefined);
+  }
+
+  /**
+   * Incremental projection of one committed diff: changed cells are updated in place, so a
+   * one-object edit costs one cell, not the page. Anything that can affect other cells' order or
+   * appearance (page/layer/asset/document changes, z-order, kind changes, out-of-order inserts,
+   * another page) falls back to a full projection.
+   */
+  projectChanges(snapshot: Snapshot, pageId: string, diff: ResolvedDiff): Result<void> {
+    const page = snapshot.document.pages.find((p) => p.id === pageId);
+    if (!page || !this.page || this.page.id !== pageId || !this.snapshot) return this.project(snapshot, pageId);
+    const changes = diff.changes;
+    if (changes.some((c) => c.entity !== 'element')) return this.project(snapshot, pageId);
+    const mine = changes.filter((c) => c.pageId === pageId || (c.before as any)?.id && this.element(c.id));
+    const g = this.graph;
+    const model = g.getDataModel();
+    const maxZ = page.elements.reduce((m, e) => (isVisible(page, e) ? Math.max(m, e.zIndex) : m), -Infinity);
+    const byId = new Map(page.elements.map((e) => [e.id, e]));
+    for (const c of mine) {
+      const before = c.before as Element | null, after = c.after as Element | null;
+      if (before && after && (before.zIndex !== after.zIndex || before.kind !== after.kind)) return this.project(snapshot, pageId);
+      const now = byId.get(c.id);
+      if (now && isVisible(page, now) && !model.getCell(c.id) && now.zIndex < maxZ) return this.project(snapshot, pageId);
+      if (now?.kind === 'group' || before?.kind === 'group') return this.project(snapshot, pageId);
+    }
+    this.snapshot = snapshot;
+    this.page = page;
+    const selected = this.getSelection();
+    const assets = new Map(snapshot.document.assets.map((a) => [a.id, a]));
+    this.projecting = true;
+    try {
+      const parent = g.getDefaultParent();
+      g.batchUpdate(() => {
+        const ordered = [...mine].sort((a, b) => Number(((a.after ?? a.before) as Element).kind === 'connector') - Number(((b.after ?? b.before) as Element).kind === 'connector'));
+        for (const c of ordered) {
+          const e = byId.get(c.id);
+          const cell = model.getCell(c.id);
+          if (!e || !isVisible(page, e)) { if (cell) g.removeCells([cell], false); continue; }
+          if (e.kind !== 'connector') {
+            const value = e.kind === 'shape' || e.kind === 'text' ? e.text?.value ?? '' : '';
+            if (!cell) {
+              g.insertVertex({ parent, id: e.id, value, position: [e.bounds.x, e.bounds.y], size: [e.bounds.width, e.bounds.height], style: this.vertexStyle(page, e, assets) });
+              continue;
+            }
+            model.setValue(cell, value);
+            model.setGeometry(cell, new MxGeometry(e.bounds.x, e.bounds.y, e.bounds.width, e.bounds.height));
+            model.setStyle(cell, this.vertexStyle(page, e, assets));
+          } else {
+            const source = e.from.elementId ? model.getCell(e.from.elementId) : null;
+            const target = e.to.elementId ? model.getCell(e.to.elementId) : null;
+            const edge = cell ?? g.insertEdge({ parent, id: e.id, value: e.label?.value ?? '', source, target, style: this.edgeStyle(page, e) });
+            if (cell) {
+              model.setValue(edge, e.label?.value ?? '');
+              model.setStyle(edge, this.edgeStyle(page, e));
+              model.setTerminal(edge, source, true);
+              model.setTerminal(edge, target, false);
+            }
+            const geo = new MxGeometry();
+            geo.relative = true;
+            if (!source && e.from.point) geo.setTerminalPoint(new MxPoint(e.from.point.x, e.from.point.y), true);
+            if (!target && e.to.point) geo.setTerminalPoint(new MxPoint(e.to.point.x, e.to.point.y), false);
+            geo.points = e.waypoints.map((p) => new MxPoint(p.x, p.y));
+            model.setGeometry(edge, geo);
+          }
+        }
+      });
+      const keep = selected.map((id) => model.getCell(id)).filter((c): c is Cell => !!c);
+      g.setSelectionCells(keep);
+    } catch (e) {
+      return err('projection_failed', `canvas projection failed: ${(e as Error).message}`);
+    } finally {
+      this.projecting = false;
+    }
     return ok(undefined);
   }
 
@@ -456,6 +530,23 @@ export class MaxGraphAdapter implements CanvasAdapter {
   private clientToPage(p: Point): Point {
     const r = this.container.getBoundingClientRect();
     return this.screenToPage({ x: p.x - r.left + this.container.scrollLeft, y: p.y - r.top + this.container.scrollTop });
+  }
+
+  /** Test/inspection helper: rendered state of every cell (page coordinates), keyed by element ID. */
+  cellStates(): Record<string, { x: number; y: number; width: number; height: number; points: Point[]; style: string; value: string }> {
+    const v = this.graph.getView();
+    const out: Record<string, any> = {};
+    for (const cell of this.graph.getChildCells(this.graph.getDefaultParent(), true, true)) {
+      const st = v.getState(cell);
+      if (!st || !cell.id) continue;
+      const pt = (q: { x: number; y: number }) => ({ x: +(q.x / v.scale - v.translate.x).toFixed(3), y: +(q.y / v.scale - v.translate.y).toFixed(3) });
+      out[cell.id] = {
+        x: +(st.x / v.scale - v.translate.x).toFixed(3), y: +(st.y / v.scale - v.translate.y).toFixed(3),
+        width: +(st.width / v.scale).toFixed(3), height: +(st.height / v.scale).toFixed(3),
+        points: (st.absolutePoints ?? []).filter(Boolean).map((q) => pt(q!)), style: JSON.stringify(cell.style), value: String(cell.value ?? ''),
+      };
+    }
+    return out;
   }
 
   pageToClient(p: Point): Point {

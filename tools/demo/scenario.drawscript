@@ -1,0 +1,15 @@
+# Spec §23 architecture diagram: step 2, created by the agent through MCP execute_script.
+# The billing block is deliberately 2 mm low so the agent's visual check (step 4) finds a real
+# alignment problem. Logos come from host-prepared assets (preparedAssetRefs), never paths.
+asset import ref=corona
+asset import ref=esg
+add shape id=crm type=roundedRect x=20mm y=40mm w=55mm h=22mm text="CRM (Salesforce)" fill="#DCEBFA"
+add shape id=billing type=roundedRect x=100mm y=42mm w=55mm h=22mm text="Billing (Corona Energy)" fill="#DCEBFA"
+add shape id=dwh type=roundedRect x=180mm y=40mm w=55mm h=22mm text="Data warehouse" fill="#DCEBFA"
+add shape id=esgblock type=roundedRect x=100mm y=115mm w=55mm h=22mm text="ESG Global reporting" fill="#E8F5E9"
+connect id=c1 from=crm.east to=billing.west route=orthogonal endArrow=triangle label="orders"
+connect id=c2 from=billing.east to=dwh.west route=orthogonal endArrow=triangle label="invoices"
+connect id=c3 from=billing.south to=esgblock.north route=orthogonal endArrow=triangle label="emissions"
+add text id=note x=20mm y=165mm w=140mm h=8mm text="Nightly batch at 02:00; owner: Data Platform (runbook RB-12)"
+add image id=logo_corona asset="asset:corona-energy" x=100mm y=20mm w=30mm h=12mm fit=contain
+add image id=logo_esg asset="asset:esg-global-old" x=160mm y=118mm w=30mm h=16mm fit=contain

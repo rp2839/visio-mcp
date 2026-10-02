@@ -165,11 +165,56 @@ public static class GeometryMap
     private static XElement Row(XNamespace v, string t, int ix, params (string N, double V)[] cells) =>
         new(v + "Row", new XAttribute("T", t), new XAttribute("IX", ix), cells.Select(c => Cell(v, c.N, c.V)));
 
+    /// <summary>
+    /// Hash of geometry exactly as the importer will reconstruct it from the exported Rel rows
+    /// (closing segment appended, coincident ends closed) without building and re-parsing XML.
+    /// Equivalent to Hash(FromSections(ToSections(subpaths))).
+    /// </summary>
+    public static string ExportHash(IReadOnlyList<Subpath> subpaths)
+    {
+        var normalised = new List<Subpath>(subpaths.Count);
+        foreach (var sp in subpaths)
+        {
+            var segs = sp.Segments;
+            if (segs.Count == 0) { normalised.Add(sp); continue; }
+            var first = (segs[0].P[0], segs[0].P[1]);
+            var lastP = segs[^1].P;
+            var last = (lastP[^2], lastP[^1]);
+            if (sp.Closed && (Math.Abs(first.Item1 - last.Item1) > 1e-12 || Math.Abs(first.Item2 - last.Item2) > 1e-12))
+            {
+                segs = [.. segs, new Seg('L', [first.Item1, first.Item2])];
+                last = first;
+            }
+            var closed = sp.Closed || (segs.Count > 1 && segs[^1].Op != 'M' && Math.Abs(last.Item1 - first.Item1) < 1e-9 && Math.Abs(last.Item2 - first.Item2) < 1e-9);
+            normalised.Add(new Subpath(segs, closed));
+        }
+        return Hash(normalised);
+    }
+
     /// <summary>Stable hash of exported geometry rows; a mismatch on import means Visio edited the geometry.</summary>
     public static string Hash(IEnumerable<Subpath> subpaths)
     {
-        var text = ToUnitPath(subpaths.Select(sp => sp with { Segments = sp.Segments.Select(s => s with { P = s.P.Select(x => Math.Round(x, 6)).ToArray() }).ToList() }));
-        return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text))).ToLowerInvariant()[..32];
+        // Same canonical text as ToUnitPath over 6-decimal-rounded coordinates, built without LINQ.
+        var sb = new StringBuilder(256);
+        foreach (var sp in subpaths)
+        {
+            foreach (var seg in sp.Segments)
+            {
+                sb.Append(seg.Op);
+                for (var i = 0; i < seg.P.Length; i++)
+                {
+                    if (i > 0) sb.Append(' ');
+                    var v = Math.Round(Math.Round(seg.P[i], 6), 9);
+                    sb.Append(F(v == 0 ? 0 : v)); // -0 and 0 must hash alike (row Y values are written as 1 - y)
+                }
+                sb.Append(' ');
+            }
+            if (sp.Closed) sb.Append("Z ");
+        }
+        var text = sb.ToString().Trim();
+        Span<byte> digest = stackalloc byte[32];
+        SHA256.HashData(Encoding.UTF8.GetBytes(text), digest);
+        return Convert.ToHexString(digest).ToLowerInvariant()[..32];
     }
 
     // ---------------- import: any supported row type → unit segments ----------------

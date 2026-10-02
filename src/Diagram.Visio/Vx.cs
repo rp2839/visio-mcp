@@ -79,6 +79,12 @@ internal static class Vx
         return XDocument.Load(r);
     }
 
+    public static XDocument Parse(byte[] bytes)
+    {
+        using var r = System.Xml.XmlReader.Create(new MemoryStream(bytes), PackageGuard.SafeXml(new PackageLimits()));
+        return XDocument.Load(r);
+    }
+
     public static byte[] Bytes(ZipArchive zip, string name)
     {
         var e = zip.GetEntry(name) ?? throw new Abstractions.VsdxException("invalid_request", $"missing part {name}");

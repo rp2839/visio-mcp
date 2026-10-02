@@ -69,15 +69,19 @@ public sealed class DirectVsdxImporter : IVsdxImporter
             var pagesPart = Resolve(docDir, RelTarget(docPart, RelPages) ?? "pages/pages.xml");
             var pagesXml = Load(zip, pagesPart);
             var pagesRels = RelsOf(pagesPart);
-            var pages = new List<(XElement Entry, XDocument Contents, string Part)>();
+            var pageParts = new List<(XElement Entry, byte[] Bytes, string Part)>();
             foreach (var p in pagesXml.Root!.Elements(V + "Page"))
             {
                 if ((string?)p.Attribute("Background") == "1") { diagnostics.Add(new Diagnostic { Severity = "warning", Code = "background_page", Action = "dropped", Detail = $"background page '{(string?)p.Attribute("Name")}' is not imported" }); continue; }
                 var rid = (string?)p.Element(V + "Rel")?.Attribute(R + "id");
                 if (rid is null || !pagesRels.TryGetValue(rid, out var target)) continue;
                 var part = Resolve(Path.GetDirectoryName(pagesPart)!.Replace('\\', '/'), target.Target);
-                pages.Add((p, Load(zip, part), part));
+                pageParts.Add((p, Vx.Bytes(zip, part), part)); // the archive is read sequentially
             }
+            // Page XML is independent: parse in parallel (the dominant cost for large drawings).
+            var parsedXml = new XDocument[pageParts.Count];
+            Parallel.For(0, pageParts.Count, i => parsedXml[i] = Vx.Parse(pageParts[i].Bytes));
+            var pages = pageParts.Select((p, i) => (p.Entry, Contents: parsedXml[i], p.Part)).ToList();
             if (pages.Count == 0) throw new VsdxException("invalid_request", "package has no foreground pages");
 
             // Pass 1: parse geometry/transforms; collect identity candidates in document order.

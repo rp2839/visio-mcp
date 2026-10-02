@@ -1,0 +1,72 @@
+{
+  "exportedIds": [
+    "11d88402-b92c-4cca-a62d-75fca02de230",
+    "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+    "80d6b305-7fbd-4457-92cb-c143bf689040",
+    "861dfb0d-d903-4afe-800e-3975567b324a",
+    "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+    "a98869d0-d21b-490c-8396-7ff299ed7912",
+    "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+    "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+    "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+    "fa326f27-2dc6-48be-831f-92f328b1bfaf"
+  ],
+  "reimportedIds": [
+    "11d88402-b92c-4cca-a62d-75fca02de230",
+    "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+    "80d6b305-7fbd-4457-92cb-c143bf689040",
+    "861dfb0d-d903-4afe-800e-3975567b324a",
+    "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+    "a98869d0-d21b-490c-8396-7ff299ed7912",
+    "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+    "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+    "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+    "fa326f27-2dc6-48be-831f-92f328b1bfaf"
+  ],
+  "glue": [
+    {
+      "Id": "11d88402-b92c-4cca-a62d-75fca02de230",
+      "from": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+      "to": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+      "fromAfter": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+      "toAfter": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee"
+    },
+    {
+      "Id": "861dfb0d-d903-4afe-800e-3975567b324a",
+      "from": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+      "to": "80d6b305-7fbd-4457-92cb-c143bf689040",
+      "fromAfter": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+      "toAfter": "80d6b305-7fbd-4457-92cb-c143bf689040"
+    },
+    {
+      "Id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+      "from": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+      "to": "a98869d0-d21b-490c-8396-7ff299ed7912",
+      "fromAfter": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+      "toAfter": "a98869d0-d21b-490c-8396-7ff299ed7912"
+    }
+  ],
+  "images": [
+    {
+      "Id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+      "before": "asset:corona-energy",
+      "after": "asset:corona-energy"
+    },
+    {
+      "Id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+      "before": "asset:esg-global",
+      "after": "asset:esg-global"
+    }
+  ],
+  "exportDiagnostics": [
+    "svg_rasterised"
+  ],
+  "importDiagnostics": [],
+  "identity": {
+    "Preserved": 10,
+    "Regenerated": 0,
+    "Generated": 0,
+    "DocumentIdentityPreserved": true
+  },
+  "packageBytes": 8639
+}

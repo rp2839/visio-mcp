@@ -1,0 +1,3259 @@
+{
+  "generatedAt": "2026-10-02T20:22:31.347Z",
+  "environment": "Linux, headless Chromium, browser build (no WPF host); agent decisions scripted",
+  "steps": [
+    {
+      "step": 1,
+      "title": "blank A4 landscape page",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 0,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 0,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": []
+            }
+          ],
+          "assets": [],
+          "metadata": {}
+        }
+      }
+    },
+    {
+      "step": 2,
+      "title": "agent creates blocks, connectors, note and logos (execute_script)",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 1,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 1,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": [
+                {
+                  "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                  "layerIds": [],
+                  "zIndex": 0,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "crm",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "CRM (Salesforce)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                  "layerIds": [],
+                  "zIndex": 1,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "billing",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 119.05511811023624,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Billing (Corona Energy)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                  "layerIds": [],
+                  "zIndex": 2,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "dwh",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 510.236220472441,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Data warehouse",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                  "layerIds": [],
+                  "zIndex": 3,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "esgblock",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 325.984251968504,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#E8F5E9",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "ESG Global reporting",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+                  "layerIds": [],
+                  "zIndex": 4,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c1",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 212.59842519685043,
+                    "y": 144.56692913385828,
+                    "width": 70.86614173228344,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "orders",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+                  "layerIds": [],
+                  "zIndex": 5,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c2",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 439.3700787401575,
+                    "y": 144.56692913385828,
+                    "width": 70.8661417322835,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "invoices",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+                  "layerIds": [],
+                  "zIndex": 6,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c3",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "south"
+                  },
+                  "to": {
+                    "elementId": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                    "glue": "static",
+                    "port": "north"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 361.4173228346457,
+                    "y": 181.4173228346457,
+                    "width": 0,
+                    "height": 144.5669291338583
+                  },
+                  "label": {
+                    "value": "emissions",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+                  "layerIds": [],
+                  "zIndex": 7,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "note",
+                  "kind": "text",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 467.71653543307093,
+                    "width": 396.85039370078744,
+                    "height": 22.67716535433071
+                  },
+                  "text": {
+                    "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "left",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  },
+                  "style": {
+                    "fill": "none",
+                    "fillOpacity": 1,
+                    "stroke": "none",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  }
+                },
+                {
+                  "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+                  "layerIds": [],
+                  "zIndex": 8,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_corona",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 56.69291338582678,
+                    "width": 85.03937007874016,
+                    "height": 34.01574803149607
+                  },
+                  "assetId": "asset:corona-energy",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                },
+                {
+                  "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+                  "layerIds": [],
+                  "zIndex": 9,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_esg",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 453.5433070866142,
+                    "y": 334.488188976378,
+                    "width": 85.03937007874016,
+                    "height": 45.35433070866142
+                  },
+                  "assetId": "asset:esg-global-old",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                }
+              ]
+            }
+          ],
+          "assets": [
+            {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          ],
+          "metadata": {}
+        }
+      },
+      "result": {
+        "transactionId": "81f3863a-954f-4c2f-a465-aee520f8b3f4",
+        "previousRevision": 0,
+        "created": [
+          "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+          "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+          "80d6b305-7fbd-4457-92cb-c143bf689040",
+          "a98869d0-d21b-490c-8396-7ff299ed7912",
+          "11d88402-b92c-4cca-a62d-75fca02de230",
+          "861dfb0d-d903-4afe-800e-3975567b324a",
+          "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+          "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+          "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+          "ccfdc999-cc6a-4741-a32e-1d5debe222ed"
+        ],
+        "changed": [],
+        "deleted": [],
+        "changedPageIds": [
+          "289de0a8-6369-45f1-bc9c-81ed680cc41d"
+        ],
+        "changedLayerIds": [],
+        "changedAssetIds": [
+          "asset:corona-energy",
+          "asset:esg-global-old"
+        ],
+        "visuallyAffectedIds": [
+          "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+          "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+          "80d6b305-7fbd-4457-92cb-c143bf689040",
+          "a98869d0-d21b-490c-8396-7ff299ed7912",
+          "11d88402-b92c-4cca-a62d-75fca02de230",
+          "861dfb0d-d903-4afe-800e-3975567b324a",
+          "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+          "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+          "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+          "ccfdc999-cc6a-4741-a32e-1d5debe222ed"
+        ],
+        "warnings": [],
+        "revision": 1,
+        "noChange": false,
+        "projectionStatus": "applied",
+        "aliases": {
+          "crm": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+          "billing": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+          "dwh": "80d6b305-7fbd-4457-92cb-c143bf689040",
+          "esgblock": "a98869d0-d21b-490c-8396-7ff299ed7912",
+          "c1": "11d88402-b92c-4cca-a62d-75fca02de230",
+          "c2": "861dfb0d-d903-4afe-800e-3975567b324a",
+          "c3": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+          "note": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+          "logo_corona": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+          "logo_esg": "ccfdc999-cc6a-4741-a32e-1d5debe222ed"
+        },
+        "operations": [
+          {
+            "op": "registerAsset",
+            "asset": {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          },
+          {
+            "op": "registerAsset",
+            "asset": {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "shape",
+              "style": {
+                "fill": "#DCEBFA"
+              },
+              "text": {
+                "value": "CRM (Salesforce)"
+              },
+              "geometry": {
+                "preset": "roundedRect"
+              },
+              "bounds": {
+                "x": 56.69291338582678,
+                "y": 113.38582677165356,
+                "width": 155.90551181102364,
+                "height": 62.36220472440945
+              },
+              "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+              "alias": "crm"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "shape",
+              "style": {
+                "fill": "#DCEBFA"
+              },
+              "text": {
+                "value": "Billing (Corona Energy)"
+              },
+              "geometry": {
+                "preset": "roundedRect"
+              },
+              "bounds": {
+                "x": 283.46456692913387,
+                "y": 119.05511811023624,
+                "width": 155.90551181102364,
+                "height": 62.36220472440945
+              },
+              "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+              "alias": "billing"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "shape",
+              "style": {
+                "fill": "#DCEBFA"
+              },
+              "text": {
+                "value": "Data warehouse"
+              },
+              "geometry": {
+                "preset": "roundedRect"
+              },
+              "bounds": {
+                "x": 510.236220472441,
+                "y": 113.38582677165356,
+                "width": 155.90551181102364,
+                "height": 62.36220472440945
+              },
+              "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+              "alias": "dwh"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "shape",
+              "style": {
+                "fill": "#E8F5E9"
+              },
+              "text": {
+                "value": "ESG Global reporting"
+              },
+              "geometry": {
+                "preset": "roundedRect"
+              },
+              "bounds": {
+                "x": 283.46456692913387,
+                "y": 325.984251968504,
+                "width": 155.90551181102364,
+                "height": 62.36220472440945
+              },
+              "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+              "alias": "esgblock"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "connector",
+              "from": {
+                "target": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                "port": "east"
+              },
+              "to": {
+                "target": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                "port": "west"
+              },
+              "route": "orthogonal",
+              "style": {
+                "endArrow": "triangle"
+              },
+              "label": {
+                "value": "orders"
+              },
+              "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+              "alias": "c1"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "connector",
+              "from": {
+                "target": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                "port": "east"
+              },
+              "to": {
+                "target": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                "port": "west"
+              },
+              "route": "orthogonal",
+              "style": {
+                "endArrow": "triangle"
+              },
+              "label": {
+                "value": "invoices"
+              },
+              "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+              "alias": "c2"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "connector",
+              "from": {
+                "target": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                "port": "south"
+              },
+              "to": {
+                "target": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                "port": "north"
+              },
+              "route": "orthogonal",
+              "style": {
+                "endArrow": "triangle"
+              },
+              "label": {
+                "value": "emissions"
+              },
+              "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+              "alias": "c3"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "text",
+              "text": {
+                "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)"
+              },
+              "bounds": {
+                "x": 56.69291338582678,
+                "y": 467.71653543307093,
+                "width": 396.85039370078744,
+                "height": 22.67716535433071
+              },
+              "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+              "alias": "note"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "image",
+              "assetId": "asset:corona-energy",
+              "fit": "contain",
+              "bounds": {
+                "x": 283.46456692913387,
+                "y": 56.69291338582678,
+                "width": 85.03937007874016,
+                "height": 34.01574803149607
+              },
+              "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+              "alias": "logo_corona"
+            }
+          },
+          {
+            "op": "create",
+            "pageId": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+            "element": {
+              "kind": "image",
+              "assetId": "asset:esg-global-old",
+              "fit": "contain",
+              "bounds": {
+                "x": 453.5433070866142,
+                "y": 334.488188976378,
+                "width": 85.03937007874016,
+                "height": 45.35433070866142
+              },
+              "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+              "alias": "logo_esg"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "step": 4,
+      "title": "agent renders a PNG preview and inspects layout",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 1,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 1,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": [
+                {
+                  "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                  "layerIds": [],
+                  "zIndex": 0,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "crm",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "CRM (Salesforce)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                  "layerIds": [],
+                  "zIndex": 1,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "billing",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 119.05511811023624,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Billing (Corona Energy)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                  "layerIds": [],
+                  "zIndex": 2,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "dwh",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 510.236220472441,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Data warehouse",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                  "layerIds": [],
+                  "zIndex": 3,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "esgblock",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 325.984251968504,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#E8F5E9",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "ESG Global reporting",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+                  "layerIds": [],
+                  "zIndex": 4,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c1",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 212.59842519685043,
+                    "y": 144.56692913385828,
+                    "width": 70.86614173228344,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "orders",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+                  "layerIds": [],
+                  "zIndex": 5,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c2",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 439.3700787401575,
+                    "y": 144.56692913385828,
+                    "width": 70.8661417322835,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "invoices",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+                  "layerIds": [],
+                  "zIndex": 6,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c3",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "south"
+                  },
+                  "to": {
+                    "elementId": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                    "glue": "static",
+                    "port": "north"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 361.4173228346457,
+                    "y": 181.4173228346457,
+                    "width": 0,
+                    "height": 144.5669291338583
+                  },
+                  "label": {
+                    "value": "emissions",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+                  "layerIds": [],
+                  "zIndex": 7,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "note",
+                  "kind": "text",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 467.71653543307093,
+                    "width": 396.85039370078744,
+                    "height": 22.67716535433071
+                  },
+                  "text": {
+                    "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "left",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  },
+                  "style": {
+                    "fill": "none",
+                    "fillOpacity": 1,
+                    "stroke": "none",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  }
+                },
+                {
+                  "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+                  "layerIds": [],
+                  "zIndex": 8,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_corona",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 56.69291338582678,
+                    "width": 85.03937007874016,
+                    "height": 34.01574803149607
+                  },
+                  "assetId": "asset:corona-energy",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                },
+                {
+                  "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+                  "layerIds": [],
+                  "zIndex": 9,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_esg",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 453.5433070866142,
+                    "y": 334.488188976378,
+                    "width": 85.03937007874016,
+                    "height": 45.35433070866142
+                  },
+                  "assetId": "asset:esg-global-old",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                }
+              ]
+            }
+          ],
+          "assets": [
+            {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          ],
+          "metadata": {}
+        }
+      },
+      "preview": {
+        "revision": 1,
+        "widthPx": 1600,
+        "heightPx": 1131,
+        "file": "preview-step4.png"
+      },
+      "layoutIssues": [],
+      "topsPt": {
+        "crm": 113.38582677165356,
+        "billing": 119.05511811023624,
+        "dwh": 113.38582677165356
+      }
+    },
+    {
+      "step": 5,
+      "title": "agent aligns the three top blocks",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 2,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 2,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": [
+                {
+                  "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                  "layerIds": [],
+                  "zIndex": 0,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "crm",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "CRM (Salesforce)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                  "layerIds": [],
+                  "zIndex": 1,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "billing",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Billing (Corona Energy)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                  "layerIds": [],
+                  "zIndex": 2,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "dwh",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 510.236220472441,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Data warehouse",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                  "layerIds": [],
+                  "zIndex": 3,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "esgblock",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 325.984251968504,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#E8F5E9",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "ESG Global reporting",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+                  "layerIds": [],
+                  "zIndex": 4,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c1",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 212.59842519685043,
+                    "y": 144.56692913385828,
+                    "width": 70.86614173228344,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "orders",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+                  "layerIds": [],
+                  "zIndex": 5,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c2",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 439.3700787401575,
+                    "y": 144.56692913385828,
+                    "width": 70.8661417322835,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "invoices",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+                  "layerIds": [],
+                  "zIndex": 6,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c3",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "south"
+                  },
+                  "to": {
+                    "elementId": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                    "glue": "static",
+                    "port": "north"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 361.4173228346457,
+                    "y": 181.4173228346457,
+                    "width": 0,
+                    "height": 144.5669291338583
+                  },
+                  "label": {
+                    "value": "emissions",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+                  "layerIds": [],
+                  "zIndex": 7,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "note",
+                  "kind": "text",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 467.71653543307093,
+                    "width": 396.85039370078744,
+                    "height": 22.67716535433071
+                  },
+                  "text": {
+                    "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "left",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  },
+                  "style": {
+                    "fill": "none",
+                    "fillOpacity": 1,
+                    "stroke": "none",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  }
+                },
+                {
+                  "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+                  "layerIds": [],
+                  "zIndex": 8,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_corona",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 56.69291338582678,
+                    "width": 85.03937007874016,
+                    "height": 34.01574803149607
+                  },
+                  "assetId": "asset:corona-energy",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                },
+                {
+                  "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+                  "layerIds": [],
+                  "zIndex": 9,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_esg",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 453.5433070866142,
+                    "y": 334.488188976378,
+                    "width": 85.03937007874016,
+                    "height": 45.35433070866142
+                  },
+                  "assetId": "asset:esg-global-old",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                }
+              ]
+            }
+          ],
+          "assets": [
+            {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          ],
+          "metadata": {}
+        }
+      },
+      "result": {
+        "transactionId": "948f8615-ba7d-43fe-959a-034c0054b9a8",
+        "previousRevision": 1,
+        "created": [],
+        "changed": [
+          "74775dad-3449-4edc-b4e5-91ebf9c5e2ee"
+        ],
+        "deleted": [],
+        "changedPageIds": [
+          "289de0a8-6369-45f1-bc9c-81ed680cc41d"
+        ],
+        "changedLayerIds": [],
+        "changedAssetIds": [],
+        "visuallyAffectedIds": [
+          "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+          "11d88402-b92c-4cca-a62d-75fca02de230",
+          "861dfb0d-d903-4afe-800e-3975567b324a",
+          "ccd0df85-dcd8-488d-b29b-d603ebeee148"
+        ],
+        "warnings": [],
+        "revision": 2,
+        "noChange": false,
+        "projectionStatus": "applied",
+        "operations": [
+          {
+            "op": "align",
+            "targets": [
+              "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+              "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+              "80d6b305-7fbd-4457-92cb-c143bf689040"
+            ],
+            "edge": "top"
+          }
+        ]
+      }
+    },
+    {
+      "step": 6,
+      "title": "human moves the data warehouse block and recolours the ESG block (GUI)",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 4,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 4,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": [
+                {
+                  "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                  "layerIds": [],
+                  "zIndex": 0,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "crm",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "CRM (Salesforce)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                  "layerIds": [],
+                  "zIndex": 1,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "billing",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Billing (Corona Energy)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                  "layerIds": [],
+                  "zIndex": 2,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "dwh",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 552.7559055118111,
+                    "y": 226.7716535433071,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Data warehouse",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                  "layerIds": [],
+                  "zIndex": 3,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "esgblock",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 325.984251968504,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#FFE0B2",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "ESG Global reporting",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+                  "layerIds": [],
+                  "zIndex": 4,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c1",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 212.59842519685043,
+                    "y": 144.56692913385828,
+                    "width": 70.86614173228344,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "orders",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+                  "layerIds": [],
+                  "zIndex": 5,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c2",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 439.3700787401575,
+                    "y": 144.56692913385828,
+                    "width": 70.8661417322835,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "invoices",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+                  "layerIds": [],
+                  "zIndex": 6,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c3",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "south"
+                  },
+                  "to": {
+                    "elementId": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                    "glue": "static",
+                    "port": "north"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 361.4173228346457,
+                    "y": 181.4173228346457,
+                    "width": 0,
+                    "height": 144.5669291338583
+                  },
+                  "label": {
+                    "value": "emissions",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+                  "layerIds": [],
+                  "zIndex": 7,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "note",
+                  "kind": "text",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 467.71653543307093,
+                    "width": 396.85039370078744,
+                    "height": 22.67716535433071
+                  },
+                  "text": {
+                    "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "left",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  },
+                  "style": {
+                    "fill": "none",
+                    "fillOpacity": 1,
+                    "stroke": "none",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  }
+                },
+                {
+                  "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+                  "layerIds": [],
+                  "zIndex": 8,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_corona",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 56.69291338582678,
+                    "width": 85.03937007874016,
+                    "height": 34.01574803149607
+                  },
+                  "assetId": "asset:corona-energy",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                },
+                {
+                  "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+                  "layerIds": [],
+                  "zIndex": 9,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_esg",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 453.5433070866142,
+                    "y": 334.488188976378,
+                    "width": 85.03937007874016,
+                    "height": 45.35433070866142
+                  },
+                  "assetId": "asset:esg-global-old",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                }
+              ]
+            }
+          ],
+          "assets": [
+            {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          ],
+          "metadata": {}
+        }
+      }
+    },
+    {
+      "step": 7,
+      "title": "agent hits revision_conflict, reads changes, retries a text-only patch",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 5,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 5,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": [
+                {
+                  "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                  "layerIds": [],
+                  "zIndex": 0,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "crm",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "CRM (Salesforce)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                  "layerIds": [],
+                  "zIndex": 1,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "billing",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Billing (Corona Energy)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                  "layerIds": [],
+                  "zIndex": 2,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "dwh",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 552.7559055118111,
+                    "y": 226.7716535433071,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Data warehouse (Snowflake)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                  "layerIds": [],
+                  "zIndex": 3,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "esgblock",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 325.984251968504,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#FFE0B2",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "ESG Global reporting",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+                  "layerIds": [],
+                  "zIndex": 4,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c1",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 212.59842519685043,
+                    "y": 144.56692913385828,
+                    "width": 70.86614173228344,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "orders",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+                  "layerIds": [],
+                  "zIndex": 5,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c2",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 439.3700787401575,
+                    "y": 144.56692913385828,
+                    "width": 70.8661417322835,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "invoices",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+                  "layerIds": [],
+                  "zIndex": 6,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c3",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "south"
+                  },
+                  "to": {
+                    "elementId": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                    "glue": "static",
+                    "port": "north"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 361.4173228346457,
+                    "y": 181.4173228346457,
+                    "width": 0,
+                    "height": 144.5669291338583
+                  },
+                  "label": {
+                    "value": "emissions",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+                  "layerIds": [],
+                  "zIndex": 7,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "note",
+                  "kind": "text",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 467.71653543307093,
+                    "width": 396.85039370078744,
+                    "height": 22.67716535433071
+                  },
+                  "text": {
+                    "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "left",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  },
+                  "style": {
+                    "fill": "none",
+                    "fillOpacity": 1,
+                    "stroke": "none",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  }
+                },
+                {
+                  "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+                  "layerIds": [],
+                  "zIndex": 8,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_corona",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 56.69291338582678,
+                    "width": 85.03937007874016,
+                    "height": 34.01574803149607
+                  },
+                  "assetId": "asset:corona-energy",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                },
+                {
+                  "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+                  "layerIds": [],
+                  "zIndex": 9,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_esg",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 453.5433070866142,
+                    "y": 334.488188976378,
+                    "width": 85.03937007874016,
+                    "height": 45.35433070866142
+                  },
+                  "assetId": "asset:esg-global-old",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                }
+              ]
+            }
+          ],
+          "assets": [
+            {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          ],
+          "metadata": {}
+        }
+      },
+      "staleError": {
+        "code": "revision_conflict",
+        "message": "document is at revision 4, request was based on 2",
+        "retryable": true,
+        "outcome": "not_applied",
+        "details": {
+          "expected": 2,
+          "actual": 4,
+          "changesSinceExpected": [
+            {
+              "transactionId": "9ed9eb42-db55-4117-b0a7-be0c67a784c2",
+              "source": "gui",
+              "revision": 3,
+              "description": "move (1 operation)",
+              "created": [],
+              "changed": [
+                "80d6b305-7fbd-4457-92cb-c143bf689040"
+              ],
+              "deleted": [],
+              "nonElementChanges": [],
+              "timestamp": "2026-10-02T20:22:32.625Z"
+            },
+            {
+              "transactionId": "2a4c68d6-af62-4a20-9cf3-b2269a56f024",
+              "source": "gui",
+              "revision": 4,
+              "description": "Fill",
+              "created": [],
+              "changed": [
+                "a98869d0-d21b-490c-8396-7ff299ed7912"
+              ],
+              "deleted": [],
+              "nonElementChanges": [],
+              "timestamp": "2026-10-02T20:22:32.736Z"
+            }
+          ]
+        }
+      },
+      "changes": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 4,
+        "earliestRetainedRevision": 0,
+        "transactions": [
+          {
+            "transactionId": "9ed9eb42-db55-4117-b0a7-be0c67a784c2",
+            "source": "gui",
+            "revision": 3,
+            "description": "move (1 operation)",
+            "created": [],
+            "changed": [
+              "80d6b305-7fbd-4457-92cb-c143bf689040"
+            ],
+            "deleted": [],
+            "nonElementChanges": [],
+            "timestamp": "2026-10-02T20:22:32.625Z"
+          },
+          {
+            "transactionId": "2a4c68d6-af62-4a20-9cf3-b2269a56f024",
+            "source": "gui",
+            "revision": 4,
+            "description": "Fill",
+            "created": [],
+            "changed": [
+              "a98869d0-d21b-490c-8396-7ff299ed7912"
+            ],
+            "deleted": [],
+            "nonElementChanges": [],
+            "timestamp": "2026-10-02T20:22:32.736Z"
+          }
+        ]
+      },
+      "result": {
+        "transactionId": "84592973-8df2-46aa-97cb-1e2700c8715d",
+        "previousRevision": 4,
+        "created": [],
+        "changed": [
+          "80d6b305-7fbd-4457-92cb-c143bf689040"
+        ],
+        "deleted": [],
+        "changedPageIds": [
+          "289de0a8-6369-45f1-bc9c-81ed680cc41d"
+        ],
+        "changedLayerIds": [],
+        "changedAssetIds": [],
+        "visuallyAffectedIds": [
+          "80d6b305-7fbd-4457-92cb-c143bf689040",
+          "861dfb0d-d903-4afe-800e-3975567b324a"
+        ],
+        "warnings": [],
+        "revision": 5,
+        "noChange": false,
+        "projectionStatus": "applied"
+      }
+    },
+    {
+      "step": 9,
+      "title": "agent replaces one logo by approved asset ID",
+      "snapshot": {
+        "documentId": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+        "sessionId": "2962ce58-98cf-4d42-ae51-c06fe7c1fd8b",
+        "revision": 6,
+        "document": {
+          "schemaVersion": 1,
+          "id": "d21bcf22-013d-4263-a7fd-d63158cd7975",
+          "title": "Untitled",
+          "revision": 6,
+          "pages": [
+            {
+              "id": "289de0a8-6369-45f1-bc9c-81ed680cc41d",
+              "name": "Page-1",
+              "widthPt": 841.8897637795276,
+              "heightPt": 595.2755905511812,
+              "background": "#FFFFFF",
+              "grid": {
+                "visible": true,
+                "spacingPt": 14.173228346456694,
+                "snap": true
+              },
+              "guides": [],
+              "layers": [],
+              "elements": [
+                {
+                  "id": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                  "layerIds": [],
+                  "zIndex": 0,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "crm",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "CRM (Salesforce)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                  "layerIds": [],
+                  "zIndex": 1,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "billing",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 113.38582677165356,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Billing (Corona Energy)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                  "layerIds": [],
+                  "zIndex": 2,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "dwh",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 552.7559055118111,
+                    "y": 226.7716535433071,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#DCEBFA",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "Data warehouse (Snowflake)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                  "layerIds": [],
+                  "zIndex": 3,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "esgblock",
+                  "kind": "shape",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 325.984251968504,
+                    "width": 155.90551181102364,
+                    "height": 62.36220472440945
+                  },
+                  "geometry": {
+                    "preset": "roundedRect"
+                  },
+                  "style": {
+                    "fill": "#FFE0B2",
+                    "fillOpacity": 1,
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  },
+                  "text": {
+                    "value": "ESG Global reporting",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "11d88402-b92c-4cca-a62d-75fca02de230",
+                  "layerIds": [],
+                  "zIndex": 4,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c1",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "8ccbba86-ae5e-406e-b3a3-2a0d96fcd60c",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 212.59842519685043,
+                    "y": 144.56692913385828,
+                    "width": 70.86614173228344,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "orders",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "861dfb0d-d903-4afe-800e-3975567b324a",
+                  "layerIds": [],
+                  "zIndex": 5,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c2",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "east"
+                  },
+                  "to": {
+                    "elementId": "80d6b305-7fbd-4457-92cb-c143bf689040",
+                    "glue": "static",
+                    "port": "west"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 439.3700787401575,
+                    "y": 144.56692913385828,
+                    "width": 70.8661417322835,
+                    "height": 5.669291338582667
+                  },
+                  "label": {
+                    "value": "invoices",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "ccd0df85-dcd8-488d-b29b-d603ebeee148",
+                  "layerIds": [],
+                  "zIndex": 6,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "c3",
+                  "kind": "connector",
+                  "from": {
+                    "elementId": "74775dad-3449-4edc-b4e5-91ebf9c5e2ee",
+                    "glue": "static",
+                    "port": "south"
+                  },
+                  "to": {
+                    "elementId": "a98869d0-d21b-490c-8396-7ff299ed7912",
+                    "glue": "static",
+                    "port": "north"
+                  },
+                  "route": "orthogonal",
+                  "waypoints": [],
+                  "style": {
+                    "stroke": "#333333",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "startArrow": "none",
+                    "endArrow": "triangle"
+                  },
+                  "bounds": {
+                    "x": 361.4173228346457,
+                    "y": 181.4173228346457,
+                    "width": 0,
+                    "height": 144.5669291338583
+                  },
+                  "label": {
+                    "value": "emissions",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "center",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  }
+                },
+                {
+                  "id": "fa326f27-2dc6-48be-831f-92f328b1bfaf",
+                  "layerIds": [],
+                  "zIndex": 7,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "note",
+                  "kind": "text",
+                  "bounds": {
+                    "x": 56.69291338582678,
+                    "y": 467.71653543307093,
+                    "width": 396.85039370078744,
+                    "height": 22.67716535433071
+                  },
+                  "text": {
+                    "value": "Nightly batch at 02:00; owner: Data Platform (runbook RB-12)",
+                    "fontFamily": "Calibri",
+                    "fontSizePt": 11,
+                    "bold": false,
+                    "italic": false,
+                    "underline": false,
+                    "colour": "#000000",
+                    "horizontalAlign": "left",
+                    "verticalAlign": "middle",
+                    "wrap": true,
+                    "paddingPt": 4
+                  },
+                  "style": {
+                    "fill": "none",
+                    "fillOpacity": 1,
+                    "stroke": "none",
+                    "strokeWidthPt": 1,
+                    "dash": "solid",
+                    "lineCap": "butt",
+                    "lineJoin": "miter"
+                  }
+                },
+                {
+                  "id": "d46342f8-fc5c-4921-9dc9-7e9face0c084",
+                  "layerIds": [],
+                  "zIndex": 8,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_corona",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 283.46456692913387,
+                    "y": 56.69291338582678,
+                    "width": 85.03937007874016,
+                    "height": 34.01574803149607
+                  },
+                  "assetId": "asset:corona-energy",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                },
+                {
+                  "id": "ccfdc999-cc6a-4741-a32e-1d5debe222ed",
+                  "layerIds": [],
+                  "zIndex": 9,
+                  "locked": false,
+                  "hidden": false,
+                  "rotationDeg": 0,
+                  "metadata": {},
+                  "alias": "logo_esg",
+                  "kind": "image",
+                  "bounds": {
+                    "x": 453.5433070866142,
+                    "y": 334.488188976378,
+                    "width": 85.03937007874016,
+                    "height": 45.35433070866142
+                  },
+                  "assetId": "asset:esg-global",
+                  "fit": "contain",
+                  "opacity": 1,
+                  "preserveAspectRatio": true
+                }
+              ]
+            }
+          ],
+          "assets": [
+            {
+              "id": "asset:corona-energy",
+              "name": "Corona Energy logo",
+              "mimeType": "image/bmp",
+              "sha256": "2458f2a0c2f04f57b326c10b23bbe4832c88ddc0ee7455de52a7af83815a8773",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global-old",
+              "name": "ESG Global logo (2019)",
+              "mimeType": "image/bmp",
+              "sha256": "e2ade005fd793dccecc282c2a8ff0e7576042f2bd4d65ef73e52be47ef51ff78",
+              "widthPx": 2,
+              "heightPx": 2,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            },
+            {
+              "id": "asset:esg-global",
+              "name": "ESG Global logo",
+              "mimeType": "image/svg+xml",
+              "sha256": "42e2fbda3c8349dfd7962f9a4c57d32e261196a046003347d13d7cfb5a7eabf2",
+              "widthPx": 60,
+              "heightPx": 30,
+              "tags": [
+                "logo"
+              ],
+              "provenance": "approved demo library"
+            }
+          ],
+          "metadata": {}
+        }
+      },
+      "result": {
+        "transactionId": "b449537a-9c69-4228-b53d-271d4f6ee5d2",
+        "previousRevision": 5,
+        "created": [],
+        "changed": [
+          "ccfdc999-cc6a-4741-a32e-1d5debe222ed"
+        ],
+        "deleted": [],
+        "changedPageIds": [
+          "289de0a8-6369-45f1-bc9c-81ed680cc41d"
+        ],
+        "changedLayerIds": [],
+        "changedAssetIds": [
+          "asset:esg-global"
+        ],
+        "visuallyAffectedIds": [
+          "ccfdc999-cc6a-4741-a32e-1d5debe222ed"
+        ],
+        "warnings": [],
+        "revision": 6,
+        "noChange": false,
+        "projectionStatus": "applied"
+      },
+      "imageId": "ccfdc999-cc6a-4741-a32e-1d5debe222ed"
+    }
+  ]
+}

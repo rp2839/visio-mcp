@@ -58,6 +58,8 @@ if (import.meta.env.DEV || location.search.includes('testapi')) {
     selection: () => [...controller.getState().selection],
     pageId: () => controller.getState().pageId,
     toClient: (p: { x: number; y: number }) => (controller as any).adapter?.pageToClient(p),
+    cellStates: () => (controller as any).adapter?.cellStates(),
+    reprojectAll: () => (controller as any).adapter?.project(controller.engine.current(), controller.getState().pageId),
     gestureActive: () => controller.gestures.isActive(),
     status: () => controller.getState().status,
     // The production request router (render, layout, reads, mutations) for browser tests.

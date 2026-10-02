@@ -1,0 +1,29 @@
+ 1  PASS     Human opens a blank A4 landscape page
+ 2  PASS     Agent creates labelled blocks, connectors and annotations through MCP
+             4 blocks, 3 connectors, 1 note, 2 logos in revision 1
+ 3  PASS     UI visibly updates after the transaction
+             asserted in-browser (canvas cells present after revision 1); see demo.spec.ts
+ 4  PASS     Agent requests a PNG preview and notices one alignment problem
+             preview 1600×1131; billing top 119.06 vs 113.39 pt
+ 5  PASS     Agent aligns only the affected elements
+             exactly 1 element changed
+ 6  PASS     Human drags one element and changes one fill colour
+             two GUI transactions, two elements
+ 7  PASS     Agent reads changes since its revision and preserves the human edit
+             conflict → get_changes → text-only retry; human geometry/fill intact
+ 8  PASS     Agent replaces one company logo from the approved assets
+             logo → asset:esg-global (42e2fbda3c83…)
+ 9  PASS     Only that image object changes
+             9 other elements byte-identical
+10  PASS     Document saves as .vsdx (library-level export)
+             8639 bytes; export diagnostics: svg_rasterised
+11  NOT RUN  File opens in Visio with editable objects
+             requires Microsoft Visio on Windows (I41 WA-02/WA-03)
+12  NOT RUN  Moving a connected shape in Visio keeps its connector attached
+             requires Microsoft Visio (I41 WA-04)
+13  NOT RUN  VSDX embedded in Word remains activatable/editable
+             requires Microsoft Word + Visio (I41 WA-10/WA-11)
+14  PASS     VSDX reopened in the app; agent IDs still resolve (library-level, no Visio save in between)
+             10 IDs, 3 glued connectors resolved
+
+11 PASS, 0 FAIL, 3 NOT RUN
