@@ -51,6 +51,8 @@ export class MaxGraphAdapter implements CanvasAdapter {
     g.setPanning(true);
     g.setTooltips(false);
     g.centerZoom = false;
+    // Shift- or Ctrl-click adds to the selection, as in desktop drawing tools.
+    g.isToggleEvent = (evt: MouseEvent) => !!evt && (evt.ctrlKey || evt.metaKey || evt.shiftKey);
     const sel = g.getPlugin('SelectionHandler') as any;
     if (sel) sel.guidesEnabled = true; // alignment guides while dragging
     const panning = g.getPlugin('PanningHandler') as any;
