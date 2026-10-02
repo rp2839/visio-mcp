@@ -1,21 +1,21 @@
 {
-  "renderMs": 307,
+  "renderMs": 451,
   "commits": [
     {
       "what": "commit+project",
-      "ms": 5.699999999953434
+      "ms": 14.199999999953434
     },
     {
       "what": "commit+project",
-      "ms": 3.699999999953434
+      "ms": 4.100000000093132
     },
     {
       "what": "commit+project",
-      "ms": 5.800000000046566
+      "ms": 3.1000000000931323
     },
     {
       "what": "commit+project",
-      "ms": 2.900000000023283
+      "ms": 3.5999999998603016
     }
   ]
 }

@@ -2,6 +2,7 @@ import { ProbeCanvas } from './projection';
 import { renderProbe } from './render';
 import type { ProbeIntent, ProbeSceneDto } from './types';
 import { LOGO_PNG_DATA_URL } from './logo';
+import { installBridge } from './bridge';
 
 let store: ProbeSceneDto = {
   revision: 0,
@@ -58,3 +59,19 @@ const api = {
   timings: () => [...timings],
 };
 (window as any).probe = api;
+
+// WebView2 host bridge (I04). Present only when hosted; batched moves are one revision.
+const webview = (window as any).chrome?.webview;
+if (webview) {
+  installBridge(webview, {
+    documentId: 'd0000000-0000-4000-8000-000000000001',
+    sessionId: crypto.randomUUID(),
+    revision: () => store.revision,
+    has: (id) => id === store.rect.id || id === store.ellipse.id || id === store.picture.id,
+    applyMove: (id, dx, dy) => {
+      const box = [store.rect, store.ellipse, store.picture].find((b) => b.id === id)!;
+      apply([{ kind: 'geometry', id, x: box.x + dx, y: box.y + dy, width: box.width, height: box.height }]);
+      return [id];
+    },
+  });
+}
