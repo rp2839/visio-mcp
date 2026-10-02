@@ -1,0 +1,5 @@
+{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"transcript","version":"1"}}}
+{"jsonrpc":"2.0","method":"notifications/initialized"}
+{"jsonrpc":"2.0","id":2,"method":"tools/list"}
+{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"get_document_summary","arguments":{"documentId":"d0000000-0000-4000-8000-000000000001","sessionId":"ae5854d8-ebd9-4e30-ad6e-0ee6558e73fd"}}}
+{"jsonrpc":"2.0","id":4,"method":"tools/call","params":{"name":"get_document_summary","arguments":{"documentId":"d0000000-0000-4000-8000-000000000001","sessionId":"00000000-0000-4000-8000-000000000000"}}}
