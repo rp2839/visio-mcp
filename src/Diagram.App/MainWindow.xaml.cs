@@ -52,13 +52,19 @@ public partial class MainWindow : Window, IWebMessageChannel
 #endif
         core.NavigationStarting += (_, e) => { if (!BridgeRouter.IsTrustedSource(e.Uri, true)) e.Cancel = true; };
         core.NewWindowRequested += (_, e) => e.Handled = true;
-        core.WebResourceRequested += (_, e) => e.Response = core.Environment.CreateWebResourceResponse(null, 403, "Forbidden", "");
+        var blobs = new BlobStore(Path.Combine(dataRoot, "blobs"));
+        core.WebResourceRequested += (_, e) =>
+        {
+            if (e.Request.Uri.StartsWith(AssetsPrefix, StringComparison.Ordinal)) ServeAsset(core, blobs, e);
+            else e.Response = core.Environment.CreateWebResourceResponse(null, 403, "Forbidden", "");
+        };
         core.AddWebResourceRequestedFilter("http://*", CoreWebView2WebResourceContext.All);
+        // Asset bytes are served by hash from the blob store; the frontend never sees file paths.
+        core.AddWebResourceRequestedFilter(AssetsPrefix + "*", CoreWebView2WebResourceContext.All);
         core.WebMessageReceived += (_, e) => MessageReceived?.Invoke(new WebMessage(e.Source, true, e.WebMessageAsJson));
         core.FrameCreated += (_, f) => f.Frame.WebMessageReceived += (_, e) => MessageReceived?.Invoke(new WebMessage(e.Source, false, e.WebMessageAsJson));
         core.ProcessFailed += (_, _) => ProcessFailed?.Invoke();
 
-        var blobs = new BlobStore(Path.Combine(dataRoot, "blobs"));
         preparer = new AssetPreparer(blobs);
         bridge = new BridgeRouter(this);
         sessions = new SessionCoordinator(bridge, blobs, preparer);
@@ -135,6 +141,30 @@ public partial class MainWindow : Window, IWebMessageChannel
                 MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes).Task;
     }
 
+    private static readonly string AssetsPrefix = new Uri(BridgeRouter.Origin, "assets/").ToString();
+
+    /// <summary>Serves <c>/assets/&lt;sha256&gt;</c> from the blob store with a sniffed content type.</summary>
+    private static async void ServeAsset(CoreWebView2 core, BlobStore blobs, CoreWebView2WebResourceRequestedEventArgs e)
+    {
+        var deferral = e.GetDeferral();
+        var sha = e.Request.Uri[AssetsPrefix.Length..].Split('?', '#')[0];
+        try
+        {
+            var bytes = await blobs.ReadAsync(sha, CancellationToken.None);
+            var mime = AssetPreparer.Sniff(bytes.Span) ?? "application/octet-stream";
+            e.Response = core.Environment.CreateWebResourceResponse(new MemoryStream(bytes.ToArray()), 200, "OK",
+                $"Content-Type: {mime}\r\nCache-Control: max-age=31536000, immutable\r\nX-Content-Type-Options: nosniff");
+        }
+        catch (Exception ex) when (ex is HostException or IOException or UnauthorizedAccessException)
+        {
+            e.Response = core.Environment.CreateWebResourceResponse(null, 404, "Not Found", "");
+        }
+        finally
+        {
+            deferral.Complete();
+        }
+    }
+
     public void PostJson(string json) => Dispatcher.InvokeAsync(() => View.CoreWebView2?.PostWebMessageAsJson(json));
 
     private async Task<Result<JsonNode?>> PrepareAssetAsync(JsonObject p, CancellationToken ct)
@@ -185,33 +215,60 @@ public partial class MainWindow : Window, IWebMessageChannel
         if (opened.Ok) currentPath = dlg.FileName;
     }
 
-    private async void OnSave(object sender, RoutedEventArgs e)
-    {
-        if (currentPath is null) { OnSaveAs(sender, e); return; }
-        await SaveAsync(currentPath);
-    }
+    private async void OnSave(object sender, RoutedEventArgs e) => await SaveOrSaveAsAsync();
 
-    private async void OnSaveAs(object sender, RoutedEventArgs e)
+    private async void OnSaveAs(object sender, RoutedEventArgs e) => await SaveAsAsync();
+
+    private Task<bool> SaveOrSaveAsAsync() => currentPath is null ? SaveAsAsync() : SaveAsync(currentPath);
+
+    private async Task<bool> SaveAsAsync()
     {
         var dlg = new SaveFileDialog { Filter = "Diagram JSON|*.diagram.json|Visio drawing|*.vsdx", FileName = "diagram.diagram.json" };
-        if (dlg.ShowDialog(this) == true) await SaveAsync(dlg.FileName);
+        return dlg.ShowDialog(this) == true && await SaveAsync(dlg.FileName);
     }
 
-    private async Task SaveAsync(string path)
+    /// <summary>Returns true only when the document was saved and marked clean.</summary>
+    private async Task<bool> SaveAsync(string path)
     {
-        if (sessions is null || CurrentScope() is not { } scope) return;
+        if (sessions is null || CurrentScope() is not { } scope) return false;
         if (IsVsdx(path))
         {
             var native = await vsdx!.ExportAsync(path, scope, markSaved: true, CancellationToken.None);
-            if (!native.Ok) { Status.Text = $"Save failed: {native.Error!.Message}"; return; }
+            if (!native.Ok) { Status.Text = $"Save failed: {native.Error!.Message}"; return false; }
             var r = native.Value!.Report;
             Status.Text = native.Value.MarkedClean ? $"Saved revision {native.Value.Revision} as VSDX" : $"Saved VSDX but {r.Dropped} item(s) were dropped; document left unsaved ({string.Join(", ", r.ByCode.Keys)})";
             if (native.Value.MarkedClean) currentPath = path;
-            return;
+            return native.Value.MarkedClean;
         }
         var saved = await sessions.SaveJsonAsync(path, scope, CancellationToken.None);
         Status.Text = saved.Ok ? $"Saved revision {saved.Value!.Revision}{(saved.Value.MarkedClean ? "" : " (document changed session; not marked clean)")}" : $"Save failed: {saved.Error!.Message}";
         if (saved.Ok) currentPath = path;
+        return saved.Ok && saved.Value!.MarkedClean;
+    }
+
+    /// <summary>Close the current file: ask to save or discard unsaved changes, then start a new empty document.</summary>
+    private async void OnClose(object sender, RoutedEventArgs e)
+    {
+        if (CurrentScope() is not { } scope) return;
+        var status = await bridge!.CallAsync("doc.status", scope, new JsonObject(), CancellationToken.None);
+        if (!status.Ok) { Status.Text = $"Close failed: {status.Error!.Message}"; return; }
+        if (status.Value.GetProperty("dirty").GetBoolean())
+        {
+            var name = currentPath is null ? "Untitled" : Path.GetFileName(currentPath);
+            var answer = MessageBox.Show(this, $"Save changes to {name} before closing?", "Agentic Diagram",
+                MessageBoxButton.YesNoCancel, MessageBoxImage.Warning, MessageBoxResult.Cancel);
+            if (answer == MessageBoxResult.Cancel) return;
+            if (answer == MessageBoxResult.Yes && !await SaveOrSaveAsAsync()) return;
+            // Re-read the scope: a save may run while an agent changes the session.
+            if (CurrentScope() is not { } after) return;
+            scope = after;
+        }
+        var snap = await bridge.CallAsync("doc.snapshot", scope, new JsonObject(), CancellationToken.None);
+        if (!snap.Ok) { Status.Text = $"Close failed: {snap.Error!.Message}"; return; }
+        var r = await bridge.CallAsync("doc.new", scope, new JsonObject { ["baseRevision"] = snap.Value.GetProperty("revision").GetInt64() }, CancellationToken.None);
+        if (!r.Ok) { Status.Text = $"Close failed: {r.Error!.Message}"; return; }
+        currentPath = null;
+        Status.Text = "Closed; new untitled diagram.";
     }
 
     private static bool IsVsdx(string path) => path.EndsWith(".vsdx", StringComparison.OrdinalIgnoreCase);

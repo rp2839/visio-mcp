@@ -175,3 +175,24 @@ test('assets: import, thumbnail, rename/tags, single vs global replacement, in-u
   await waitRevision(page, r + 1);
   expect((await snap(page)).document.assets.map((a: any) => a.id)).toEqual([photo.id]);
 });
+
+test('assets: deleting an asset in use asks first, then removes its images with it', async ({ page }) => {
+  await boot(page);
+  await page.getByTestId('image-input').setInputFiles({ name: 'logo.bmp', mimeType: 'image/bmp', buffer: bmp() });
+  await expect.poll(async () => (await snap(page)).document.assets.length).toBe(1);
+  const assetId = (await snap(page)).document.assets[0].id;
+  await page.getByTestId('tab-assets').click();
+  // Declining leaves the asset and its image alone.
+  const r = await revision(page);
+  answer(page, false);
+  await page.getByTestId(`asset-delete-${assetId}`).click();
+  await page.waitForTimeout(100);
+  expect(await revision(page)).toBe(r);
+  answer(page, true);
+  await page.getByTestId(`asset-delete-${assetId}`).click();
+  await waitRevision(page, r + 1);
+  const s = await snap(page);
+  expect(s.document.assets).toEqual([]);
+  expect(s.document.pages.flatMap((p: any) => p.elements).filter((e: any) => e.kind === 'image')).toEqual([]);
+  await expect(page.getByTestId(`asset-${assetId}`)).toHaveCount(0);
+});

@@ -9,7 +9,7 @@ import { Drawer } from './components/Drawer';
 import type { EditorController } from './editor/EditorController';
 import type { Asset } from './model/types';
 
-export function App(props: { controller: EditorController; prepareAsset: (file?: File) => Promise<Asset | null> }) {
+export function App(props: { controller: EditorController; prepareAsset: (file?: File) => Promise<Asset | null>; hostPicker?: boolean }) {
   const c = props.controller;
   const fileInput = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -26,7 +26,7 @@ export function App(props: { controller: EditorController; prepareAsset: (file?:
     }
   };
   // The host shows its own file picker; the standalone build uses a hidden input.
-  const pickImage = () => (fileInput.current ? fileInput.current.click() : void insertImage());
+  const pickImage = () => (props.hostPicker ? void insertImage() : fileInput.current?.click());
   return (
     <ControllerContext.Provider value={c}>
       <div className="app">

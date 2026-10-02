@@ -11,6 +11,8 @@
         <MenuItem Header="Save _As…" Click="OnSaveAs" />
         <MenuItem Header="_Export VSDX…" Click="OnExportVsdx" />
         <Separator />
+        <MenuItem Header="_Close" Click="OnClose" />
+        <Separator />
         <MenuItem Header="E_xit" Click="OnExit" />
       </MenuItem>
     </Menu>

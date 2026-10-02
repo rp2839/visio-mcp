@@ -3,6 +3,7 @@ import { MaxGraphAdapter } from '../canvas/MaxGraphAdapter';
 import type { Viewport } from '../canvas/CanvasAdapter';
 import { useController, useEditorState } from './hooks';
 import { Ruler } from './Rulers';
+import { ZoomBar } from './ZoomBar';
 
 export function PageCanvas(props: { onAdapter?: (a: MaxGraphAdapter) => void }) {
   const c = useController();
@@ -37,6 +38,7 @@ export function PageCanvas(props: { onAdapter?: (a: MaxGraphAdapter) => void }) 
       <Ruler orientation="horizontal" viewport={viewport} unit={units} length={size.w} />
       <Ruler orientation="vertical" viewport={viewport} unit={units} length={size.h} />
       <div className="canvas" data-testid="canvas" ref={host} onDragOver={(e) => e.preventDefault()} onDrop={onDrop} tabIndex={0} />
+      <ZoomBar viewport={viewport} />
     </div>
   );
 }

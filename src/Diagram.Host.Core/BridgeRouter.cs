@@ -56,7 +56,7 @@ public sealed class BridgeRouter : IEditorChannel
         _ => TimeSpan.FromSeconds(10),
     };
 
-    public static bool IsMutation(string method) => method is "doc.apply" or "doc.executeScript" or "doc.undo" or "doc.redo" or "doc.replace" or "doc.markSaved";
+    public static bool IsMutation(string method) => method is "doc.apply" or "doc.executeScript" or "doc.undo" or "doc.redo" or "doc.replace" or "doc.new" or "doc.markSaved";
 
     public static bool IsTrustedSource(string source, bool isTopLevel)
     {

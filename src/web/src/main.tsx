@@ -48,7 +48,7 @@ if (webview) {
   prepareAsset = async (file) => (file ? prepareLocally(file, memory) : null);
 }
 
-createRoot(document.getElementById('root')!).render(<App controller={controller} prepareAsset={prepareAsset} />);
+createRoot(document.getElementById('root')!).render(<App controller={controller} prepareAsset={prepareAsset} hostPicker={!!webview} />);
 
 const devRouter = new RequestRouter(controller.engine, compile, renderMethods(controller.engine, controller.assets));
 // Test-only API (dev/test builds): canonical reads and requests through the same router MCP uses.

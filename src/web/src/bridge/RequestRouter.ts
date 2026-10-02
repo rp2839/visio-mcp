@@ -11,7 +11,7 @@ export type MethodImpl = (scope: Scope, params: Json, envelope: Envelope) => Pro
 
 export const MUTATION_METHODS = new Set(['doc.apply', 'doc.executeScript']);
 /** Host lifecycle methods are GUI/host only: never reachable from MCP. */
-export const LIFECYCLE_METHODS = new Set(['doc.snapshot', 'doc.exportSnapshot', 'doc.markSaved', 'doc.replace']);
+export const LIFECYCLE_METHODS = new Set(['doc.snapshot', 'doc.exportSnapshot', 'doc.markSaved', 'doc.replace', 'doc.status', 'doc.new']);
 
 /**
  * Routes validated envelopes to the engine. Scope lives at the envelope top level; params

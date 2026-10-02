@@ -31,6 +31,8 @@ export type EngineOptions = {
   document: DiagramDocument;
   newUuid?: () => string;
   now?: () => string;
+  /** A new untitled document starts clean (nothing to save); opened or recovered content does not. */
+  clean?: boolean;
 };
 
 export class CommandEngine {
@@ -58,6 +60,7 @@ export class CommandEngine {
     const v = validateDocument(opts.document);
     if (!v.ok) throw new Error(`initial document invalid: ${v.error.message}`);
     this.startSession(opts.document);
+    if (opts.clean) this.savedRevision = opts.document.revision;
   }
 
   private startSession(document: DiagramDocument) {

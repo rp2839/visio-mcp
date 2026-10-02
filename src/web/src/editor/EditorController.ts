@@ -45,7 +45,7 @@ export class EditorController {
 
   constructor(readonly assets: AssetResolver, document?: DiagramDocument) {
     const doc = document ?? newDocument(crypto.randomUUID(), crypto.randomUUID());
-    this.engine = new CommandEngine({ document: doc });
+    this.engine = new CommandEngine({ document: doc, clean: !document });
     this.gestures = new GestureController(this.engine, { onStatus: (m) => this.set({ status: m }) });
     this.gestures.onGestureState((active) => this.set({ gestureActive: active }));
     this.engine.setSnapshotProjector((s) => this.projector.project(s));
@@ -186,6 +186,16 @@ export class EditorController {
     ], versioned ? `Insert image ${asset.name} (new version ${resolvedAssetId.slice(0, 24)}…)` : `Insert image ${asset.name}`);
   }
 
+  /** Deletes an asset; images that use it are deleted too, after confirmation, in the same transaction. */
+  deleteAsset(asset: Asset, confirmUsers: (count: number) => boolean = (n) => confirm(`${asset.name} is used by ${n} image(s). Delete the image(s) as well?`)) {
+    const users = this.engine.current().document.pages.flatMap((p) => p.elements).filter((e) => e.kind === 'image' && e.assetId === asset.id);
+    if (users.length && !confirmUsers(users.length)) { this.set({ status: `Asset not deleted: ${asset.name} is used by ${users.length} image(s)` }); return; }
+    return this.apply([
+      ...users.map((e) => ({ op: 'delete', target: e.id, connectors: 'detach' }) as Operation),
+      { op: 'deleteAsset', assetId: asset.id },
+    ], users.length ? `Delete asset ${asset.name} and ${users.length} image(s)` : `Delete asset ${asset.name}`);
+  }
+
   async undo() {
     const s = this.engine.scope();
     const r = await this.engine.undo({ ...s, transactionId: crypto.randomUUID(), baseRevision: s.revision });
@@ -261,6 +271,8 @@ export class EditorController {
   }
 
   zoom(factor: number) { this.adapter?.zoom(factor); }
+  /** Absolute zoom (1 = 100%), clamped by the adapter. */
+  setZoom(level: number, current: number) { if (current > 0) this.adapter?.zoom(level / current); }
   fit(target: 'page' | 'selection' | 'actual') { this.adapter?.fit(target); }
 
   /** Keyboard shortcuts familiar from desktop drawing tools. */

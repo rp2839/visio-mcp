@@ -122,7 +122,9 @@ describe('admission gate (R3)', () => {
     expect(stale.error?.code).toBe('session_mismatch');
     const life = await gate.accept('c1', { ...env('doc.replace', { baseRevision: 0, document: {} }), origin: { source: 'mcp' } });
     expect(life.error?.code).toBe('method_not_found');
-    expect(dispatchedMethods).toEqual(['doc.replace']);
+    const close = await gate.accept('c1', { ...env('doc.new', { baseRevision: 0 }), origin: { source: 'mcp' } });
+    expect(close.error?.code).toBe('method_not_found');
+    expect(dispatchedMethods).toEqual(['doc.replace', 'doc.new']);
   });
 
   it('lifecycle_cancels_gesture: replacement releases the hold and old-session requests then fail', async () => {

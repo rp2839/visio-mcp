@@ -196,3 +196,26 @@ test('grid, snap, rulers and alignment guides', async ({ page }) => {
   const moved = els.find((e: any) => e.id === second.id);
   expect(Math.abs(moved.bounds.y / spacing - Math.round(moved.bounds.y / spacing))).toBeLessThan(1e-9);
 });
+
+test('zoom bar: buttons, slider, percentage and fit', async ({ page }) => {
+  await boot(page);
+  const level = async () => Number((await page.getByTestId('zoombar-actual').textContent())!.replace('%', ''));
+  await page.getByTestId('zoombar-actual').click();
+  await expect.poll(level).toBe(100);
+  await page.getByTestId('zoombar-in').click();
+  await expect.poll(level).toBe(125);
+  await page.getByTestId('zoombar-out').click();
+  await page.getByTestId('zoombar-out').click();
+  await expect.poll(level).toBe(80);
+  await page.getByTestId('zoombar-slider').fill('1'); // log2: 200%
+  await expect.poll(level).toBe(200);
+  await page.getByTestId('zoombar-fit').click();
+  await expect.poll(level).not.toBe(200);
+  // Fit puts the whole page inside the canvas.
+  const s = await snap(page);
+  const pg = s.document.pages[0];
+  const box = (await page.getByTestId('canvas').boundingBox())!;
+  const tl = await toClient(page, { x: 0, y: 0 }), br = await toClient(page, { x: pg.widthPt, y: pg.heightPt });
+  expect(tl.x).toBeGreaterThanOrEqual(box.x - 1);
+  expect(br.y).toBeLessThanOrEqual(box.y + box.height + 1);
+});

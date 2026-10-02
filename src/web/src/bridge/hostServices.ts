@@ -4,6 +4,7 @@ import type { Result } from '../model/result';
 import { err, ok } from '../model/result';
 import type { AssetResolver } from '../editor/assets';
 import { restoreRecovery, type RecoveryCandidateDto } from '../commands/recovery';
+import { newDocument } from '../model/defaults';
 
 type Json = Record<string, any>;
 export type MethodHandler = (scope: Scope, params: Json, envelope?: unknown) => Promise<Result<unknown>>;
@@ -19,6 +20,17 @@ export function lifecycleHandlers(engine: CommandEngine, hooks: { cancelGestures
     'doc.markSaved': (scope, p) => {
       if (typeof p.revision !== 'number' || typeof p.path !== 'string') return Promise.resolve(err('invalid_request', 'revision and path required'));
       return engine.markSaved(scope, p.revision, p.path);
+    },
+    // Dirty check for File → Close; the snapshot barrier orders it after queued commits.
+    'doc.status': async (scope) => {
+      const snap = await engine.snapshot(scope);
+      return snap.ok ? ok({ revision: snap.value.revision, dirty: engine.isDirty() }) : snap;
+    },
+    // File → Close: publish a new, clean, untitled document under a new session.
+    'doc.new': (scope, p) => {
+      if (typeof p.baseRevision !== 'number') return Promise.resolve(err('invalid_request', 'baseRevision required'));
+      hooks.cancelGestures?.();
+      return engine.replaceDocument(newDocument(crypto.randomUUID(), crypto.randomUUID()), { ...scope, baseRevision: p.baseRevision }, { savedRevision: 0, path: null });
     },
     'doc.replace': (scope, p) => {
       // Lifecycle barriers cancel uncommitted gestures before replacing state.

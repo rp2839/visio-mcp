@@ -49,4 +49,31 @@ describe('host lifecycle bridge', () => {
     await v.deliver({ protocolVersion: 1, kind: 'request', requestId: 'y', method: 'shell.exec', params: {} });
     expect(v.posted.at(-1).error.code).toBe('method_not_found');
   });
+
+  it('reports dirty state and closes to a new clean document in a new session', async () => {
+    const { engine, request, scope } = createTestEngine();
+    const h = lifecycleHandlers(engine);
+    await engine.execute(request([{ op: 'move', target: ids.shape, delta: { xPt: 1, yPt: 0 } }]), 'gui');
+    const s = scope();
+    expect(await h['doc.status'](s, {})).toMatchObject({ ok: true, value: { dirty: true, revision: s.revision } });
+    // A stale base revision is refused; nothing is discarded.
+    expect(await h['doc.new'](s, { baseRevision: s.revision - 1 })).toMatchObject({ ok: false, error: { code: 'revision_conflict' } });
+    const r = await h['doc.new'](s, { baseRevision: s.revision });
+    expect(r.ok).toBe(true);
+    const next = scope();
+    expect(next.documentId).not.toBe(s.documentId);
+    expect(next.sessionId).not.toBe(s.sessionId);
+    expect(engine.current().document.pages[0].elements).toEqual([]);
+    expect(await h['doc.status'](next, {})).toMatchObject({ ok: true, value: { dirty: false } });
+  });
+});
+
+describe('new untitled document', () => {
+  it('starts clean so Close does not ask to save an untouched diagram', async () => {
+    const { EditorController } = await import('../src/editor/EditorController');
+    const { MemoryAssetResolver } = await import('../src/editor/assets');
+    const c = new EditorController(new MemoryAssetResolver());
+    expect(await lifecycleHandlers(c.engine)['doc.status'](c.engine.scope(), {})).toMatchObject({ ok: true, value: { dirty: false } });
+    expect(c.getState().dirty).toBe(false);
+  });
 });

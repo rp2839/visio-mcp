@@ -42,6 +42,9 @@ public sealed class HostRequestHandlerTests
         Assert.True((await h.HandleAsync(Req("doc.summary"), CancellationToken.None)).Error is null);
         Assert.Equal(["doc.summary"], view.Methods);
         Assert.Equal("method_not_found", (await h.HandleAsync(Req("doc.replace"), CancellationToken.None)).Error!.Code);
+        // File → Close methods are GUI-only too: an agent must not be able to discard the document.
+        Assert.Equal("method_not_found", (await h.HandleAsync(Req("doc.status"), CancellationToken.None)).Error!.Code);
+        Assert.Equal("method_not_found", (await h.HandleAsync(Req("doc.new"), CancellationToken.None)).Error!.Code);
         Assert.Equal(["doc.summary"], view.Methods);
     }
 }

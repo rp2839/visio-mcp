@@ -29,7 +29,7 @@ export function AssetsPanel(props: { onImport: () => void }) {
                 {selectedImage?.kind === 'image' && selectedImage.assetId !== a.id && (
                   <button onClick={() => { if (confirm(`Replace ${selectedImage.assetId} with ${a.id} in every image?`)) void c.apply([{ op: 'replaceAssetGlobal', fromAssetId: selectedImage.assetId, toAssetId: a.id }], 'Replace asset globally'); }}>Replace globally</button>
                 )}
-                <button onClick={() => void c.apply([{ op: 'deleteAsset', assetId: a.id }], 'Delete asset')}>Delete</button>
+                <button data-testid={`asset-delete-${a.id}`} onClick={() => void c.deleteAsset(a)}>Delete</button>
               </div>
             </div>
           </li>

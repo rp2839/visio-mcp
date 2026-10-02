@@ -24,6 +24,10 @@ main { grid-area: main; position: relative; min-width: 0; min-height: 0; }
 .ruler.vertical { grid-column: 1; grid-row: 2; width: 22px; height: 100%; border-right: 1px solid #ccd; }
 .ruler line { stroke: #7a838c; } .ruler text { font-size: 8px; fill: #4a535c; } .ruler .unit { fill: #9aa1a9; }
 .canvas { grid-column: 2; grid-row: 2; position: relative; overflow: hidden; background: #e2e6ea; outline: none; }
+.zoom-bar { position: absolute; right: 12px; bottom: 12px; z-index: 2; display: flex; align-items: center; gap: 4px; padding: 3px 6px;
+  background: #fff; border: 1px solid #c3c9cf; border-radius: 4px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+.zoom-bar input[type=range] { width: 120px; }
+.zoom-bar .zoom-level { min-width: 52px; font-variant-numeric: tabular-nums; }
 .inspector { grid-area: right; overflow: auto; background: #fff; border-left: 1px solid #d6dbe0; padding: 6px 8px; }
 .field { display: grid; grid-template-columns: 82px 1fr; align-items: center; gap: 4px; margin: 2px 0; }
 .field input, .field select { width: 100%; font: inherit; padding: 2px 4px; }
