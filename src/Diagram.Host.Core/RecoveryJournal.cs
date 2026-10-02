@@ -122,12 +122,12 @@ public sealed class RecoveryJournal(string root, BlobStore blobs)
             if (!File.Exists(path)) return;
             var keep = Read(sessionId).Records.Where(r => r.Revision > revision).ToList();
             using var ms = new MemoryStream();
+            var header = new byte[HeaderBytes];
             foreach (var r in keep)
             {
                 var payload = JsonSerializer.SerializeToUtf8Bytes(r, ContractJson.Options);
-                Span<byte> header = stackalloc byte[HeaderBytes];
                 BinaryPrimitives.WriteUInt32LittleEndian(header, (uint)payload.Length);
-                SHA256.HashData(payload, header[4..]);
+                SHA256.HashData(payload, header.AsSpan(4));
                 ms.Write(header);
                 ms.Write(payload);
             }
