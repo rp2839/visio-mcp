@@ -216,3 +216,29 @@ public sealed class MappingTests
         Assert.True(r.Lossy);
     }
 }
+
+public sealed class FixtureTests
+{
+    /// <summary>
+    /// Regenerates tests/fixtures/vsdx/app-authored/scene.vsdx (input for I41 Visio/Word checks)
+    /// when UPDATE_VSDX_FIXTURES=1; otherwise verifies the committed fixture still imports with its IDs.
+    /// </summary>
+    [Fact]
+    public async Task AppAuthoredFixtureImportsWithStableIds()
+    {
+        var dir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../fixtures/vsdx/app-authored"));
+        var path = Path.Combine(dir, "scene.vsdx");
+        var (doc, blobs) = Scene.Build();
+        if (Environment.GetEnvironmentVariable("UPDATE_VSDX_FIXTURES") == "1")
+        {
+            Directory.CreateDirectory(dir);
+            var (pkg, _) = await Scene.ExportAsync(doc, blobs);
+            await File.WriteAllBytesAsync(path, pkg);
+            await File.WriteAllLinesAsync(Path.Combine(dir, "scene.ids.txt"), doc.Pages.SelectMany(p => p.Elements).Select(e => $"{e.Id()} {e.Kind()}").Order());
+        }
+        Assert.True(File.Exists(path), "run with UPDATE_VSDX_FIXTURES=1 to create the fixture");
+        var r = await Scene.ImportAsync(await File.ReadAllBytesAsync(path));
+        var expected = await File.ReadAllLinesAsync(Path.Combine(dir, "scene.ids.txt"));
+        Assert.Equal(expected, r.Document.Pages.SelectMany(p => p.Elements).Select(e => $"{e.Id()} {e.Kind()}").Order());
+    }
+}
