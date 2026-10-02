@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Host services without a WPF dependency: IO, assets, sessions, bridge routing, recovery.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Diagram.Core.Contracts/Diagram.Core.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Diagram.Host.Tests" />
+  </ItemGroup>
+</Project>

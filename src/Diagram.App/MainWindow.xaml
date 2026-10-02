@@ -1,0 +1,20 @@
+<Window x:Class="Diagram.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Agentic Diagram" Width="1400" Height="900">
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="_File">
+        <MenuItem Header="_Open…" Click="OnOpen" />
+        <MenuItem Header="_Save" Click="OnSave" />
+        <MenuItem Header="Save _As…" Click="OnSaveAs" />
+        <MenuItem Header="_Export VSDX…" Click="OnExportVsdx" />
+        <Separator />
+        <MenuItem Header="E_xit" Click="OnExit" />
+      </MenuItem>
+    </Menu>
+    <StatusBar DockPanel.Dock="Bottom"><TextBlock x:Name="Status" /></StatusBar>
+    <wv2:WebView2 x:Name="View" />
+  </DockPanel>
+</Window>
