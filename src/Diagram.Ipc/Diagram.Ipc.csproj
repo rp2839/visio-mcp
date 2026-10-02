@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Bounded length-framed named-pipe protocol (client, server, handshake).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Diagram.Core.Contracts/Diagram.Core.Contracts.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Diagram.Ipc.Tests" />
+  </ItemGroup>
+</Project>

@@ -2,8 +2,11 @@ import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { EditorController } from './editor/EditorController';
 import { HostAssetResolver, MemoryAssetResolver, prepareLocally } from './editor/assets';
-import { connectHost, tableDispatcher } from './bridge/bootstrap';
+import { connectHost } from './bridge/bootstrap';
 import { lifecycleHandlers } from './bridge/hostServices';
+import { RequestRouter, type Envelope } from './bridge/RequestRouter';
+import { AdmissionGate } from './bridge/AdmissionGate';
+import { compile } from './script/compiler';
 import type { Asset, PreparedAsset } from './model/types';
 import './styles.css';
 
@@ -13,9 +16,20 @@ const controller = new EditorController(webview ? new HostAssetResolver() : memo
 let prepareAsset: (file?: File) => Promise<Asset | null>;
 
 if (webview) {
-  const client = connectHost(webview, controller.engine, tableDispatcher({
-    ...lifecycleHandlers(controller.engine, { cancelGestures: () => controller.gestures.cancelAll() }),
-  }));
+  const engine = controller.engine;
+  const router = new RequestRouter(engine, compile, lifecycleHandlers(engine, { cancelGestures: () => controller.gestures.cancelAll() }));
+  const gate = new AdmissionGate((e) => router.dispatch(e), {
+    checkScope: (e) => {
+      const s = engine.scope();
+      if (e.documentId !== s.documentId) return { code: 'document_mismatch', message: 'request is for a different document', retryable: false };
+      if (e.sessionId !== s.sessionId) return { code: 'session_mismatch', message: 'stale session; re-read the document', retryable: false };
+      return null;
+    },
+    isCachedRetry: (e) => !!e.sessionId && !!e.documentId && engine.hasCachedTransaction(e.sessionId, e.documentId, e.params?.transactionId),
+  });
+  controller.gestures.onGestureState((active) => gate.setGestureActive(active));
+  // Host-stamped origin decides the path: MCP traffic is admitted per connection; host lifecycle calls are barriers.
+  const client = connectHost(webview, engine, (m) => (m.origin?.source === 'mcp' ? gate.accept(m.origin.connectionId ?? 'mcp', m as Envelope) : router.dispatch(m as Envelope)));
   prepareAsset = async () => {
     const r = await client.request('host.prepareAsset');
     if (!r.ok) throw new Error(r.error.message);

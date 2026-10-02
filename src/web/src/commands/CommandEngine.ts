@@ -93,6 +93,10 @@ export class CommandEngine {
   savedState() { return { revision: this.savedRevision, path: this.savedPath }; }
   canUndo(transactionId?: string) { return this.history.canUndo(transactionId); }
   canRedo() { return this.history.canRedo(); }
+  /** True if this transaction identity has a retained committed/noChange result (admission hint only). */
+  hasCachedTransaction(sessionId: string, documentId: string, transactionId: string) {
+    return this.cache.has(this.cacheKey(sessionId, documentId, transactionId));
+  }
   cacheStats() { return { entries: this.cache.size, bytes: this.cacheBytes, entryLimit: CACHE_ENTRY_LIMIT, byteLimit: CACHE_BYTE_LIMIT }; }
 
   // ---------- configuration ----------

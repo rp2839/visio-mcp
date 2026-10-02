@@ -20,6 +20,8 @@ public partial class MainWindow : Window, IWebMessageChannel
     private SessionCoordinator? sessions;
     private AssetPreparer? preparer;
     private string? currentPath;
+    private HostRequestHandler? hostRequests;
+    private readonly CancellationTokenSource shutdown = new();
 
     public event Action<WebMessage>? MessageReceived;
     public event Action? ProcessFailed;
@@ -63,6 +65,12 @@ public partial class MainWindow : Window, IWebMessageChannel
         });
         bridge.RendererFailed += () => Dispatcher.InvokeAsync(() => Status.Text = "Editor renderer failed; reload to recover the last durable state.");
         core.Navigate(new Uri(BridgeRouter.Origin, "index.html").ToString());
+
+        // Live MCP control: per-user pipe; requests reach the frontend engine through the bridge.
+        hostRequests = new HostRequestHandler(bridge);
+        var pipe = new Diagram.Ipc.PipeServer(Diagram.Ipc.Handshake.PipeName());
+        _ = pipe.StartAsync((req, conn, ct) => hostRequests.HandleAsync(req, ct), shutdown.Token);
+        Closed += (_, _) => shutdown.Cancel();
     }
 
     public void PostJson(string json) => Dispatcher.InvokeAsync(() => View.CoreWebView2?.PostWebMessageAsJson(json));

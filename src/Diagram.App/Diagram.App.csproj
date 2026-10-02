@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../Diagram.Host.Core/Diagram.Host.Core.csproj" />
+    <ProjectReference Include="../Diagram.Ipc/Diagram.Ipc.csproj" />
   </ItemGroup>
   <ItemGroup>
     <!-- Packaged frontend (npm run build in src/web) served from the fixed virtual origin. -->

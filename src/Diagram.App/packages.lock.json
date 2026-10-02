@@ -16,6 +16,12 @@
         "dependencies": {
           "Diagram.Core.Contracts": "[1.0.0, )"
         }
+      },
+      "diagram.ipc": {
+        "type": "Project",
+        "dependencies": {
+          "Diagram.Core.Contracts": "[1.0.0, )"
+        }
       }
     }
   }

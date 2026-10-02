@@ -4,7 +4,7 @@ import type { Result } from '../model/result';
 import { err } from '../model/result';
 
 type Json = Record<string, any>;
-export type MethodHandler = (scope: Scope, params: Json) => Promise<Result<unknown>>;
+export type MethodHandler = (scope: Scope, params: Json, envelope?: unknown) => Promise<Result<unknown>>;
 
 /**
  * Host lifecycle methods served by the frontend engine (GUI/host only; never MCP tools).
