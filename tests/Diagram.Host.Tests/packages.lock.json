@@ -169,6 +169,19 @@
       "diagram.host.core": {
         "type": "Project",
         "dependencies": {
+          "Diagram.Core.Contracts": "[1.0.0, )",
+          "Diagram.Visio": "[1.0.0, )"
+        }
+      },
+      "diagram.visio": {
+        "type": "Project",
+        "dependencies": {
+          "Diagram.Visio.Abstractions": "[1.0.0, )"
+        }
+      },
+      "diagram.visio.abstractions": {
+        "type": "Project",
+        "dependencies": {
           "Diagram.Core.Contracts": "[1.0.0, )"
         }
       }

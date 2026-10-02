@@ -70,6 +70,8 @@ public sealed class FakeEditor : IEditorChannel
     public Func<string, Task>? BeforeHandling { get; set; }
     public List<string> Calls { get; } = [];
     public Action<DiagramDocument>? OnReplace { get; set; }
+    /// <summary>PNG returned for asset.rasterize; null → the frontend cannot rasterise.</summary>
+    public byte[]? RasterPng { get; set; }
 
     public FakeEditor(DiagramDocument doc) => Document = doc;
 
@@ -89,6 +91,12 @@ public sealed class FakeEditor : IEditorChannel
         {
             case "doc.snapshot":
                 return Ok(new Snapshot { DocumentId = Document.Id, SessionId = SessionId, Revision = Document.Revision, Document = Document });
+            case "doc.exportSnapshot":
+                var projection = new Projection { DocumentId = Document.Id, SessionId = SessionId, Revision = Document.Revision };
+                return Ok(new ExportSnapshot { DocumentId = Document.Id, SessionId = SessionId, Revision = Document.Revision, Document = Document, Projection = projection });
+            case "asset.rasterize":
+                if (RasterPng is null) return Result<JsonElement>.Fail("not_found", "no raster");
+                return Ok(new JsonObject { ["mimeType"] = "image/png", ["data"] = Convert.ToBase64String(RasterPng) });
             case "doc.markSaved":
                 SavedRevision = p["revision"]!.GetValue<long>();
                 return Ok(new JsonObject());

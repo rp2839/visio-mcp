@@ -18,7 +18,7 @@ let prepareAsset: (file?: File) => Promise<Asset | null>;
 
 if (webview) {
   const engine = controller.engine;
-  const router = new RequestRouter(engine, compile, { ...lifecycleHandlers(engine, { cancelGestures: () => controller.gestures.cancelAll() }), ...renderMethods(engine, controller.assets) });
+  const router = new RequestRouter(engine, compile, { ...lifecycleHandlers(engine, { cancelGestures: () => controller.gestures.cancelAll(), assets: controller.assets }), ...renderMethods(engine, controller.assets) });
   const gate = new AdmissionGate((e) => router.dispatch(e), {
     checkScope: (e) => {
       const s = engine.scope();
@@ -57,6 +57,12 @@ if (import.meta.env.DEV || location.search.includes('testapi')) {
     // Simulated external (agent) request through the same engine entry point MCP uses.
     agentApply: (req: unknown) => controller.engine.execute(req as any, 'mcp'),
     scope: () => controller.engine.scope(),
+    // Host lifecycle handlers (GUI/host only) and the in-memory asset map, for host-service tests.
+    host: (method: string, params: Record<string, unknown>) => {
+      const handlers = lifecycleHandlers(controller.engine, { cancelGestures: () => controller.gestures.cancelAll(), assets: controller.assets });
+      return handlers[method](controller.engine.scope(), params);
+    },
+    putAsset: (sha256: string, dataUrl: string) => memory.put(sha256, dataUrl),
     lifecycleReplace: async () => {
       const s = controller.engine.scope();
       controller.gestures.cancelAll();

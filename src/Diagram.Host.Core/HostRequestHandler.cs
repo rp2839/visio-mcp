@@ -24,7 +24,7 @@ public sealed class HostRequestHandler(BridgeRouter bridge, IEnumerable<IHostReq
         var service = services.FirstOrDefault(s => s.Handles(request.Method));
         if (service is not null) return await service.HandleAsync(request, ct);
         // Host lifecycle methods are GUI-only; never forward them from the pipe.
-        if (request.Method is "doc.snapshot" or "doc.exportSnapshot" or "doc.markSaved" or "doc.replace")
+        if (request.Method is "doc.snapshot" or "doc.exportSnapshot" or "doc.markSaved" or "doc.replace" or "asset.rasterize")
             return Error(request.RequestId, "method_not_found", $"{request.Method} is not available to MCP clients");
         return await bridge.SendAsync(request, ct);
     }

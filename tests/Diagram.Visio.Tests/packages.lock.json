@@ -1,7 +1,7 @@
 {
   "version": 1,
   "dependencies": {
-    "net10.0-windows7.0": {
+    "net10.0": {
       "Microsoft.NET.Test.Sdk": {
         "type": "Direct",
         "requested": "[18.10.1, )",
@@ -10,6 +10,16 @@
         "dependencies": {
           "Microsoft.CodeCoverage": "18.10.1",
           "Microsoft.TestPlatform.TestHost": "18.10.1"
+        }
+      },
+      "OfficeIMO.Visio": {
+        "type": "Direct",
+        "requested": "[3.4.4, )",
+        "resolved": "3.4.4",
+        "contentHash": "ZYT5886Bpd63MOd8R6ZdVFXBSV3XqIqQi3gcKokBTL4/GxxuENvqhpuFLAW5rxxIRygJ5c7Wv6O4FedlY6+4cA==",
+        "dependencies": {
+          "OfficeIMO.Core": "3.4.4",
+          "System.IO.Packaging": "10.0.8"
         }
       },
       "xunit.runner.visualstudio": {
@@ -85,15 +95,20 @@
           "Microsoft.TestPlatform.ObjectModel": "18.10.1"
         }
       },
-      "Microsoft.Web.WebView2": {
-        "type": "Transitive",
-        "resolved": "1.0.4258.31",
-        "contentHash": "sHVZ2MQrHT1J3q5/6csn0fIP27rzpTO/RRC+wPQDrZheB7T4t2n+vVbY6SdCKr4WRV9s/gmBM3PPMWWJtoDzMg=="
-      },
       "Microsoft.Win32.Registry": {
         "type": "Transitive",
         "resolved": "5.0.0",
         "contentHash": "dDoKi0PnDz31yAyETfRntsLArTlVAVzUzCIvvEDsDsucrl33Dl8pIJG06ePTJTI3tGpeyHS9Cq7Foc/s4EeKcg=="
+      },
+      "OfficeIMO.Core": {
+        "type": "Transitive",
+        "resolved": "3.4.4",
+        "contentHash": "s1MD3wvn2DSj6rPHKrIfq3qzfVefQrrS2hfl7+OZOWvFsWyuZwzCGC3TxVWevQdPwHUKPs5kzJaWY0vRGDHyqw=="
+      },
+      "System.IO.Packaging": {
+        "type": "Transitive",
+        "resolved": "10.0.8",
+        "contentHash": "6Dzmgfpi7BdqgQ3g/6jZuJzgGspIFSEfSchY4ejTVkZTMOKRZRJiYp5/q0gIZ8H1+Eq8/sxJNnyWtzAHp6iTcQ=="
       },
       "System.Security.AccessControl": {
         "type": "Transitive",
@@ -168,29 +183,8 @@
           "xunit.v3.runner.common": "[4.0.1]"
         }
       },
-      "diagram.app": {
-        "type": "Project",
-        "dependencies": {
-          "Diagram.Host.Core": "[1.0.0, )",
-          "Diagram.Ipc": "[1.0.0, )",
-          "Microsoft.Web.WebView2": "[1.0.4258.31, )"
-        }
-      },
       "diagram.core.contracts": {
         "type": "Project"
-      },
-      "diagram.host.core": {
-        "type": "Project",
-        "dependencies": {
-          "Diagram.Core.Contracts": "[1.0.0, )",
-          "Diagram.Visio": "[1.0.0, )"
-        }
-      },
-      "diagram.ipc": {
-        "type": "Project",
-        "dependencies": {
-          "Diagram.Core.Contracts": "[1.0.0, )"
-        }
       },
       "diagram.visio": {
         "type": "Project",

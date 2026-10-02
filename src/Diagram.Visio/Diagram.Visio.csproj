@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Stateless VSDX mapping via direct OPC parts (backend chosen in docs/m0/decision.md).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Diagram.Visio.Abstractions/Diagram.Visio.Abstractions.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Diagram.Visio.Tests" />
+  </ItemGroup>
+</Project>

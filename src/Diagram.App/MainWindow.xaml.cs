@@ -18,6 +18,7 @@ public partial class MainWindow : Window, IWebMessageChannel
     private readonly string dataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AgenticDiagram");
     private BridgeRouter? bridge;
     private SessionCoordinator? sessions;
+    private VsdxCoordinator? vsdx;
     private AssetPreparer? preparer;
     private string? currentPath;
     private HostRequestHandler? hostRequests;
@@ -56,6 +57,7 @@ public partial class MainWindow : Window, IWebMessageChannel
         preparer = new AssetPreparer(blobs);
         bridge = new BridgeRouter(this);
         sessions = new SessionCoordinator(bridge, blobs, preparer);
+        vsdx = new VsdxCoordinator(bridge, blobs, preparer);
         bridge.RegisterHostHandler("host.prepareAsset", PrepareAssetAsync);
         bridge.RegisterHostHandler("host.readBlob", async (p, ct) =>
         {
@@ -98,12 +100,24 @@ public partial class MainWindow : Window, IWebMessageChannel
     private async void OnOpen(object sender, RoutedEventArgs e)
     {
         if (sessions is null || CurrentScope() is not { } scope) return;
-        var dlg = new OpenFileDialog { Filter = "Diagram JSON|*.diagram.json" };
+        var dlg = new OpenFileDialog { Filter = "Diagrams|*.diagram.json;*.vsdx|Diagram JSON|*.diagram.json|Visio drawing|*.vsdx" };
         if (dlg.ShowDialog(this) != true) return;
         var snap = await bridge!.CallAsync("doc.snapshot", scope, new JsonObject(), CancellationToken.None);
         if (!snap.Ok) { Status.Text = snap.Error!.Message; return; }
-        var revision = snap.Value.GetProperty("revision").GetInt64();
-        var opened = await sessions.OpenJsonAsync(dlg.FileName, new ExpectedState(scope.DocumentId, scope.SessionId, revision), CancellationToken.None);
+        var expected = new ExpectedState(scope.DocumentId, scope.SessionId, snap.Value.GetProperty("revision").GetInt64());
+        if (IsVsdx(dlg.FileName))
+        {
+            var native = await vsdx!.OpenAsync(dlg.FileName, expected, CancellationToken.None);
+            if (!native.Ok) { Status.Text = $"Open failed: {native.Error!.Message}"; return; }
+            var report = native.Value!.Report;
+            // Lossy import: keep the document dirty with no save path so Save becomes Save As.
+            currentPath = native.Value.SaveAsRequired ? null : dlg.FileName;
+            Status.Text = native.Value.SaveAsRequired
+                ? $"Opened {dlg.FileName} with {report.Approximated} approximated and {report.Dropped} dropped items ({string.Join(", ", report.ByCode.Keys)}); use Save As."
+                : $"Opened {dlg.FileName}";
+            return;
+        }
+        var opened = await sessions.OpenJsonAsync(dlg.FileName, expected, CancellationToken.None);
         Status.Text = opened.Ok ? $"Opened {dlg.FileName}" : $"Open failed: {opened.Error!.Message}";
         if (opened.Ok) currentPath = dlg.FileName;
     }
@@ -116,19 +130,38 @@ public partial class MainWindow : Window, IWebMessageChannel
 
     private async void OnSaveAs(object sender, RoutedEventArgs e)
     {
-        var dlg = new SaveFileDialog { Filter = "Diagram JSON|*.diagram.json", FileName = "diagram.diagram.json" };
+        var dlg = new SaveFileDialog { Filter = "Diagram JSON|*.diagram.json|Visio drawing|*.vsdx", FileName = "diagram.diagram.json" };
         if (dlg.ShowDialog(this) == true) await SaveAsync(dlg.FileName);
     }
 
     private async Task SaveAsync(string path)
     {
         if (sessions is null || CurrentScope() is not { } scope) return;
+        if (IsVsdx(path))
+        {
+            var native = await vsdx!.ExportAsync(path, scope, markSaved: true, CancellationToken.None);
+            if (!native.Ok) { Status.Text = $"Save failed: {native.Error!.Message}"; return; }
+            var r = native.Value!.Report;
+            Status.Text = native.Value.MarkedClean ? $"Saved revision {native.Value.Revision} as VSDX" : $"Saved VSDX but {r.Dropped} item(s) were dropped; document left unsaved ({string.Join(", ", r.ByCode.Keys)})";
+            if (native.Value.MarkedClean) currentPath = path;
+            return;
+        }
         var saved = await sessions.SaveJsonAsync(path, scope, CancellationToken.None);
         Status.Text = saved.Ok ? $"Saved revision {saved.Value!.Revision}{(saved.Value.MarkedClean ? "" : " (document changed session; not marked clean)")}" : $"Save failed: {saved.Error!.Message}";
         if (saved.Ok) currentPath = path;
     }
 
-    private void OnExportVsdx(object sender, RoutedEventArgs e) => Status.Text = "VSDX export: see I40 VisioExportService (wired in HostServices).";
+    private static bool IsVsdx(string path) => path.EndsWith(".vsdx", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>Export a copy: never changes the current save path or clean state.</summary>
+    private async void OnExportVsdx(object sender, RoutedEventArgs e)
+    {
+        if (vsdx is null || CurrentScope() is not { } scope) return;
+        var dlg = new SaveFileDialog { Filter = "Visio drawing|*.vsdx", FileName = "diagram.vsdx" };
+        if (dlg.ShowDialog(this) != true) return;
+        var r = await vsdx.ExportAsync(dlg.FileName, scope, markSaved: false, CancellationToken.None);
+        Status.Text = r.Ok ? $"Exported revision {r.Value!.Revision} ({r.Value.Report.Approximated} approximated, {r.Value.Report.Dropped} dropped)" : $"Export failed: {r.Error!.Message}";
+    }
 
     private void OnExit(object sender, RoutedEventArgs e) => Close();
 }

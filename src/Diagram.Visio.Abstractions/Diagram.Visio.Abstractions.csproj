@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Backend-neutral VSDX import/export contracts (no library types escape).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Diagram.Core.Contracts/Diagram.Core.Contracts.csproj" />
+  </ItemGroup>
+</Project>
