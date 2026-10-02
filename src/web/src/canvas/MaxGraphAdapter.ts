@@ -7,10 +7,12 @@ import { ok, err, type Result } from '../model/result';
 import { DEFAULT_PORTS } from '../model/defaults';
 import type { CanvasAdapter, CanvasChange, CanvasIntent, GestureKind, Viewport } from './CanvasAdapter';
 import { presetCanvasStyle } from './presets';
+import { registerPresetShape } from './presetShape';
 import { DASH_ARRAYS, MAX_ARROWS, isLocked, isVisible, layerColourOverride, splitColour } from './styleMap';
 import type { AssetResolver } from '../editor/assets';
 
 VertexHandlerConfig.rotationEnabled = true;
+registerPresetShape();
 
 const PX_PER_PT = 96 / 72;
 const PORT_NAMES = Object.entries(DEFAULT_PORTS);
@@ -547,6 +549,13 @@ export class MaxGraphAdapter implements CanvasAdapter {
       };
     }
     return out;
+  }
+
+  /** Test/inspection helper: the SVG markup the canvas drew for one element's shape. */
+  cellMarkup(id: string): string | null {
+    const cell = this.graph.getDataModel().getCell(id);
+    const state = cell ? this.graph.getView().getState(cell) : null;
+    return (state?.shape?.node as globalThis.Element | undefined)?.outerHTML ?? null;
   }
 
   pageToClient(p: Point): Point {

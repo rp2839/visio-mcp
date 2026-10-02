@@ -59,6 +59,7 @@ if (import.meta.env.DEV || location.search.includes('testapi')) {
     pageId: () => controller.getState().pageId,
     toClient: (p: { x: number; y: number }) => (controller as any).adapter?.pageToClient(p),
     cellStates: () => (controller as any).adapter?.cellStates(),
+    cellMarkup: (id: string) => (controller as any).adapter?.cellMarkup(id),
     reprojectAll: () => (controller as any).adapter?.project(controller.engine.current(), controller.getState().pageId),
     gestureActive: () => controller.gestures.isActive(),
     status: () => controller.getState().status,

@@ -57,8 +57,16 @@ export function presetPath(preset: string | undefined, x: number, y: number, w: 
       return `${poly([[0, 0], [1, 0], [1, 1], [0, 1]])} M${X(0)},${Y(0.33)} L${X(1)},${Y(0.33)} M${X(0)},${Y(0.66)} L${X(1)},${Y(0.66)}`;
     case 'application':
       return `${poly([[0, 0], [1, 0], [1, 1], [0, 1]])} M${X(0)},${Y(0.18)} L${X(1)},${Y(0.18)}`;
-    case 'user':
-      return `M${X(0.5)},${Y(0)} A${w * 0.18},${h * 0.2} 0 1 1 ${X(0.5)},${Y(0.4)} A${w * 0.18},${h * 0.2} 0 1 1 ${X(0.5)},${Y(0)} Z M${X(0.1)},${Y(1)} C${X(0.1)},${Y(0.5)} ${X(0.9)},${Y(0.5)} ${X(0.9)},${Y(1)} Z`;
+    case 'user': {
+      // Head as four cubic quarter-arcs, as GeometryMap.Preset in the VSDX mapper: exact
+      // semicircle arcs are ambiguous and maxGraph drew only half the head.
+      const k = 0.5522847498, cx = 0.5, cy = 0.2, rx = 0.18, ry = 0.2;
+      const head = `M${X(cx + rx)},${Y(cy)} C${X(cx + rx)},${Y(cy + k * ry)} ${X(cx + k * rx)},${Y(cy + ry)} ${X(cx)},${Y(cy + ry)} `
+        + `C${X(cx - k * rx)},${Y(cy + ry)} ${X(cx - rx)},${Y(cy + k * ry)} ${X(cx - rx)},${Y(cy)} `
+        + `C${X(cx - rx)},${Y(cy - k * ry)} ${X(cx - k * rx)},${Y(cy - ry)} ${X(cx)},${Y(cy - ry)} `
+        + `C${X(cx + k * rx)},${Y(cy - ry)} ${X(cx + rx)},${Y(cy - k * ry)} ${X(cx + rx)},${Y(cy)} Z`;
+      return `${head} M${X(0.1)},${Y(1)} C${X(0.1)},${Y(0.5)} ${X(0.9)},${Y(0.5)} ${X(0.9)},${Y(1)} Z`;
+    }
     case 'custom':
       if (custom && /^[MmLlHhVvCcSsQqTtAaZz0-9\s,.\-eE]+$/.test(custom)) return `${custom}`; // restricted path data only
       return poly([[0, 0], [1, 0], [1, 1], [0, 1]]);
@@ -77,9 +85,9 @@ export function presetCanvasStyle(preset: string | undefined): Record<string, un
     case 'hexagon': return { shape: 'hexagon', perimeter: 'hexagonPerimeter' };
     case 'cylinder': case 'database': return { shape: 'cylinder' };
     case 'cloud': return { shape: 'cloud' };
-    case 'parallelogram': return { shape: 'parallelogram' };
-    case 'callout': return { shape: 'callout' };
-    case 'document': return { shape: 'document' };
+    // No built-in maxGraph shape: drawn from presetPath by the registered 'agentPreset' shape.
+    case 'parallelogram': case 'callout': case 'document': case 'server': case 'application': case 'user':
+      return { shape: 'agentPreset', agentPreset: preset };
     default: return {};
   }
 }
