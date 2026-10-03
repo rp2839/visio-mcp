@@ -30,7 +30,9 @@ public static class Bytes
         uint crc = 0xFFFFFFFF; foreach (var x in typed) { crc ^= x; for (var k = 0; k < 8; k++) crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320 : crc >> 1; }
         BinaryPrimitives.WriteUInt32BigEndian(len, ~crc); s.Write(len);
     }
-    public static byte[] Jpeg(int w, int h) => [0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x04, 0x00, 0x00, 0xFF, 0xC0, 0x00, 0x0B, 0x08, (byte)(h >> 8), (byte)h, (byte)(w >> 8), (byte)w, 0x01, 0x01, 0x11, 0x00, 0xFF, 0xD9];
+    /// <summary>A real baseline JPEG (64×32 gradient, encoded by ImageMagick). The earlier header-only stub crashed Visio.</summary>
+    public static byte[] Jpeg() => Convert.FromBase64String(JpegBase64);
+    private const string JpegBase64 = "/9j/4AAQSkZJRgABAQAAAAAAAAD/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAAgAEADASIAAhEBAxEB/8QAFgABAQEAAAAAAAAAAAAAAAAAAAUG/8QAFhAAAwAAAAAAAAAAAAAAAAAAABRh/8QAFgEBAQEAAAAAAAAAAAAAAAAAAAUH/8QAFhEAAwAAAAAAAAAAAAAAAAAAABVh/9oADAMBAAIRAxEAPwDNrwLwrLwLwsvaQEUJK8C8Ky8C8D2hFCSvAvCsvAvA9oRQkrwLwrLwLwPaEUKy8C8Kq8C8MZe02VFCUvAvCqvAvA9oRQlLwLwqrwLwPaEUJS8C8Kq8C8D2hFD/2Q==";
     public static byte[] Bmp(int w, int h)
     {
         var b = new byte[54 + w * h * 4];
@@ -67,7 +69,7 @@ public static class Scene
     {
         var blobs = new Blobs();
         var png = blobs.Add(Bytes.Png(40, 20));
-        var jpg = blobs.Add(Bytes.Jpeg(64, 32));
+        var jpg = blobs.Add(Bytes.Jpeg());
         var bmp = blobs.Add(Bytes.Bmp(8, 8));
         var svg = blobs.Add(Bytes.Svg);
         blobs.Raster[svg] = Bytes.Png(20, 10, 44, 160, 44);

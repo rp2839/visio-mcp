@@ -1,6 +1,6 @@
 # VSDX compatibility (I40)
 
-**Status: library-level evidence only.** Every row below has been checked by
+**Status: library-level evidence, plus the first Visio 16.0.20430 findings (see `acceptance/WA-results-2026-10-02.md`).** Every row below has been checked by
 `tests/Diagram.Visio.Tests` (direct OPC writer/reader, plus OfficeIMO.Visio 3.4.4 as an independent
 loader). **No row has been opened in Microsoft Visio or Word.** Those checks belong to I41 and
 are recorded as NOT RUN in `docs/acceptance/visio-word-checklist.md`. "Round-trips" means the
@@ -30,7 +30,7 @@ the contracts.
 | Page background colour | `AgentBackground` only (`page_background` approximated) | ✓ from metadata; background pages are dropped (`background_page`) | — |
 | Layers: name, visible, lock, print, snap, glue | `Layer` section + `LayerMember`; `AgentLayerIds` | ✓ including multi-layer membership | `Structural_*` |
 | Presets (15) and custom paths | Native `Geometry` sections (RelMoveTo/RelLineTo/RelCubBezTo), editable, never a bitmap | ✓ preset restored while `AgentGeomHash` matches. A Visio edit gives `custom` + `stale_preset` | `BasicObjects_*`, `ExportWritesNativeEditableGeometryNotABitmap`, `UnknownEffects*` |
-| Other Visio geometry rows | — | ArcTo/EllipticalArcTo → cubic; Ellipse → 4 cubics; NURBS/Polyline/Spline → lines (`geometry_row` approximated) | `UnknownEffects*` |
+| Other Visio geometry rows | — | ArcTo/EllipticalArcTo → cubic; Ellipse → 4 cubics; PolylineTo → exact lines; NURBSTo → sampled rational B-spline with a clamped knot vector (`geometry_row` approximated); a row with no formula, and SplineStart/SplineKnot → lines | `NurbsAndPolylineRowsKeepTheirOutline`, `UnknownEffects*` |
 | Rounded rectangle radius | geometry + `AgentCornerRadius` | ✓ | `BasicObjects_*` |
 | Bounds, rotation | PinX/PinY/Width/Height/LocPin/Angle | ✓ ≤ 0.01 pt / 0.01° (30° and 33° fixtures) | `BasicObjects_*`, `Structural_*` |
 | Flip | FlipX/FlipY = 0 | folded into placement, `flip` approximated | `UnknownEffects*` |
@@ -53,8 +53,20 @@ the contracts.
 | SVG pictures | PNG derivative rendered by the frontend (`asset.rasterize`) as the picture; original SVG carried at `visio/media/source-<sha16>.svg` via a custom relationship (`svg_rasterised` approximated). With no derivative the picture is omitted (`svg_no_fallback`, error/dropped, never marked clean) | ✓ original SVG restored while the picture bytes are unchanged | `Images_*`, `SvgUsesFrontendRaster*` |
 | Picture replaced in Visio | — | new bytes become a new asset (`asset:image~<sha>`, `stale_image_provenance`). The stale `AssetSha256` cell is never used to resurrect the old image | `EditedForeignDataIsStaleProvenance` |
 | Other picture formats (EMF/WMF/GIF/TIFF) | — | dropped (`picture_format`) | — |
-| Masters | — | cells inherited from masters (`masters_inherited` approximated) | — |
+| Masters and partial local sections | — | Effective cells = style sheets < master shape (group children via `MasterShape`) < local. Sections merge by IX, rows by IX/N (a local row without `T` keeps the master's type), cells by name; `Del="1"` removes. Master text is inherited. Master links are not kept (`masters_inherited`). | `PartialLocalGeometryMergesOverMasterRows` |
+| Style sheets and theme colours | — | Line/Fill/Text style-sheet chains supply category cells and Character/Paragraph rows. A themed cell (`THEMEVAL`, `V="Themed"`) that is inherited, or has no cached colour, resolves through `QuickStyleFillColor`/`QuickStyleLineColor`/`QuickStyleFontColor` (0 Dark, 1 Light, 2–7 Accent 1–6, 100+ variation colours) from the theme part. A colour cached on the shape itself is kept. Fill matrices (tints, gradients) are not applied (`theme_colour` approximated). | `ThemeAndStyleSheetColoursResolve` |
 | Macros (`vbaProject.bin`), OLE embeddings | — | inert: never executed or loaded (`macro_inert`, `ole_inert` dropped) | `MacrosAndOleAreInertDiagnostics`, `LossyImportRequiresSaveAs*` |
+
+## Package parts
+
+Export always writes `visio/windows.xml` (an empty `<Windows/>`), its relationship from
+`document.xml` and its content type. Visio 16.0.20430 rejects a package without it with error 271
+(Windows finding, 2026-10-02). `PackageStructureTests` check the windows part, that every part has a
+content type, and that every relationship target exists.
+
+Connector routes on import: `ShapeRouteStyle=2` is straight. With `ConLineRouteExt=1`, styles 0
+(page default) and 16 (centre-to-centre) are straight too. `ConLineRouteExt=2` is curved. Everything
+else is orthogonal (`RouteRule`).
 
 ## Identity
 

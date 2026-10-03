@@ -72,7 +72,9 @@ public sealed class DirectVsdxExporter : IVsdxExporter
             Write(zip, "visio/pages/pages.xml", new XDocument(new XElement(V + "Pages", new XAttribute(XNamespace.Xmlns + "r", R), pageEntries)));
             Write(zip, "visio/pages/_rels/pages.xml.rels", Rels(pageRels));
             Write(zip, "visio/document.xml", DocumentXml(doc));
-            Write(zip, "visio/_rels/document.xml.rels", Rels([("rId1", RelPages, "pages/pages.xml")]));
+            // Visio 16 refuses a package without a windows part (error 271), even an empty one.
+            Write(zip, "visio/windows.xml", new XDocument(new XElement(V + "Windows", new XAttribute(XNamespace.Xmlns + "r", R))));
+            Write(zip, "visio/_rels/document.xml.rels", Rels([("rId1", RelPages, "pages/pages.xml"), ("rId2", RelWindows, "windows.xml")]));
             Write(zip, "docProps/core.xml", CoreXml(doc));
             Write(zip, "docProps/app.xml", new XDocument(new XElement(XNamespace.Get("http://schemas.openxmlformats.org/officeDocument/2006/extended-properties") + "Properties",
                 new XElement(XNamespace.Get("http://schemas.openxmlformats.org/officeDocument/2006/extended-properties") + "Application", "Agentic Diagram"))));
@@ -473,6 +475,7 @@ public sealed class DirectVsdxExporter : IVsdxExporter
             new XElement(Ct + "Default", new XAttribute("Extension", "svg"), new XAttribute("ContentType", "image/svg+xml")),
             new XElement(Ct + "Override", new XAttribute("PartName", "/visio/document.xml"), new XAttribute("ContentType", "application/vnd.ms-visio.drawing.main+xml")),
             new XElement(Ct + "Override", new XAttribute("PartName", "/visio/pages/pages.xml"), new XAttribute("ContentType", "application/vnd.ms-visio.pages+xml")),
+            new XElement(Ct + "Override", new XAttribute("PartName", "/visio/windows.xml"), new XAttribute("ContentType", "application/vnd.ms-visio.windows+xml")),
             new XElement(Ct + "Override", new XAttribute("PartName", "/docProps/core.xml"), new XAttribute("ContentType", "application/vnd.openxmlformats-package.core-properties+xml")),
             new XElement(Ct + "Override", new XAttribute("PartName", "/docProps/app.xml"), new XAttribute("ContentType", "application/vnd.openxmlformats-officedocument.extended-properties+xml")));
         for (var i = 1; i <= pages; i++)

@@ -280,6 +280,25 @@ public static class GeometryMap
                         (cx, cy) = (ex, ey);
                         break;
                     }
+                    case "PolylineTo" when Formula(row, v, "E") is { } poly && ParseCall(poly, "POLYLINE") is { Count: >= 2 } pa:
+                    {
+                        // POLYLINE(xType, yType, x1, y1, ...): type 0 = fraction of width/height, 1 = local inches.
+                        (double, double) P(double px, double py) => (pa[0] == 0 ? px : px / w, 1 - (pa[1] == 0 ? py : py / h));
+                        for (var k = 2; k + 1 < pa.Count; k += 2) { var (a, b) = P(pa[k], pa[k + 1]); segs.Add(new('L', [a, b])); }
+                        var (ex, ey) = U(X, Y);
+                        segs.Add(new('L', [ex, ey]));
+                        (cx, cy) = (ex, ey);
+                        break;
+                    }
+                    case "NURBSTo" when Formula(row, v, "E") is { } nurbs && ParseCall(nurbs, "NURBS") is { Count: >= 4 } na:
+                    {
+                        var (ex, ey) = U(X, Y);
+                        var pts = Nurbs(na, (cx, cy), (ex, ey), RowNum(row, v, "A"), RowNum(row, v, "B"), RowNum(row, v, "C"), RowNum(row, v, "D"), w, h);
+                        foreach (var (a, b) in pts) segs.Add(new('L', [a, b]));
+                        approx.Add("NURBSTo");
+                        (cx, cy) = (ex, ey);
+                        break;
+                    }
                     case "PolylineTo":
                     case "NURBSTo":
                     case "SplineStart":
@@ -305,6 +324,94 @@ public static class GeometryMap
             }
         }
         return (result, approx);
+    }
+
+    private static string? Formula(XElement row, XNamespace v, string n)
+    {
+        var c = row.Elements(v + "Cell").FirstOrDefault(x => (string?)x.Attribute("N") == n);
+        return (string?)c?.Attribute("F") is { Length: > 0 } f ? f : (string?)c?.Attribute("V");
+    }
+
+    /// <summary>Numeric arguments of NAME(a, b, ...), or null.</summary>
+    private static List<double>? ParseCall(string text, string name)
+    {
+        var i = text.IndexOf(name + "(", StringComparison.OrdinalIgnoreCase);
+        var j = text.LastIndexOf(')');
+        if (i < 0 || j < i) return null;
+        var list = new List<double>();
+        foreach (var part in text[(i + name.Length + 1)..j].Split(','))
+        {
+            if (!double.TryParse(part.Trim(), NumberStyles.Float, Inv, out var d) || !double.IsFinite(d)) return null;
+            list.Add(d);
+        }
+        return list;
+    }
+
+    /// <summary>
+    /// Samples a Visio NURBSTo row as a polyline in unit space. Control points: the current point,
+    /// the NURBS() points (x, y, knot, weight), then the row end (X, Y). Knots: first knot C, the
+    /// point knots, last knot A, then knotLast, padded to a clamped vector of the needed length.
+    /// </summary>
+    private static List<(double, double)> Nurbs(List<double> a, (double U, double V) start, (double U, double V) end,
+        double lastKnot, double lastWeight, double firstKnot, double firstWeight, double w, double h)
+    {
+        int degree = Math.Clamp((int)a[1], 1, 9);
+        int xType = (int)a[2], yType = (int)a[3];
+        var ctrl = new List<(double X, double Y, double W)> { (start.U, start.V, firstWeight == 0 ? 1 : firstWeight) };
+        var knots = new List<double> { firstKnot };
+        for (var k = 4; k + 3 < a.Count; k += 4)
+        {
+            var u = xType == 0 ? a[k] : a[k] / w;
+            var vv = 1 - (yType == 0 ? a[k + 1] : a[k + 1] / h);
+            ctrl.Add((u, vv, a[k + 3] == 0 ? 1 : a[k + 3]));
+            knots.Add(a[k + 2]);
+        }
+        ctrl.Add((end.U, end.V, lastWeight == 0 ? 1 : lastWeight));
+        knots.Add(lastKnot);
+        knots.Add(a[0]);
+        var n = ctrl.Count;
+        degree = Math.Min(degree, n - 1);
+        // Clamped knot vector: start/end each repeated degree+1 times so the curve runs from the
+        // current point to the row end; interior knots come from the row where it supplies enough.
+        double tStart = knots[0], tEnd = Math.Max(knots[^1], knots.Max());
+        if (!(tEnd > tStart)) (tStart, tEnd) = (0, 1);
+        var needed = n - degree - 1;
+        var interior = knots.Where(k => k > tStart && k < tEnd).ToList();
+        if (interior.Count != needed) interior = Enumerable.Range(1, Math.Max(0, needed)).Select(k => tStart + (tEnd - tStart) * k / (needed + 1)).ToList();
+        knots = [.. Enumerable.Repeat(tStart, degree + 1), .. interior, .. Enumerable.Repeat(tEnd, degree + 1)];
+        double t0 = knots[degree], t1 = knots[n];
+        var result = new List<(double, double)>();
+        if (!(t1 > t0)) { result.Add((end.U, end.V)); return result; }
+        var samples = Math.Max(8, n * 8);
+        for (var sIx = 1; sIx <= samples; sIx++)
+        {
+            var t = sIx == samples ? t1 : t0 + (t1 - t0) * sIx / samples;
+            result.Add(sIx == samples ? (end.U, end.V) : DeBoor(t, degree, knots, ctrl));
+        }
+        return result;
+    }
+
+    private static (double, double) DeBoor(double t, int p, List<double> knots, List<(double X, double Y, double W)> ctrl)
+    {
+        var n = ctrl.Count;
+        var span = p;
+        while (span < n - 1 && t >= knots[span + 1]) span++;
+        var d = new (double X, double Y, double W)[p + 1];
+        for (var j = 0; j <= p; j++)
+        {
+            var c = ctrl[Math.Clamp(j + span - p, 0, n - 1)];
+            d[j] = (c.X * c.W, c.Y * c.W, c.W);
+        }
+        for (var r = 1; r <= p; r++)
+            for (var j = p; j >= r; j--)
+            {
+                var i = j + span - p;
+                var denom = knots[Math.Min(i + p - r + 1, knots.Count - 1)] - knots[Math.Clamp(i, 0, knots.Count - 1)];
+                var alpha = denom == 0 ? 0 : (t - knots[Math.Clamp(i, 0, knots.Count - 1)]) / denom;
+                d[j] = ((1 - alpha) * d[j - 1].X + alpha * d[j].X, (1 - alpha) * d[j - 1].Y + alpha * d[j].Y, (1 - alpha) * d[j - 1].W + alpha * d[j].W);
+            }
+        var res = d[p];
+        return res.W == 0 ? (res.X, res.Y) : (res.X / res.W, res.Y / res.W);
     }
 
     /// <summary>Cubic approximating the curve from S through P (at t=½) to E.</summary>

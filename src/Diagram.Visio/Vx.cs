@@ -14,6 +14,7 @@ internal static class Vx
     public static readonly XNamespace Ct = "http://schemas.openxmlformats.org/package/2006/content-types";
     public const string RelDocument = "http://schemas.microsoft.com/visio/2010/relationships/document";
     public const string RelPages = "http://schemas.microsoft.com/visio/2010/relationships/pages";
+    public const string RelWindows = "http://schemas.microsoft.com/visio/2010/relationships/windows";
     public const string RelPage = "http://schemas.microsoft.com/visio/2010/relationships/page";
     public const string RelImage = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/image";
     public const string RelSvgSource = "http://schemas.agentic-diagram.invalid/relationships/svg-source";

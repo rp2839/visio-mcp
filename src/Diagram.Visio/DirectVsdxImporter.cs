@@ -30,7 +30,10 @@ public sealed class DirectVsdxImporter : IVsdxImporter
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
     private readonly List<Diagnostic> diagnostics = [];
     private ZipArchive zip = null!;
-    private Dictionary<string, XElement> masters = new();
+    private Dictionary<string, (XElement Top, Dictionary<string, XElement> ById)> masters = new();
+    private SheetInheritance inheritance = new(null);
+    private ThemeColours theme = new(null);
+    private int themedColours;
     private List<string> faceNames = [];
     private Dictionary<int, string> colorTable = new();
 
@@ -63,6 +66,10 @@ public sealed class DirectVsdxImporter : IVsdxImporter
             var seed = preserved ? Guid.Parse(docIdText!) : IdentityMap.UuidV5(IdentityMap.Namespace, Convert.ToHexString(SHA256.HashData(bytes)));
             if (!preserved) diagnostics.Add(new Diagnostic { Severity = "info", Code = "document_identity_generated", Action = "regenerated", Detail = "no AgentDocumentId; identity derived from package bytes" });
             var identity = new IdentityMap(seed);
+            inheritance = new SheetInheritance(docXml.Root);
+            var themeTarget = RelTarget(docPart, "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme");
+            theme = new ThemeColours(themeTarget is null ? null : Load(zip, Resolve(Path.GetDirectoryName(docPart)!.Replace('\\', '/'), themeTarget)));
+            themedColours = 0;
             LoadMasters(docPart);
 
             var docDir = Path.GetDirectoryName(docPart)!.Replace('\\', '/');
@@ -114,6 +121,8 @@ public sealed class DirectVsdxImporter : IVsdxImporter
                 Pages = outPages, Assets = [.. assets.Values], Metadata = meta,
                 Source = new DiagramDocumentSource { Format = "vsdx", Path = options.SourcePath },
             };
+            if (themedColours > 0)
+                diagnostics.Add(new Diagnostic { Severity = "info", Code = "theme_colour", Action = "approximated", Detail = $"{themedColours} colour(s) resolved from the theme by QuickStyle index; theme fill matrices (tints, gradients) are not applied" });
             return Task.FromResult(new ImportResult(document, blobs, [.. diagnostics], new IdentityReport(identity.Preserved, identity.Regenerated, identity.Generated, preserved)));
         }
     }
@@ -147,7 +156,11 @@ public sealed class DirectVsdxImporter : IVsdxImporter
             if (rid is null || !rels.TryGetValue(rid, out var t)) continue;
             var contents = Load(zip, Resolve(Path.GetDirectoryName(mastersPart)!.Replace('\\', '/'), t.Target));
             var top = contents.Root!.Element(V + "Shapes")?.Elements(V + "Shape").FirstOrDefault();
-            if (top is not null) masters[(string)m.Attribute("ID")!] = top;
+            if (top is null) continue;
+            // Sub-shapes of group masters are addressed by instance children through MasterShape.
+            var byId = contents.Root!.Descendants(V + "Shape").Where(x => x.Attribute("ID") is not null)
+                .GroupBy(x => (string)x.Attribute("ID")!).ToDictionary(g => g.Key, g => g.First());
+            masters[(string)m.Attribute("ID")!] = (top, byId);
         }
         if (masters.Count > 0) diagnostics.Add(new Diagnostic { Severity = "info", Code = "masters_inherited", Action = "approximated", Detail = $"{masters.Count} master(s): instance cells inherit master geometry/style values; master links are not kept" });
     }
@@ -170,19 +183,23 @@ public sealed class DirectVsdxImporter : IVsdxImporter
         return new Affine(a, b, c, d, pinX - (a * lx + c * ly), pinY - (b * lx + d * ly));
     }
 
-    private void Walk(XElement s, int pageIndex, Affine parent, string? parentNative, List<Parsed> outList, ref int order)
+    private void Walk(XElement raw, int pageIndex, Affine parent, string? parentNative, List<Parsed> outList, ref int order, string? inheritedMaster = null)
     {
-        var masterId = (string?)s.Attribute("Master");
+        // Instance children of a group master name their master sub-shape with MasterShape.
+        var masterId = (string?)raw.Attribute("Master") ?? inheritedMaster;
         XElement? master = null;
-        if (masterId is not null && !masters.TryGetValue(masterId, out master)) master = null;
-        var local = LocalTransform(s, master, out var flipped);
+        if (masterId is not null && masters.TryGetValue(masterId, out var m))
+            master = (string?)raw.Attribute("MasterShape") is { } ms ? m.ById.GetValueOrDefault(ms) : raw.Attribute("Master") is not null ? m.Top : null;
+        // All later reads see one effective sheet: style sheets < master < local.
+        var s = inheritance.Effective(raw, master);
+        var local = LocalTransform(s, null, out var flipped);
         if (flipped) diagnostics.Add(new Diagnostic { Severity = "warning", Code = "flip", Action = "approximated", SourceShapeId = (string?)s.Attribute("ID"), Detail = "FlipX/FlipY is folded into geometry placement; canonical shapes have no flip" });
-        var p = new Parsed { Shape = s, Master = master, PageIndex = pageIndex, NativeId = (string)s.Attribute("ID")!, Transform = parent.Then(local), ParentTransform = parent, ParentNative = parentNative };
+        var p = new Parsed { Shape = s, Master = null, PageIndex = pageIndex, NativeId = (string)s.Attribute("ID")!, Transform = parent.Then(local), ParentTransform = parent, ParentNative = parentNative };
         if ((string?)s.Attribute("Type") == "Group")
         {
-            foreach (var c in s.Element(V + "Shapes")?.Elements(V + "Shape") ?? [])
+            foreach (var c in raw.Element(V + "Shapes")?.Elements(V + "Shape") ?? [])
             {
-                Walk(c, pageIndex, p.Transform, p.NativeId, outList, ref order);
+                Walk(c, pageIndex, p.Transform, p.NativeId, outList, ref order, masterId);
                 p.ChildNatives.Add((string)c.Attribute("ID")!);
             }
         }
@@ -371,6 +388,37 @@ public sealed class DirectVsdxImporter : IVsdxImporter
         return value;
     }
 
+    /// <summary>
+    /// A colour cell of <paramref name="owner"/> (the shape, or a Character row). A themed cell
+    /// (THEMEVAL formula or V="Themed") that was inherited from a style sheet or master is resolved
+    /// from the theme through the shape's QuickStyle colour index, because its cached value belongs
+    /// to another context. A themed value cached on the shape itself is trusted.
+    /// </summary>
+    private string CellColour(XElement owner, XElement shape, string cell, string quickStyleCell, string fallback)
+    {
+        var c = owner.Elements(V + "Cell").FirstOrDefault(x => (string?)x.Attribute("N") == cell);
+        var v = (string?)c?.Attribute("V");
+        var f = (string?)c?.Attribute("F");
+        var themed = v == "Themed" || (f is not null && (f.Contains("THEMEVAL", StringComparison.OrdinalIgnoreCase) || f.Contains("THEME(", StringComparison.OrdinalIgnoreCase)));
+        var inherited = c?.Attribute(SheetInheritance.OriginAttr) is not null;
+        var cachedUsable = v is { Length: 7 } && v[0] == '#';
+        if (themed && (inherited || !cachedUsable) && theme.Available && Num(shape, quickStyleCell) is double q)
+        {
+            var variation = Num(shape, "VariationColorIndex") is double vi && vi is >= 0 and < 100 ? (int)vi : 0;
+            if (theme.ForQuickStyle((int)q, variation) is { } rgb) { themedColours++; return rgb; }
+        }
+        return Colour(v == "Themed" ? null : v, f, fallback);
+    }
+
+    /// <summary>
+    /// ShapeRouteStyle 2 is straight; with ConLineRouteExt=1 (straight lines) the page-default (0)
+    /// and centre-to-centre (16) styles are straight too; ConLineRouteExt=2 is curved.
+    /// </summary>
+    internal static string RouteOf(double shapeRouteStyle, double lineRouteExt) =>
+        lineRouteExt == 2 ? "curved"
+        : shapeRouteStyle == 2 || (lineRouteExt == 1 && shapeRouteStyle is 0 or 16) ? "straight"
+        : "orthogonal";
+
     private string Colour(string? v, string? formula, string fallback)
     {
         if (v is { Length: 7 } && v[0] == '#') return v.ToUpperInvariant();
@@ -387,10 +435,10 @@ public sealed class DirectVsdxImporter : IVsdxImporter
         var noFill = geometry.Count > 0 && geometry.All(g => Num(g, "NoFill") == 1);
         var noLine = geometry.Count > 0 && geometry.All(g => Num(g, "NoLine") == 1);
         var fillPattern = CellNum(s, master, "FillPattern") ?? 1;
-        var fill = noFill || fillPattern == 0 ? "none" : Colour(CellStr(s, master, "FillForegnd"), CellF(s, "FillForegnd"), "#FFFFFF");
+        var fill = noFill || fillPattern == 0 ? "none" : CellColour(s, s, "FillForegnd", "QuickStyleFillColor", "#FFFFFF");
         var fillTrans = CellNum(s, master, "FillForegndTrans") ?? 0;
         var linePattern = CellNum(s, master, "LinePattern") ?? 1;
-        var stroke = noLine || linePattern == 0 ? "none" : WithAlpha(Colour(CellStr(s, master, "LineColor"), CellF(s, "LineColor"), "#000000"), CellNum(s, master, "LineColorTrans") ?? 0);
+        var stroke = noLine || linePattern == 0 ? "none" : WithAlpha(CellColour(s, s, "LineColor", "QuickStyleLineColor", "#000000"), CellNum(s, master, "LineColorTrans") ?? 0);
         var dash = linePattern switch { 2 => "dash", 3 => "dot", 4 => "dashDot", _ => "solid" };
         if (linePattern > 4) diagnostics.Add(new Diagnostic { Severity = "info", Code = "line_pattern", Action = "approximated", SourceShapeId = (string?)s.Attribute("ID"), Detail = $"line pattern {linePattern} mapped to dash" });
         var custom = (User(s, "AgentLineStyle") ?? "").Split(';');
@@ -409,7 +457,7 @@ public sealed class DirectVsdxImporter : IVsdxImporter
         var para = Sections(s, "Paragraph").Elements(V + "Row").FirstOrDefault() ?? (master is null ? null : Sections(master, "Paragraph").Elements(V + "Row").FirstOrDefault());
         var fontIx = (int)(Num(ch, "Font") ?? 0);
         var style = (int)(Num(ch, "Style") ?? 0);
-        var colour = WithAlpha(Colour(CellV(ch, "Color"), CellF(ch, "Color"), "#000000"), Num(ch, "ColorTrans") ?? 0);
+        var colour = WithAlpha(ch is null ? "#000000" : CellColour(ch, s, "Color", "QuickStyleFontColor", "#000000"), Num(ch, "ColorTrans") ?? 0);
         return new TextBlock
         {
             Value = value, FontFamily = fontIx >= 0 && fontIx < faceNames.Count ? faceNames[fontIx] : "Calibri", FontSizePt = Math.Round((Num(ch, "Size") ?? 11.0 / 72) * 72, 6),
@@ -464,7 +512,7 @@ public sealed class DirectVsdxImporter : IVsdxImporter
         var fallback = TryJson<Bounds>(User(s, "AgentFallbackBounds"))
             ?? new Bounds { X = Math.Min(begin.X, end.X), Y = Math.Min(begin.Y, end.Y), Width = Math.Abs(end.X - begin.X), Height = Math.Abs(end.Y - begin.Y) };
         var route = User(s, "AgentRoute") is { } rt && rt is "straight" or "orthogonal" or "curved" ? rt
-            : CellNum(s, p.Master, "ConLineRouteExt") == 2 ? "curved" : CellNum(s, p.Master, "ShapeRouteStyle") == 2 ? "straight" : "orthogonal";
+            : RouteOf(CellNum(s, p.Master, "ShapeRouteStyle") ?? 0, CellNum(s, p.Master, "ConLineRouteExt") ?? 0);
         var linePattern = CellNum(s, p.Master, "LinePattern") ?? 1;
         string Arrow(double? code)
         {
@@ -480,7 +528,7 @@ public sealed class DirectVsdxImporter : IVsdxImporter
             From = from, To = to, Route = route, Waypoints = waypoints,
             Style = new LineStyle
             {
-                Stroke = Colour(CellStr(s, p.Master, "LineColor"), CellF(s, "LineColor"), "#000000"), StrokeWidthPt = Math.Max(0.01, Math.Round((CellNum(s, p.Master, "LineWeight") ?? 1.0 / 72) * 72, 9)),
+                Stroke = CellColour(s, s, "LineColor", "QuickStyleLineColor", "#000000"), StrokeWidthPt = Math.Max(0.01, Math.Round((CellNum(s, p.Master, "LineWeight") ?? 1.0 / 72) * 72, 9)),
                 Dash = linePattern switch { 2 => "dash", 3 => "dot", 4 => "dashDot", _ => "solid" },
                 StartArrow = Arrow(CellNum(s, p.Master, "BeginArrow")), EndArrow = Arrow(CellNum(s, p.Master, "EndArrow")),
             },
