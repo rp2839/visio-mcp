@@ -113,7 +113,24 @@
         "clearancePt": { "type": "number", "minimum": 0, "maximum": 2000 },
         "text": { "enum": ["ignore", "avoid"] }
       }
-    },    "TextInsets": {
+    },
+    "ConnectorRoutingPolicy": {
+      "type": "object", "additionalProperties": false,
+      "description": "R24. Connector obstacle and text settings plus explicit-Beautify crossing policy and priority.",
+      "properties": {
+        "obstacle": { "enum": ["automatic", "forbidden", "avoid", "passThrough"] },
+        "clearancePt": { "type": "number", "minimum": 0, "maximum": 2000 },
+        "text": { "enum": ["ignore", "avoid"] },
+        "crossing": { "enum": ["avoid", "allow"] },
+        "priority": { "type": "integer", "minimum": -100, "maximum": 100 }
+      }
+    },
+    "RoutingDefaults": {
+      "type": "object", "additionalProperties": false,
+      "description": "R24. Optional defaults used by explicit Beautify only.",
+      "properties": { "crossing": { "enum": ["avoid", "allow"] } }
+    },
+    "TextInsets": {
       "type": "object", "additionalProperties": false, "required": ["top", "right", "bottom", "left"],
       "properties": {
         "top": { "type": "number", "minimum": 0, "maximum": 2000 }, "right": { "type": "number", "minimum": 0, "maximum": 2000 },
@@ -178,12 +195,14 @@
     },
     "Endpoint": {
       "type": "object", "additionalProperties": false, "required": ["glue"],
+      "allOf": [{ "if": { "required": ["requiredSide"] }, "then": { "required": ["elementId"], "properties": { "glue": { "enum": ["dynamic", "static"] } } } }],
       "properties": {
         "elementId": { "$ref": "#/$defs/Uuid" },
         "port": { "type": "string", "minLength": 1, "maxLength": 64 },
         "point": { "$ref": "#/$defs/Point" },
         "glue": { "enum": ["dynamic", "static", "none"] },
         "preferredSide": { "enum": ["north", "east", "south", "west"], "description": "R22. Shape-local soft preference for a dynamic endpoint; named static ports take precedence." },
+        "requiredSide": { "enum": ["north", "east", "south", "west"], "description": "R24. Required shape-local side for this endpoint; conflicts with a static port are rejected." },
         "join": { "$ref": "#/$defs/Join", "description": "R16: this end is a branch joined to a place on another connector; glue is none and point is kept on that connector's route" }
       }
     },
@@ -277,7 +296,7 @@
         "bounds": { "$ref": "#/$defs/Bounds" },
         "rotationDeg": { "type": "number" },
         "metadata": { "type": "object", "additionalProperties": { "type": "string", "maxLength": 4096 } },
-        "routingPolicy": { "$ref": "#/$defs/RoutingPolicy" },
+        "routingPolicy": { "$ref": "#/$defs/ConnectorRoutingPolicy" },
         "from": { "$ref": "#/$defs/Endpoint" },
         "to": { "$ref": "#/$defs/Endpoint" },
         "route": { "enum": ["straight", "orthogonal", "curved"] },
@@ -366,6 +385,7 @@
         "pages": { "type": "array", "items": { "$ref": "#/$defs/Page" }, "minItems": 1, "maxItems": 1000 },
         "assets": { "type": "array", "items": { "$ref": "#/$defs/Asset" }, "maxItems": 10000 },
         "metadata": { "type": "object", "additionalProperties": { "type": "string", "maxLength": 4096 } },
+        "routingDefaults": { "$ref": "#/$defs/RoutingDefaults" },
         "source": { "$ref": "#/$defs/DocumentSource" }
       }
     }

@@ -112,6 +112,7 @@ class Planner {
   private fresh = new Set<string>();
   private pages: Page[];
   private assets: Asset[];
+  private routingDefaults: DiagramDocument['routingDefaults'];
   private readonly origElements = new Map<string, { pageId: string; index: number; element: Element }>();
   private readonly origAssets = new Map<string, { index: number; asset: Asset }>();
   /** child id to its group's id. Kept in step with every structural change so ancestors are always at hand. */
@@ -123,6 +124,7 @@ class Planner {
   constructor(private readonly doc: DiagramDocument, private readonly ctx: PlanContext) {
     this.pages = doc.pages.slice();
     this.assets = doc.assets.slice();
+    this.routingDefaults = doc.routingDefaults ? { ...doc.routingDefaults } : undefined;
     doc.assets.forEach((asset, index) => this.origAssets.set(asset.id, { index, asset }));
     for (const p of doc.pages) {
       p.elements.forEach((element, index) => {
@@ -289,10 +291,11 @@ class Planner {
     return { connectorId: hit.element.id, position };
   }
 
-  private resolveEndpoint(input: EndpointInput, pageId: string, selfId: string): Endpoint {
+  private resolveEndpoint(input: EndpointInput, pageId: string, selfId: string, endpointName: 'from' | 'to'): Endpoint {
     if (input.join) {
       if (input.glue !== 'none' || input.point || input.elementId !== undefined || input.port !== undefined) stop('invalid_request', 'a joined end has glue none and no point, elementId or port');
       const join = this.resolveJoin(input.join, pageId, selfId);
+      if (input.requiredSide != null) stop('invalid_request', 'requiredSide needs an endpoint glued to a shape', { connectorId: selfId });
       const ep: Endpoint = { glue: 'none', join };
       ep.point = this.joinPoint(ep);
       return ep;
@@ -301,6 +304,7 @@ class Planner {
       if (!input.point || input.elementId !== undefined || input.port !== undefined) stop('invalid_request', 'a free endpoint needs a point and no elementId or port');
       const point = input.point;
       this.assertFinite(point.x, 'point.x'); this.assertFinite(point.y, 'point.y');
+      if (input.requiredSide != null) stop('invalid_request', 'requiredSide needs an endpoint glued to a shape', { connectorId: selfId });
       return { point: { ...point }, glue: 'none' };
     }
     if (!input.elementId || input.point) stop('invalid_request', 'a glued endpoint needs an elementId and no point');
@@ -311,6 +315,22 @@ class Planner {
     const ep: Endpoint = { elementId: hit.element.id, glue: input.glue };
     if (input.port !== undefined) ep.port = input.port;
     if (input.preferredSide != null) ep.preferredSide = input.preferredSide;
+    if (input.requiredSide != null) {
+      if (input.glue === 'static') {
+        const port = input.port ? hit.element.kind === 'shape' ? hit.element.ports?.find(p => p.id === input.port) : undefined : undefined;
+        const sidePort: Record<string, { x: number; y: number }> = {
+          north: { x: 0.5, y: 0 }, east: { x: 1, y: 0.5 }, south: { x: 0.5, y: 1 }, west: { x: 0, y: 0.5 },
+        };
+        const fraction = port ?? sidePort[input.port ?? ''];
+        if (fraction) {
+          const box = hit.element.bounds;
+          const ox = (fraction.x - 0.5) * box.width, oy = (fraction.y - 0.5) * box.height;
+          const portSide = Math.abs(ox) * box.height >= Math.abs(oy) * box.width ? (ox < 0 ? 'west' : 'east') : (oy < 0 ? 'north' : 'south');
+          if (portSide !== input.requiredSide) stop('invalid_request', 'requiredSide conflicts with the fixed port', { reason: 'routing_side_conflict', connectorId: selfId, endpoint: endpointName });
+        }
+      }
+      ep.requiredSide = input.requiredSide;
+    }
     return ep;
   }
 
@@ -558,8 +578,8 @@ class Planner {
         const layerIds = op.layerIds ?? [];
         this.assertLayers(page, layerIds);
         if (op.style) for (const k of Object.keys(op.style)) if (SHAPE_ONLY_STYLE.includes(k)) stop('invalid_request', `style.${k} does not apply to a connector`);
-        const from = this.resolveEndpoint(op.from, page.id, id);
-        const to = this.resolveEndpoint(op.to, page.id, id);
+        const from = this.resolveEndpoint(op.from, page.id, id, 'from');
+        const to = this.resolveEndpoint(op.to, page.id, id, 'to');
         const waypoints = (op.waypoints ?? []).map(p => ({ ...p }));
         for (const p of waypoints) { this.assertFinite(p.x, 'waypoint.x'); this.assertFinite(p.y, 'waypoint.y'); }
         const el: ConnectorElement = {
@@ -578,6 +598,11 @@ class Planner {
         return;
       }
       case 'set': return this.applySet(op.target, op.patch as PatchObj);
+      case 'setRoutingDefaults':
+        this.routingDefaults = op.crossing === null ? undefined : { crossing: op.crossing };
+        return;
+      case 'beautify':
+        stop('invalid_request', 'Beautify route commits are not available until the exact-route transaction handler is enabled');
       case 'move': {
         const { page, pageIdx, index, element } = this.resolve(op.target, this.ctx.pageId);
         this.assertFinite(op.delta.xPt, 'delta.xPt'); this.assertFinite(op.delta.yPt, 'delta.yPt');
@@ -1049,12 +1074,16 @@ class Planner {
         case 'routing': need(element.kind === 'connector', key); routingMode = (value as { mode: string }).mode; break;
         case 'routingPolicy':
           need(element.kind === 'shape' || element.kind === 'text' || element.kind === 'connector', key);
+          if (value && element.kind !== 'connector') {
+            const connectorOnly = Object.keys(value as object).filter(field => field === 'crossing' || field === 'priority');
+            if (connectorOnly.length) stop('invalid_request', `routingPolicy.${connectorOnly[0]} applies only to connectors`, { target: element.id, fields: connectorOnly });
+          }
           if (value === null) delete next.routingPolicy; else next.routingPolicy = { ...(('routingPolicy' in element && element.routingPolicy) || {}), ...(value as PatchObj) };
           break;
         case 'from': case 'to': {
           need(element.kind === 'connector', key);
           const ep = value as Endpoint;
-          next[key] = this.resolveEndpoint(ep as EndpointInput, page.id, element.id);
+          next[key] = this.resolveEndpoint(ep as EndpointInput, page.id, element.id, key);
           break;
         }
         default: stop('invalid_request', `unknown patch field ${key}`);
@@ -1323,6 +1352,12 @@ class Planner {
     inverse.deletes.elementIds.push(...createdSorted.map(c => c.element.id));
 
     // ---- assets. Undoing a removal re-appends, so later assets are removed and restored in order to keep the catalogue order exact.
+    if (canonicalSerialize(this.doc.routingDefaults ?? null) !== canonicalSerialize(this.routingDefaults ?? null)) {
+      forward.upserts.routingDefaults = this.routingDefaults ?? null;
+      inverse.upserts.routingDefaults = this.doc.routingDefaults ?? null;
+    }
+
+    // ---- assets. Undoing a removal re-appends, so later assets are removed and restored in order to keep the catalogue order exact.
     const finalAssets = new Map(this.assets.map(a => [a.id, a] as const));
     const changedAssetIds: string[] = [];
     for (const a of this.assets) {
@@ -1369,5 +1404,6 @@ function uniqueAlias(alias: string, taken: ReadonlySet<string>): string {
 
 function isNothing(d: DiffBody): boolean {
   return !d.upserts.elements.length && !d.upserts.assets.length && !d.upserts.pages.length && !d.upserts.layers.length &&
+    !Object.prototype.hasOwnProperty.call(d.upserts, 'routingDefaults') &&
     !d.deletes.elementIds.length && !d.deletes.assetIds.length && !d.deletes.pageIds.length && !d.deletes.layerIds.length;
 }

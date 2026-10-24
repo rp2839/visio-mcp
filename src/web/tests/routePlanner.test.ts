@@ -47,6 +47,21 @@ describe('route planner', () => {
     for (const id of ['ab', 'cd']) { expect(pts(next, id)).toEqual(pts(first, id)); expect(next.routes.get(id)!.provenance).toBe('kept'); }
   });
 
+  it('required_endpoint_side_overrides_the_soft_preference', () => {
+    const a = shape('a', 0, 100), b = shape('b', 400, 100);
+    const link = { ...conn('ab', 'a', 'b'), from: { elementId: 'a', glue: 'dynamic', preferredSide: 'east', requiredSide: 'north' } } as unknown as Element;
+    const routes = plan([a, b, link]).routes.get('ab')!.points;
+    expect(routes[0]).toEqual({ x: 50, y: 100 });
+    expect(routes[1]!.y).toBeLessThan(routes[0]!.y);
+  });
+
+  it('reports_a_distinct_finding_when_a_required_side_cannot_route', () => {
+    const a = shape('a', 100, 100), b = shape('b', 700, 100);
+    const link = { ...conn('ab', 'a', 'b'), from: { elementId: 'a', glue: 'dynamic', requiredSide: 'north' } } as unknown as Element;
+    const wall = shape('wall', 0, 0, 1000, 700, { routingPolicy: { obstacle: 'forbidden' } });
+    expect(plan([a, b, wall, link]).routeFindings).toContainEqual(expect.objectContaining({ code: 'ROUTE_REQUIRED_SIDE_UNRESOLVED', elementId: 'ab' }));
+  });
+
   it('keeps a clear beautified automatic route after an unrelated shape move, regardless of straightening hysteresis', () => {
     const route = [{ x: 100, y: 130 }, { x: 200, y: 130 }, { x: 200, y: 50 }, { x: 600, y: 50 }, { x: 600, y: 130 }, { x: 700, y: 130 }];
     const marked = { ...conn('ab', 'a', 'b', {}, 'east', 'west'), routing: { beautified: true, advisory: route } } as unknown as Element;

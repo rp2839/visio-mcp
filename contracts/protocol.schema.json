@@ -416,7 +416,7 @@
       "additionalProperties": false,
       "required": ["code", "severity", "message", "elementId"],
       "properties": {
-        "code": { "enum": ["UNRESOLVED_ROUTE", "ROUTING_AVOIDANCE_VIOLATION", "ROUTE_SIDE_PREFERENCE_RELAXED"] },
+        "code": { "enum": ["UNRESOLVED_ROUTE", "ROUTING_AVOIDANCE_VIOLATION", "ROUTE_SIDE_PREFERENCE_RELAXED", "ROUTE_REQUIRED_SIDE_UNRESOLVED"] },
         "severity": { "enum": ["info", "warning", "error"] },
         "message": { "type": "string", "maxLength": 4096 },
         "elementId": { "$ref": "document.schema.json#/$defs/Uuid" },
@@ -654,6 +654,12 @@
           "items": {
             "$ref": "document.schema.json#/$defs/Asset"
           }
+        },
+        "routingDefaults": {
+          "description": "R24. Atomic document-level upsert; null removes routing defaults.",
+          "type": ["object", "null"],
+          "additionalProperties": false,
+          "properties": { "crossing": { "enum": ["avoid", "allow"] } }
         }
       }
     },

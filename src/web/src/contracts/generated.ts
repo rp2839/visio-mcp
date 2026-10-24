@@ -95,6 +95,18 @@ export interface RoutingPolicy {
   text?: "ignore" | "avoid";
 }
 
+export interface ConnectorRoutingPolicy {
+  obstacle?: "automatic" | "forbidden" | "avoid" | "passThrough";
+  clearancePt?: number;
+  text?: "ignore" | "avoid";
+  crossing?: "avoid" | "allow";
+  priority?: number;
+}
+
+export interface RoutingDefaults {
+  crossing?: "avoid" | "allow";
+}
+
 export interface TextInsets {
   top: number;
   right: number;
@@ -150,6 +162,7 @@ export interface Endpoint {
   point?: Point;
   glue: "dynamic" | "static" | "none";
   preferredSide?: "north" | "east" | "south" | "west";
+  requiredSide?: "north" | "east" | "south" | "west";
   join?: Join;
 }
 
@@ -229,7 +242,7 @@ export interface ConnectorElement {
   bounds: Bounds;
   rotationDeg: number;
   metadata: Record<string, string>;
-  routingPolicy?: RoutingPolicy;
+  routingPolicy?: ConnectorRoutingPolicy;
   from: Endpoint;
   to: Endpoint;
   route: "straight" | "orthogonal" | "curved";
@@ -295,6 +308,7 @@ export interface DiagramDocument {
   pages: Page[];
   assets: Asset[];
   metadata: Record<string, string>;
+  routingDefaults?: RoutingDefaults;
   source?: DocumentSource;
 }
 
@@ -365,7 +379,7 @@ export interface ElementPatch {
   style?: StylePatch;
   text?: TextBlockPatch;
   geometry?: GeometryPatch;
-  routingPolicy?: RoutingPolicy;
+  routingPolicy?: ConnectorRoutingPolicy;
   assetId?: string;
   fit?: "contain" | "cover" | "stretch";
   opacity?: number;
@@ -475,6 +489,7 @@ export interface EndpointInput {
   point?: Point;
   glue: "dynamic" | "static" | "none";
   preferredSide?: "north" | "east" | "south" | "west" | null;
+  requiredSide?: "north" | "east" | "south" | "west" | null;
   join?: JoinInput;
 }
 
@@ -542,7 +557,24 @@ export interface SetPageOp {
   patch: PagePatch;
 }
 
-export type Operation = CreateShapeOp | CreateTextOp | CreateImageOp | CreateConnectorOp | SetOp | MoveOp | ResizeOp | RotateOp | DeleteOp | RegisterAssetOp | SetPageOp | DuplicateOp | GroupOp | UngroupOp | AlignOp | DistributeOp | SetGapOp | ReorderOp | RerouteOp | AddPageOp | ReorderPageOp | DuplicatePageOp | DeletePageOp | AddLayerOp | SetLayerOp | AssignLayersOp | DeleteLayerOp | SetAssetOp | RemoveAssetOp | ReplaceAssetOp | MoveSegmentOp | PinSegmentOp;
+export interface SetRoutingDefaultsOp {
+  op: "setRoutingDefaults";
+  crossing: "avoid" | "allow" | null;
+}
+
+export interface BeautifyOp {
+  op: "beautify";
+  baseRevision: number;
+  pageId: Uuid;
+  targets: Uuid[];
+  includeManual?: boolean;
+  routes: {
+    id: Uuid;
+    points: Point[];
+  }[];
+}
+
+export type Operation = CreateShapeOp | CreateTextOp | CreateImageOp | CreateConnectorOp | SetOp | MoveOp | ResizeOp | RotateOp | DeleteOp | RegisterAssetOp | SetPageOp | SetRoutingDefaultsOp | BeautifyOp | DuplicateOp | GroupOp | UngroupOp | AlignOp | DistributeOp | SetGapOp | ReorderOp | RerouteOp | AddPageOp | ReorderPageOp | DuplicatePageOp | DeletePageOp | AddLayerOp | SetLayerOp | AssignLayersOp | DeleteLayerOp | SetAssetOp | RemoveAssetOp | ReplaceAssetOp | MoveSegmentOp | PinSegmentOp;
 
 export interface DuplicateOp {
   op: "duplicate";
@@ -803,7 +835,7 @@ export interface Snapshot {
 }
 
 export interface RouteFinding {
-  code: "UNRESOLVED_ROUTE" | "ROUTING_AVOIDANCE_VIOLATION" | "ROUTE_SIDE_PREFERENCE_RELAXED";
+  code: "UNRESOLVED_ROUTE" | "ROUTING_AVOIDANCE_VIOLATION" | "ROUTE_SIDE_PREFERENCE_RELAXED" | "ROUTE_REQUIRED_SIDE_UNRESOLVED";
   severity: "info" | "warning" | "error";
   message: string;
   elementId: Uuid;
@@ -870,6 +902,9 @@ export interface DiffUpserts {
   pages: PageUpsert[];
   layers: LayerUpsert[];
   assets: Asset[];
+  routingDefaults?: {
+  crossing?: "avoid" | "allow";
+} | null;
 }
 
 export interface DiffDeletes {

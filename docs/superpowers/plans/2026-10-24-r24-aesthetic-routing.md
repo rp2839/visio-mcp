@@ -117,12 +117,12 @@
 - Consumes: `routingDefaults.crossing?: 'avoid'|'allow'`, connector `routingPolicy.crossing?: 'avoid'|'allow'`, `routingPolicy.priority?: -100..100`, endpoint `requiredSide?: north|east|south|west`.
 - Produces: `setRoutingDefaults` and `beautify` operation DTOs. Static ports on a contradictory required side fail `invalid_request` with `details.reason='routing_side_conflict'`, connector ID and endpoint. An unreachable required side returns `ROUTE_REQUIRED_SIDE_UNRESOLVED`.
 
-- [ ] Add contract tests for valid defaults, overrides, priorities at -100/100, rejected out-of-range values, required sides, invalid static-port conflicts, and rejection of connector-only policy fields on shapes/text.
-- [ ] Run focused schema/operation tests and confirm the new fields/operations are rejected before schema edits.
-- [ ] Split shared element `RoutingPolicy` from connector-only `ConnectorRoutingPolicy`; extend document/connector/endpoint schemas and add `ROUTE_REQUIRED_SIDE_UNRESOLVED` to `contracts/protocol.schema.json`. Add `setRoutingDefaults` and `beautify` operation schemas with base revision and explicit proposed route points; regenerate TS/C# contracts using `npm --prefix src/web run generate`.
-- [ ] Implement `setRoutingDefaults` as one document diff. It affects future explicit Beautify calls only; prove an unrelated ordinary edit changes only its edited connector. Validate `requiredSide` against fixed ports during operation planning and apply hard-route preflight to explicit constraints.
+- [x] Add contract tests for valid defaults, overrides, priorities at -100/100, rejected out-of-range values, required sides, invalid static-port conflicts, and rejection of connector-only policy fields on shapes/text.
+- [x] Run focused schema/operation tests and confirm the new fields/operations are rejected before schema edits.
+- [x] Split shared element `RoutingPolicy` from connector-only `ConnectorRoutingPolicy`; extend document/connector/endpoint schemas and add `ROUTE_REQUIRED_SIDE_UNRESOLVED` to `contracts/protocol.schema.json`. Add `setRoutingDefaults` and `beautify` operation schemas with base revision and explicit proposed route points; regenerate TS/C# contracts using `npm --prefix src/web run generate`.
+- [x] Implement `setRoutingDefaults` as one document diff. It affects future explicit Beautify calls only; prove an unrelated ordinary edit changes only its edited connector. Validate `requiredSide` against fixed ports during operation planning and apply hard-route preflight to explicit constraints.
 - [ ] Add UI-accessible connector fields in Task 6; do not change line style/colour semantics.
-- [ ] Run `npm --prefix src/web test -- tests/contracts.test.ts tests/routePlanner.test.ts`, `npm --prefix src/web run generate:check`, and `npm --prefix src/web run typecheck`; expect all pass.
+- [x] Run focused contract, transaction, route-planner and MCP inspection tests (128 passed), `npm --prefix src/web run generate:check`, and `npm --prefix src/web run typecheck`; all pass.
 - [ ] Commit `feat: add connector crossing policies and priority`.
 
 ### Task 4: Implement exact, read-only Beautify planning

@@ -382,7 +382,14 @@ export function planRoutes(input: PlanInput): PlanResult {
       const a = now.points[index]!, b = now.points[index + 1]!;
       return rects.filter(r => !isClear([a, b], [r], [], CLEARANCE)).flatMap(r => w.obstacleIds.get(`${r.x},${r.y},${r.width},${r.height}`) ?? []);
     }))].sort();
-    if (now.provenance === 'unresolved') routeFindings.push({ code: 'UNRESOLVED_ROUTE', severity: 'error', message: now.reason ?? 'No clear route was found', elementId: w.el.id, blockerIds: blockers(w.others) });
+    if (now.provenance === 'unresolved') {
+      const hasRequiredSide = !!w.el.from.requiredSide || !!w.el.to.requiredSide;
+      routeFindings.push({
+        code: hasRequiredSide ? 'ROUTE_REQUIRED_SIDE_UNRESOLVED' : 'UNRESOLVED_ROUTE', severity: 'error',
+        message: hasRequiredSide ? 'The required endpoint side could not be routed without violating hard constraints' : now.reason ?? 'No clear route was found',
+        elementId: w.el.id, blockerIds: blockers(w.others),
+      });
+    }
     if (relaxedSideIds.has(w.el.id)) routeFindings.push({ code: 'ROUTE_SIDE_PREFERENCE_RELAXED', severity: 'info', message: 'The preferred endpoint side had no clear route; the automatic side was used', elementId: w.el.id });
     const softIds = blockers(w.soft);
     if (softIds.length) routeFindings.push({ code: 'ROUTING_AVOIDANCE_VIOLATION', severity: 'warning', message: 'The route crosses one or more avoid-policy obstacles because no clear route was found', elementId: w.el.id, blockerIds: softIds });
