@@ -4,7 +4,7 @@
 
 **Goal:** Add deterministic aesthetic route scoring, explicit crossing policy, and a read-only Beautify preview that commits the accepted route set atomically with one undo.
 
-**Architecture:** Reuse R26's connector-contact geometry as a shared pure module after PR #90 merges. Preserve R19's implicit planner and add a bounded opt-in cost profile. Build editor preview from the same planner, bind acceptance to base revision and canonical route hash, and apply eligible routes through one transaction.
+**Architecture:** Reuse R26's merged connector-contact geometry as a shared pure module. Preserve R19's ordinary planner and ordering. Explicit Beautify uses a separate bounded aesthetic profile, including occupied-run grid tracks and lexicographic crossing costs. Preview sends exact proposed route points plus base revision; the engine validates and commits those exact points atomically without a second search or coordinate rounding.
 
 **Tech Stack:** TypeScript, React, JSON Schema, generated TypeScript/C# contracts, Vitest, Playwright, .NET contract and Windows tests.
 
@@ -12,22 +12,26 @@
 
 ## Global Constraints
 
-- Do not start implementation until PR #90 (R26) is merged; fetch the updated main, fast-forward/rebase `codex/r24-aesthetic-routing`, and confirm the branch is based on that merge.
-- Preserve implicit R19 routing exactly when crossing policy is absent: 1 quality point per path point, 24 per bend, the current shared-run cost, and connector-ID ordering.
-- Use 6 pt track spacing, 0.5 pt overlap tolerance, 10 pt minimum alongside length, and 2 pt short-run diagnostic threshold.
-- Beautify uses 80,000 expanded states per target search and skips only targets that exhaust the budget or have no feasible candidate.
-- Hard constraints, Frozen routes, locked elements/layers, static ports, R16 joins and R21 constraints always win; skip infeasible targets and continue.
-- Use one undoable transaction; stale base revisions or mismatched preview hashes reject the entire commit before mutation.
+- PR #90 (R26) is merged; the branch must include merge commit `81a1a80ccb6ea9653fc2b06dbf59fe7c56f32e3c` or its descendant before implementation.
+- Preserve R19 ordinary routing exactly, including after setting crossing policies: 1 quality point per point of route length, 24 per bend, current shared-run cost, and connector-ID ordering.
+- Keep R26 diagnostics unchanged: 4 pt near-miss and shape-clearance threshold, 2 pt short-run threshold, 0.5 pt overlap tolerance, 10 pt alongside minimum. Beautify's target track spacing is 6 pt.
+- Only explicit Beautify uses aesthetic costs or priority ordering. Use lexicographic `(policyCrossings, qualityPoints)` inside A* and 80,000 expanded states per target search.
+- Hard constraints, Frozen routes, locked elements/layers, static ports, R16 joins and R21 constraints always win; skip infeasible targets and continue. Unprocessed target routes remain occupied; a failed Manual conversion is reverted.
+- Send exact proposed route points and base revision in one undoable transaction. Commit validates and applies those points; no route re-search or rounded hash comparison.
 - Optional fields preserve existing document serialization and schema version 1; generate TS/C# contracts from JSON Schema.
 - Do not modify `IMPLEMENTATION_PROGRESS.md`; GitHub issue #63 is the status/ownership record.
 
 ## Review Focus
 
-- PR #90 may change under review; refresh its merged result and preserve its finding codes and evidence while extracting shared contact classification.
+- PR #90 is merged; preserve its finding codes, evidence and 4 pt diagnostic threshold while extracting shared contact classification.
 - A route can overlap its own adjacent search edges at grid nodes; count a geometric contact once using merged intervals and R26's endpoint tolerance.
 - A candidate may improve crossing count while worsening path length or deviation; compare the lexicographic score and hysteresis exactly as specified.
 - A target can be infeasible while another is routable; retain the failed target's advisory and still apply the feasible subset.
-- Preview measurements and commit measurements can diverge; hash rounded, canonical target routes and reject any mismatch.
+- Preview and commit preserve exact route points. Preview uses canonical measured label rectangles; commit validates submitted paths against the unchanged base revision and hard constraints without rerunning route search.
+- The aesthetic A* grid includes occupied-run coordinates ±6 pt. Measure expanded states on the 60/60 fixture.
+- Crossing costs are lexicographic inside A*, not only in finished-route ranking. A no-crossing detour beats a shorter route with one crossing.
+- Track-quality benefits exceed deviation cost: a 100 pt overlapping pair must separate to 6 pt.
+- Shape-clearance and short-route scoring thresholds align with R26 at 4 pt and 2 pt.
 
 ---
 
@@ -38,8 +42,9 @@
 - Create `src/web/src/layout/routeQuality.ts`: the R24 score types, constants, deterministic metrics and score function.
 - Modify `src/web/src/layout/obstacleRoute.ts` and `routePlanner.ts`: opt-in search costs and target-only Beautify planning; leave normal no-policy behavior unchanged.
 - Modify `contracts/document.schema.json` and `contracts/operations.schema.json`: optional document/connector crossing policy, routing priority, required side, defaults operation and Beautify operation. Modify `contracts/protocol.schema.json` for the required-side route finding; regenerate TS/C# DTOs.
-- Modify `src/web/src/commands/planPatch.ts`, `CommandEngine.ts`, and `commands/routes.ts`: validate policy and required-side requests, build and apply a route-hash-bound atomic Beautify plan, and bypass broad hard-route preflight only for target failures that were skipped without mutation.
+- Modify `src/web/src/commands/planPatch.ts`, `CommandEngine.ts`, and `commands/routes.ts`: validate policy and required-side requests, carry exact proposed routes and base revision in an atomic Beautify plan, validate without replanning, and bypass broad hard-route preflight only for skipped targets with no mutation.
 - Create `src/web/src/editor/beautifyPreview.ts` and `src/web/src/components/BeautifyDialog.tsx`; modify `EditorModel.ts`, `components/PageCanvas.tsx`, and `editor/appCommands.ts` for preview overlay, stale state, accept/cancel and menu entry.
+- Modify `src/Diagram.Mcp/OperationCatalog.cs` and `src/Diagram.Mcp/DiagramTools.cs` for operation and finding descriptions. Add Visio import/export round-trip tests that verify route geometry survives while unsupported R24 policy metadata is dropped.
 - Add focused tests beside route planner, operations, editor and browser behavior; update `docs/m5/R24-aesthetic-routing.md` with exact results and remaining limits.
 
 ### Task 1: Extract shared R26 connector-contact classifier
@@ -54,10 +59,10 @@
 - Consumes: routes `{ connectorId: string; points: readonly Point[]; mode: RouteMode; joinConnectorIds: readonly string[] }[]`.
 - Produces: `classifyRouteContacts(routes): RouteContact[]`; each contact has sorted connector IDs, both segment indices, `classification`, and a point, overlap interval or gap as appropriate. R26 maps these values to its existing finding codes/evidence.
 
-- [ ] Add `routeContacts.test.ts` cases for perpendicular crossings regardless of hop rendering, collinear overlap, T-join, endpoint contact, shared-end overlap, near miss at 5.99 pt, not-near-miss at 6 pt, endpoint tolerance, declared R16 joins, and adjacent segments that touch only at a route vertex; verify stable output under input order reversal.
+- [ ] Add `routeContacts.test.ts` cases for perpendicular crossings regardless of hop rendering, collinear overlap, T-join, endpoint contact, shared-end overlap, near miss at 3.99 pt, not-near-miss at 4 pt, endpoint tolerance, declared R16 joins, and adjacent segments that touch only at a route vertex; verify stable output under input order reversal. Test the separate 6 pt Beautify track target in Task 2.
 - [ ] Run `npm --prefix src/web test -- tests/routeContacts.test.ts` and confirm the new classifier tests fail before the module exists.
-- [ ] Move only pure segment/contact geometry from R26 `inspectRoutes.ts` to `routeContacts.ts`; export shared constants `TRACK_SPACING_PT=6`, `OVERLAP_PT=0.5`, `ALONGSIDE_PT=10`, and retain `SHORT_PT=2` for route-shape diagnostics.
-- [ ] Adapt `inspectRoutes` to map returned contacts to unchanged R26 codes and evidence; update the R26 expected fixture only for the 4-to-6 pt near-miss threshold, and document the exact changed findings.
+- [ ] Move only pure segment/contact geometry from R26 `inspectRoutes.ts` to `routeContacts.ts`; retain `NEAR_PT=4`, `OVERLAP_PT=0.5`, `ALONGSIDE_PT=10`, and `SHORT_PT=2`. Export `TRACK_SPACING_PT=6` as a planner target, separate from diagnostic thresholds.
+- [ ] Adapt `inspectRoutes` to map returned contacts to unchanged R26 codes, thresholds and evidence; preserve the R26 expected fixture byte-for-byte.
 - [ ] Run `npm --prefix src/web test -- tests/routeContacts.test.ts tests/inspectRoutes.test.ts tests/routePlanner.test.ts` and `npm --prefix src/web run typecheck`; expect all focused tests and typecheck to pass.
 - [ ] Commit `refactor: share route contact classification`.
 
@@ -75,11 +80,14 @@
 - Produces: `scoreRoute(input): { policyCrossings: number; qualityPoints: number }`; `planRoutes` gains optional `beautifyTargets?: ReadonlySet<string>` and `costProfile?: 'legacy' | 'aesthetic'`. No arguments means the exact current R19 behavior.
 
 - [ ] Test each fixed score term: route length, bend, crossing, overlap, near-miss deficit, label intersection, clearance deficit, short-run deficit and reversal; assert weights and units from the spec.
-- [ ] Test symmetric route deviation with collinear-interval merging, its 12-points/pt weight, 48-point hysteresis boundary, and that `avoid` beats `allow` only by policy-crossing count.
+- [ ] Test symmetric route deviation with collinear-interval merging, its 0.1-points/pt weight, 48-point hysteresis boundary, and lexicographic policy-crossing comparison.
+- [ ] Add the two-connector 100 pt overlapping-run regression: Beautify must separate them by 6 pt. Fail if deviation/hysteresis prevents the move.
+- [ ] Add an A* regression proving a long route with no crossing beats a shorter route with one crossing.
 - [ ] Run `npm --prefix src/web test -- tests/routeQuality.test.ts` and confirm failure.
-- [ ] Implement pure `scoreRoute`, the A* incremental costs, deterministic completed-path costs, and the exact priority/difficulty/span/ID target ordering. Reuse measured text bounds for every visible text/connector label; do not invent a second text measurer.
-- [ ] Add opt-in search costs to `avoidObstacles`/`search`; keep existing exported defaults and cost arithmetic unchanged for `legacy`.
-- [ ] Add planner tests proving no-policy PSGL/Lego/R05 routes and route-change IDs remain unchanged; `avoid` finds fewer crossings, `allow` permits them, track spacing uses 6 pt, and 80,000-state exhaustion has a stable skip result.
+- [ ] Implement pure `scoreRoute`, lexicographic A* cost `(policyCrossings, qualityPoints)`, deterministic completed-path costs, and priority/difficulty/span/ID ordering for Beautify. Reuse measured text bounds for all visible text/connector labels.
+- [ ] Add aesthetic-only x/y grid lines at each occupied route run coordinate ±6 pt. Keep the current grid and cost arithmetic unchanged for ordinary routing. Count states on the 60/60 and denser fixtures; do not exceed 80,000 per search.
+- [ ] Charge each geometric crossing once. Ensure a no-crossing detour always beats a crossing route regardless of quality cost; `allow` leaves the crossing component at zero.
+- [ ] Add planner tests proving PSGL/Lego/R05 routes and change IDs remain unchanged with absent and configured policies across ordinary edits; only explicit Beautify uses policy/priority. Verify 6 pt tracks, long crossing-free detour, 100 pt overlap case, and stable 80,000-state skips.
 - [ ] Run `npm --prefix src/web test -- tests/routeQuality.test.ts tests/routePlanner.test.ts tests/routeModes.test.ts` and `npm --prefix src/web run typecheck`; expect all pass.
 - [ ] Commit `feat: score aesthetic connector routes`.
 
@@ -101,13 +109,13 @@
 
 - [ ] Add contract tests for valid defaults, overrides, priorities at -100/100, rejected out-of-range values, required sides, invalid static-port conflicts, and rejection of connector-only policy fields on shapes/text.
 - [ ] Run focused schema/operation tests and confirm the new fields/operations are rejected before schema edits.
-- [ ] Split shared element `RoutingPolicy` from connector-only `ConnectorRoutingPolicy`; extend document/connector/endpoint schemas and add `ROUTE_REQUIRED_SIDE_UNRESOLVED` to `contracts/protocol.schema.json`. Add `setRoutingDefaults` and required-hash `beautify` operation schemas; regenerate TS/C# contracts using `npm --prefix src/web run generate`.
-- [ ] Implement `setRoutingDefaults` as one document diff and validate `requiredSide` against fixed ports during operation planning; make `requestsHardRoutePreflight` recognize this operation and reject a newly unreachable default.
-- [ ] Add UI-accessible connector fields later in Task 5; do not change line style/colour semantics.
+- [ ] Split shared element `RoutingPolicy` from connector-only `ConnectorRoutingPolicy`; extend document/connector/endpoint schemas and add `ROUTE_REQUIRED_SIDE_UNRESOLVED` to `contracts/protocol.schema.json`. Add `setRoutingDefaults` and `beautify` operation schemas with base revision and explicit proposed route points; regenerate TS/C# contracts using `npm --prefix src/web run generate`.
+- [ ] Implement `setRoutingDefaults` as one document diff. It affects future explicit Beautify calls only; prove an unrelated ordinary edit changes only its edited connector. Validate `requiredSide` against fixed ports during operation planning and apply hard-route preflight to explicit constraints.
+- [ ] Add UI-accessible connector fields in Task 6; do not change line style/colour semantics.
 - [ ] Run `npm --prefix src/web test -- tests/contracts.test.ts tests/routePlanner.test.ts`, `npm --prefix src/web run generate:check`, and `npm --prefix src/web run typecheck`; expect all pass.
 - [ ] Commit `feat: add connector crossing policies and priority`.
 
-### Task 4: Implement exact, read-only Beautify planning and hash
+### Task 4: Implement exact, read-only Beautify planning
 
 **Files:**
 - Create: `src/web/src/editor/beautifyPreview.ts`
@@ -115,17 +123,17 @@
 - Test: `src/web/tests/beautifyPreview.test.ts`
 
 **Interfaces:**
-- Produces: `buildBeautifyPreview(document, pageId, targetIds, options): Promise<BeautifyPreview>` with `baseRevision`, sorted `targets`, `routes`, `skipped`, `changedCount`, `routeHash`; `hashBeautifyRoutes(targets, routes): Promise<string>` SHA-256 hashes canonical JSON with sorted IDs and 0.001 pt coordinates.
+- Produces: `buildBeautifyPreview(document, pageId, targetIds, options): Promise<BeautifyPreview>` with `baseRevision`, sorted `targets`, exact `proposedRoutes`, `skipped`, and `changedCount`. Preview passes the canonical measured label rectangles to the planner.
 
-- [ ] Test preview route count/hash, deterministic ordering, selected-only versus page materialization, Manual/Frozen/locked skips, and no document/advisory mutation.
+- [ ] Test preview route count and exact proposed points, deterministic ordering, selected-only versus page materialization, Manual/Frozen/locked skips, shared label measurements, and no document/advisory mutation.
 - [ ] Test that one infeasible or budget-exhausted connector is skipped while a feasible target still receives a proposed route.
 - [ ] Run `npm --prefix src/web test -- tests/beautifyPreview.test.ts` and confirm failure.
 - [ ] Implement the preview using one document snapshot and the Task 2 planner profile; skip unchanged/unfeasible targets and retain their exact current route/advisory.
-- [ ] Test canonical hash equality for route coordinate noise below 0.001 pt and hash inequality for changed coordinates, target IDs or route order after canonical sorting.
+- [ ] Test exact proposal serialization and deterministic target ordering; no coordinate rounding is used in the preview-to-commit path.
 - [ ] Run the focused suite and typecheck; expect all pass.
 - [ ] Commit `feat: plan revision-bound beautification previews`.
 
-### Task 5: Commit Beautify atomically and add editor controls
+### Task 5: Commit Beautify atomically and add editor preview
 
 **Files:**
 - Modify: `src/web/src/commands/planPatch.ts`
@@ -134,26 +142,39 @@
 - Create: `src/web/src/components/BeautifyDialog.tsx`
 - Modify: `src/web/src/components/PageCanvas.tsx`
 - Modify: `src/web/src/editor/appCommands.ts`
-- Modify: `src/web/src/components/Inspector.tsx`
-- Modify: `src/web/src/components/Toolbar.tsx` or document settings dialog as needed
+
 - Test: `src/web/tests/beautify.test.ts`
+- Test: label-sensitive preview and exact transaction commit
 - Test: `src/web/tests/browser/beautify.spec.ts`
 
 **Interfaces:**
-- Consumes: the exact Task 4 preview, `beautify` operation with its base revision and route hash, and `setRoutingDefaults`.
+- Consumes: the exact Task 4 preview and `beautify` operation with its base revision and exact proposed route points.
 - Produces: one `TransactionResult` whose `changed`/`routeChanges` list contains only committed target IDs; the existing transaction stack provides exact undo/redo.
 
-- [ ] Add engine tests for stale revision rejection, preview-hash mismatch rejection, target-only commit, one undo/redo, explicit Manual-to-Automatic conversion, and Frozen/locked skips.
+- [ ] Add engine tests for stale revision rejection, invalid proposed-route rejection, exact preview-to-commit point equality including a nearby measured label, target-only commit, one undo/redo, explicit Manual-to-Automatic conversion, and Frozen/locked skips.
 - [ ] Add a transaction test with one newly infeasible target and one feasible target; assert the infeasible route is untouched, the feasible one commits, and broad R22 preflight does not reject the batch.
 - [ ] Run `npm --prefix src/web test -- tests/beautify.test.ts` and confirm failure.
-- [ ] Implement `beautify` planning/apply so expected hash is recomputed before any diff; reject on mismatch; only add upserts for changed eligible target routes; avoid creating unresolved updates for skipped targets.
+- [ ] Implement `beautify` apply so base revision and all proposed paths are validated before any diff; apply supplied points directly; add upserts only for changed eligible routes and avoid unresolved updates for skipped targets.
 - [ ] Add `Preview Beautify` in Arrange menu and selected/page dialog; draw exact candidate paths, changed count and skip reasons; disable acceptance on stale snapshot and close without mutation on cancel.
-- [ ] Add Edit > Routing defaults dialog and Inspector controls for crossing override, priority, and required endpoint side; all changes use the existing transaction path.
-- [ ] Add Playwright coverage for no-side-effect preview, page/selection scope, exact preview overlay, stale revision, accepted undo, and policy controls.
+
+- [ ] Add Playwright coverage for no-side-effect preview, page/selection scope, exact preview overlay, stale revision, accepted undo, skipped Manual recovery and continuing past infeasible targets.
 - [ ] Run `npm --prefix src/web test -- tests/beautify.test.ts tests/beautifyPreview.test.ts` and `npm --prefix src/web run test:browser -- tests/browser/beautify.spec.ts`; expect all pass.
 - [ ] Commit `feat: add previewed beautify command`.
 
-### Task 6: Verify regressions, documentation and platform contracts
+### Task 6: Add routing policy controls
+
+**Files:**
+- Modify: `src/web/src/components/Inspector.tsx`
+- Modify: `src/web/src/components/Toolbar.tsx` or the document settings dialog
+- Modify: `src/web/src/editor/appCommands.ts` for Edit > Routing defaults
+- Test: policy controls and ordinary-edit compatibility
+
+- [ ] Add controls for document/connector crossing policy, priority and endpoint required side. Route all edits through the existing transaction path.
+- [ ] Prove that setting a policy followed by an unrelated ordinary edit preserves every other route.
+- [ ] Update MCP operation catalog and `DiagramTools.cs` descriptions for `setRoutingDefaults`, `beautify` proposed routes and `ROUTE_REQUIRED_SIDE_UNRESOLVED`.
+- [ ] Commit `feat: expose routing policy controls`.
+
+### Task 7: Verify regressions, documentation and platform contracts
 
 **Files:**
 - Modify: `docs/m5/R24-aesthetic-routing.md`
@@ -163,17 +184,19 @@
 **Interfaces:**
 - Produces: reproducible R24 acceptance evidence and a clear list of `PASS`, `FAIL`, or `NOT RUN` for real Visio and dense fixtures.
 
-- [ ] Compare no-policy PSGL, Lego, R05 baselines and R26 expected diagnostics against the post-#90 baseline; record intentional threshold-only finding changes.
+- [ ] Compare ordinary-routing PSGL, Lego, R05 baselines and R26 expected diagnostics against the merged #90 baseline; no diagnostic threshold changes are expected.
 - [ ] Run `npm --prefix src/web test`, `npm --prefix src/web run typecheck`, `npm --prefix src/web run generate:check`, and `npm --prefix src/web run build`.
 - [ ] Run `dotnet test Diagram.Portable.slnx --configuration Release`; run `dotnet test Diagram.Windows.slnx --configuration Release` and real Visio acceptance separately when available.
 - [ ] Run the 60/60 and denser deterministic routing fixtures, record expanded-state counts, route changes, and preview wall-clock measurements; verify no route exceeds 80,000 expanded states.
-- [ ] Record implementation commits, test totals, updated finding fixture details, manual Visio status and remaining dynamic-anchor/fan-out limits in `docs/m5/R24-aesthetic-routing.md` and issue #63.
+- [ ] Run native Visio import/export round-trip coverage with non-default crossing policy, priority and requiredSide. Confirm route geometry survives and document unsupported metadata drops.
+- [ ] Record implementation commits, test totals, Visio round-trip behavior, manual Visio status and remaining dynamic-anchor/fan-out limits in `docs/m5/R24-aesthetic-routing.md` and issue #63.
 - [ ] Run full web and portable .NET suites again if any preceding edit changes code; commit `test: record R24 aesthetic routing evidence`.
 
 ## Self-review
 
 - Every R24 issue scope item is covered by score terms, policies, shared contact analysis, preview or an explicit limit (dynamic glue-anchor symmetry and named-port creation).
-- R26 stays the source of contact semantics; its public finding codes remain stable, with only the documented 4-to-6 pt near-miss threshold change.
-- The default route planner path and baselines remain unchanged when policy is absent; only explicit opt-in work uses aesthetic scoring.
-- Preview and commit share planner inputs, a base revision and a canonical route hash; R22's broad preflight cannot turn one skipped target into a failed multi-target Beautify.
-- PR #90 merge is a prerequisite; no implementation files are touched on the R26 branch.
+- R26 stays the source of contact semantics and thresholds; its public finding codes and fixtures remain stable.
+- Ordinary route planning and target ordering remain unchanged for every policy configuration; only explicit Beautify uses aesthetic scoring and priority ordering.
+- Preview routes are committed exactly against their base revision; R22's broad preflight cannot turn one skipped target into a failed multi-target Beautify.
+- Native Visio preserves route geometry while dropping unsupported R24 policy metadata, as verified by round-trip tests.
+- PR #90 is merged and is present in the feature branch before implementation begins.
