@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ConnectorElement, DiagramDocument, ShapeElement } from '../src/contracts/generated';
 import { validateDocument } from '../src/model/validate';
+import { compareElementOrder } from '../src/model/elementOrder';
 import { readObjects, readSummary } from '../src/bridge/readTools';
 import { copyElements, pasteOperations } from '../src/commands/clipboard';
 import { compile } from '../src/script/compiler';
@@ -28,9 +29,9 @@ describe('containers (R17)', () => {
     const before = exactElementHashes(t.store.snapshot());
     const r = await run(t, [{ op: 'createShape', id: C1, bounds: { x: 90, y: 30, width: 240, height: 80 }, container: { memberIds: ['s0', 's1'] } }]);
     expect(r.created).toEqual([C1]);
-    expect(r.changed).toEqual([]);
+    expect(r.changed).toEqual([t.ids.image]); // the image below s0 steps back to free a stacking value just behind it
     expect(shape(t, C1).container).toEqual({ memberIds: [s(t, 0), s(t, 1)] }); // fit none and margin 0 are not stored
-    expect(hashesExcept(t.store.snapshot(), C1)).toEqual(before);
+    expect(without(hashesExcept(t.store.snapshot(), C1), t.ids.image)).toEqual(without(before, t.ids.image));
   });
 
   it('moving a container moves every member at every depth by the same amount, and nothing outside', async () => {
@@ -102,6 +103,27 @@ describe('containers (R17)', () => {
     expect(shape(t, C1).bounds).toEqual({ x: 96, y: 36, width: 228, height: 68 });
     await run(t, [{ op: 'set', target: C1, patch: { container: { fit: 'none', marginPt: 0 } } }]);
     expect(shape(t, C1).container).toEqual({ memberIds: [s(t, 0), s(t, 1)] });
+  });
+
+  it('a new container is stacked just behind its lowest member, in front of what lay below, such as a page background', async () => {
+    const t = createTestEngine();
+    const BG = id(940);
+    await run(t, [{ op: 'createShape', id: BG, bounds: { x: 0, y: 0, width: 800, height: 600 } }, { op: 'reorder', targets: [BG], to: 'back' }]);
+    await run(t, [{ op: 'createShape', id: C1, bounds: { x: 200, y: 20, width: 260, height: 100 }, container: { memberIds: [s(t, 3), s(t, 1)] } }]);
+    const order = t.store.snapshot().document.pages[0]!.elements.filter(e => e.kind !== 'group').sort(compareElementOrder).map(e => e.id);
+    expect(order[0]).toBe(BG);
+    expect(order.indexOf(C1)).toBe(order.indexOf(s(t, 1)) - 1);
+    expect(order.indexOf(s(t, 1))).toBeLessThan(order.indexOf(s(t, 3))); // the members keep their own order
+  });
+
+  it('a container fitted to a straight line keeps a positive size, so the document stays valid', async () => {
+    const t = createTestEngine();
+    await run(t, [
+      { op: 'createConnector', id: id(930), from: { glue: 'none', point: { x: 120, y: 250 } }, to: { glue: 'none', point: { x: 380, y: 250 } }, route: 'straight' },
+      { op: 'createShape', id: C1, bounds: { x: 100, y: 200, width: 300, height: 100 }, container: { memberIds: [id(930)], fit: 'fit' } },
+    ]);
+    expect(shape(t, C1).bounds).toEqual({ x: 120, y: 249.5, width: 260, height: 1 });
+    expect(validateDocument(t.store.snapshot().document).ok).toBe(true);
   });
 
   it('deleting a container with members needs a choice: keep moves them up in its place, delete removes everything inside', async () => {

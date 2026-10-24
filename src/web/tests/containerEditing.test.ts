@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Operation } from '../src/contracts/generated';
 import { deleteOperations, intentOperations, membershipAfterDrag, nudgeOperations } from '../src/canvas/intents';
-import { carriedLeaves, outermostTargets } from '../src/canvas/selection';
+import { carriedConnectors, carriedLeaves, outermostTargets } from '../src/canvas/selection';
 import { createTestEngine } from './support/engine';
 import { id, run } from './support/ops';
 
@@ -37,18 +37,43 @@ describe('editing containers on the canvas (R17)', () => {
     expect(snap(t).document.pages[0]!.elements.some(e => e.id === s(t, 1))).toBe(false); // the Delete key takes the contents too
   });
 
+  it('the drag preview carries a connector glued at both ends inside a container, as the engine moves it', async () => {
+    const t = await nested();
+    const LINK = id(930), OUT = id(931);
+    await run(t, [
+      { op: 'createConnector', id: LINK, from: { elementId: s(t, 0), glue: 'dynamic' }, to: { elementId: s(t, 2), glue: 'dynamic' } },
+      { op: 'createConnector', id: OUT, from: { elementId: s(t, 0), glue: 'dynamic' }, to: { elementId: s(t, 5), glue: 'dynamic' } },
+    ]);
+    expect(carriedConnectors(snap(t), [OUTER])).toEqual([LINK]); // OUT has s5, which stays behind, so the router redraws it
+    expect(carriedConnectors(snap(t), [s(t, 0)])).toEqual([]);
+    expect(carriedLeaves(snap(t), [OUTER])).not.toContain(LINK); // not a member, so grouping a container leaves it out
+  });
+
   it('dropping an object wholly inside a container adds it to the smallest one; dragging a member clear of it takes it out', async () => {
     const t = await nested();
     // s5 is already inside OUTER's bounds but not a member; dragged up by 90 it lands wholly inside INNER (s5 becomes 100..200 x 40..100)
     expect(contains(intentOperations(snap(t), { type: 'move', ids: [s(t, 5)], dx: 0, dy: -90 }, NO_SNAP))).toEqual([{ op: 'contain', container: INNER, add: [s(t, 5)] }]);
-    // s1 dragged far away leaves INNER, and OUTER too since it lands outside both: one remove, from INNER
+    // s1 dragged far away leaves INNER, and OUTER too since it lands outside both: removed from INNER, then from OUTER it passed up to
     const away = intentOperations(snap(t), { type: 'move', ids: [s(t, 1)], dx: 600, dy: 0 }, NO_SNAP);
-    expect(contains(away)).toEqual([{ op: 'contain', container: INNER, remove: [s(t, 1)] }]);
+    expect(contains(away)).toEqual([{ op: 'contain', container: INNER, remove: [s(t, 1)] }, { op: 'contain', container: OUTER, remove: [s(t, 1)] }]);
     await run(t, away);
-    expect((snap(t).document.pages[0]!.elements.find(e => e.id === OUTER) as { container: { memberIds: string[] } }).container.memberIds).toContain(s(t, 1)); // moved up a level by contain
+    expect((snap(t).document.pages[0]!.elements.find(e => e.id === OUTER) as { container: { memberIds: string[] } }).container.memberIds).not.toContain(s(t, 1));
+    // dragged clear of INNER but still across OUTER's edge (s1 becomes 220..320 x 220..280), it passes up to OUTER only
+    const t2 = await nested();
+    expect(contains(intentOperations(snap(t2), { type: 'move', ids: [s(t2, 1)], dx: 0, dy: 180 }, NO_SNAP))).toEqual([{ op: 'contain', container: INNER, remove: [s(t2, 1)] }]);
     // a member dragged within its container, or only partly out of it, keeps its place
     expect(contains(intentOperations(snap(t), { type: 'move', ids: [s(t, 0)], dx: 5, dy: 5 }, NO_SNAP))).toEqual([]);
     expect(contains(intentOperations(snap(t), { type: 'move', ids: [s(t, 0)], dx: -40, dy: 0 }, NO_SNAP))).toEqual([]);
+  });
+
+  it('a member dragged clear of growing containers leaves them all, so none grows to follow it', async () => {
+    const t = await nested();
+    await run(t, [INNER, OUTER].map(target => ({ op: 'set', target, patch: { container: { fit: 'grow' } } }) as Operation));
+    const before = snap(t).document.pages[0]!.elements.find(e => e.id === OUTER)!.bounds;
+    await run(t, intentOperations(snap(t), { type: 'move', ids: [s(t, 1)], dx: 600, dy: 0 }, NO_SNAP));
+    const els = snap(t).document.pages[0]!.elements;
+    expect(els.find(e => e.id === OUTER)!.bounds).toEqual(before);
+    expect(els.some(e => 'container' in e && (e as { container: { memberIds: string[] } }).container.memberIds.includes(s(t, 1)))).toBe(false);
   });
 
   it('a dragged container never joins itself or what it holds, and locked containers are left alone', async () => {

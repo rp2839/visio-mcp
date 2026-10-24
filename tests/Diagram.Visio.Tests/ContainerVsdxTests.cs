@@ -140,6 +140,29 @@ public class ContainerVsdxTests
         Assert.Contains(back.Diagnostics, d => d.Code == "container_member_ambiguous" && d.ElementId == Doc.Id(3));
     }
 
+    /// <summary>A file whose containers claim each other in a loop keeps them nested one way, with a note, rather than failing to load.</summary>
+    [Fact]
+    public void ContainersThatClaimEachOtherInALoopKeepOneWayWithANote()
+    {
+        var exp = RT.Export(Nested());
+        string S(int n) => $"Sheet.{SheetId(exp.Package, n)}!SheetRef()";
+        string outerId = SheetId(exp.Package, Outer), innerId = SheetId(exp.Package, Inner);
+        var loop = Fx.Edit(exp.Package, "visio/pages/page1.xml", doc =>
+        {
+            foreach (var shape in doc.Descendants().Where(e => e.Name.LocalName == "Shape"))
+            {
+                var cell = shape.Elements().First(c => c.Name.LocalName == "Cell" && (string?)c.Attribute("N") == "Relationships");
+                if ((string?)shape.Attribute("ID") == outerId) cell.SetAttributeValue("F", $"SUM(DEPENDSON(4,{S(Inner)}),DEPENDSON(1,{S(Inner)},{S(B)}))");
+                if ((string?)shape.Attribute("ID") == innerId) cell.SetAttributeValue("F", $"SUM(DEPENDSON(4,{S(Outer)}),DEPENDSON(1,{S(A)},{S(Outer)}))");
+            }
+        });
+        var back = RT.Import(loop);
+        bool Holds(int c, int m) => RT.El(back.Document, Doc.Id(c))["container"]!["memberIds"]!.AsArray().Any(n => n!.GetValue<string>() == Doc.Id(m));
+        Assert.True(Holds(Outer, Inner) ^ Holds(Inner, Outer));
+        Assert.True(Holds(Inner, A) && Holds(Outer, B));
+        Assert.Contains(back.Diagnostics, d => d.Code == "container_cycle_dropped");
+    }
+
     /// <summary>A Visio-saved Microsoft sample whose containers come from Visio's own container stencil (groups of frame and heading parts).</summary>
     [Fact]
     public void ContainersFromVisiosOwnStencilImportAsNestedContainerFrames()

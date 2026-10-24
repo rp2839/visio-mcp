@@ -56,6 +56,8 @@ const DEFAULT_SHAPE_STYLE: ShapeStyle = {
 const DEFAULT_LINE_STYLE: LineStyle = { colour: '#334155', widthPt: 1, dash: 'solid', startArrow: 'none', endArrow: 'block' };
 const SHAPE_ONLY_STYLE = ['fill', 'stroke', 'strokeWidthPt', 'lineCap', 'lineJoin'];
 const LINE_ONLY_STYLE = ['colour', 'widthPt', 'startArrow', 'endArrow', 'startArrowSize', 'endArrowSize'];
+/** R17: the least width or height a container fitted to its members takes. */
+const MIN_FIT_PT = 1;
 
 type PatchObj = Record<string, unknown>;
 type Hit = { page: Page; pageIdx: number; index: number; element: Element };
@@ -503,6 +505,27 @@ class Planner {
     this.put({ ...p, container: { ...p.container, memberIds } });
   }
 
+  /**
+   * R17: a container created with members goes just behind the lowest of them on its level, so it hides none of them and stays in front of
+   * what lay below them, a page background included. When no stacking value is free there, the smaller side moves apart to make one.
+   */
+  private stackBehindMembers(pageIdx: number, id: string): void {
+    const byId = this.byIdMap(pageIdx);
+    const c = byId.get(id) as ContainerShape;
+    const inside = new Set(c.container.memberIds.flatMap(m => leavesUnder(byId, m)));
+    const peers = this.pages[pageIdx]!.elements.filter(e => e.kind !== 'group' && e.id !== id && effectiveLevel(e) === effectiveLevel(c)).sort(compareElementOrder);
+    const first = peers.findIndex(e => inside.has(e.id));
+    if (first < 0) return; // its members are all on other levels, which decide
+    const below = peers.slice(0, first), above = peers.slice(first);
+    const top = below.length ? below.at(-1)!.zIndex : -Infinity, bottom = above[0]!.zIndex;
+    let z = bottom - 1;
+    if (top >= z) {
+      if (below.length <= above.length) for (const e of below) this.put({ ...e, zIndex: e.zIndex - (top - bottom + 2) });
+      else { for (const e of above) this.put({ ...e, zIndex: e.zIndex + (top - bottom + 2) }); z = top + 1; }
+    }
+    this.put({ ...this.findById(id)!.element, zIndex: z });
+  }
+
   /** Appends members to a container. An element already in another container moves here; one already here keeps its place. */
   private addMembers(pageIdx: number, containerId: string, targets: readonly string[]): void {
     const pageId = this.pages[pageIdx]!.id;
@@ -603,7 +626,7 @@ class Planner {
         if (el.geometry.svgPath !== undefined) { const parsed = parsePath(el.geometry.svgPath); if (!parsed.ok) stop('invalid_request', parsed.error.message); }
         if (op.container) el.container = withContainerSettings({ memberIds: [] }, op.container);
         this.addElement(pageIdx, el);
-        if (op.container?.memberIds?.length) this.addMembers(pageIdx, id, op.container.memberIds);
+        if (op.container?.memberIds?.length) { this.addMembers(pageIdx, id, op.container.memberIds); this.stackBehindMembers(pageIdx, id); }
         return;
       }
       case 'createText': {
@@ -1440,7 +1463,9 @@ class Planner {
         const c = hit.element as ContainerShape;
         const margin = c.container.marginPt ?? 0;
         const inner = unionBounds(c.container.memberIds.map(m => visualBounds(this.findById(m)!.element)));
-        const hug: Bounds = { x: inner.x - margin, y: inner.y - margin, width: inner.width + 2 * margin, height: inner.height + 2 * margin };
+        // members that are only lines can span no width or height, but a shape needs a positive size: the hug keeps MIN_FIT_PT about its centre
+        const w = Math.max(inner.width + 2 * margin, MIN_FIT_PT), h = Math.max(inner.height + 2 * margin, MIN_FIT_PT);
+        const hug: Bounds = { x: inner.x + inner.width / 2 - w / 2, y: inner.y + inner.height / 2 - h / 2, width: w, height: h };
         const bounds = c.container.fit === 'fit' ? hug : unionBounds([c.bounds, hug]);
         if (!sameBounds(bounds, c.bounds)) this.store(hit.pageIdx, hit.index, { ...c, bounds });
       }

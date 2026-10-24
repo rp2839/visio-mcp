@@ -68,7 +68,7 @@ Deleting a member removes it from `memberIds`. An empty container is valid, unli
 
 **Group and ungroup.** A `group` operation that would separate a container from any of its direct members is refused with `container_split`. Ungrouping keeps all memberships.
 
-**Stacking (R29).** Membership does not restack anything. When a container with a non-transparent fill draws above one of its members (by `(level, zIndex)`), inspection reports `CONTAINER_HIDES_MEMBER`. The editor's "Make container" command places the new frame behind its members.
+**Stacking (R29).** Changing membership does not restack anything. A container created with members (`createShape` with `container.memberIds`, which the editor's "Make container" uses) is stacked just behind the lowest of them on its level, so it stays in front of whatever lay below them, such as a page background or its own container. When no stacking value is free there, the smaller side moves apart to make one. When a container with a non-transparent fill draws above one of its members (by `(level, zIndex)`), inspection reports `CONTAINER_HIDES_MEMBER`.
 
 **Attachments (R13).** An element attached to a connector follows the connector even when it is also a container member. The attachment settle runs after the container translation.
 
@@ -156,7 +156,7 @@ So after Visio saves, a shape can be listed by two containers that aren't nested
 - **Rotation:** rotating a container that has members is refused (`container_rotation`). To turn a container and its contents together, group them and rotate the group. Rotating a container's members one at a time is unchanged.
 - **Empty containers:** deleting a container with no members needs no `members` choice.
 - **Margin:** an absent `marginPt` means 0. Fit `none` and margin 0 are not stored, so each setting has a single stored form.
-- **Where the fit settle runs:** at the end of the planned batch, before the engine's join, route and attachment settles. An element that rides a connector (R13) and is also a container member can therefore leave its container's grow bounds one edit behind. Inspection's `MEMBER_OUTSIDE_CONTAINER` reports this, and the next edit catches up.
+- **Where the fit settle runs:** at the end of the planned batch, before the engine's join, route and attachment settles. An element that rides a connector (R13) and is also a container member can therefore leave its container's grow bounds one edit behind. Inspection's `MEMBER_OUTSIDE_CONTAINER` reports this, and the next edit catches up. In the same way, a fit is worked out before connector routes are planned, so a free orthogonal connector that is a member counts with its route before the edit; if the router then moves it, the container can be left short of it until the next edit, and `MEMBER_OUTSIDE_CONTAINER` reports it. A fitted container keeps at least 1 pt of width and height, since members that are only straight lines can span none.
 - **Copy and paste:** groups are not copied, so a group inside a copied container is listed in the pasted container by its leaves. Membership is restored by `contain` operations at the end of the paste.
 - **Export before stage 4:** a container exports as plain shapes with a `container_not_native` warning, so the membership loss is reported rather than silent.
 

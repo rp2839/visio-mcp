@@ -102,7 +102,8 @@ describe('layout inspection of containers (R17)', () => {
   it('a filled container drawn in front of its own member is reported until it is sent back', async () => {
     const t = await scene([
       { op: 'createShape', id: A, bounds: box(130, 150) },
-      { op: 'createShape', id: FRAME, bounds: box(100, 100, 300, 200), container: { memberIds: [A] } }, // created later, so in front, with the default white fill
+      { op: 'createShape', id: FRAME, bounds: box(100, 100, 300, 200), container: { memberIds: [A] } }, // stacked behind A, with the default white fill
+      { op: 'reorder', targets: [FRAME], to: 'front' },
     ]);
     expect(codes(t, 'CONTAINER_HIDES_MEMBER')).toEqual([expect.objectContaining({ elementIds: [FRAME, A], evidence: { containerId: FRAME, hiddenElementIds: [A] } })]);
     await run(t, [{ op: 'reorder', targets: [FRAME], to: 'back' }]);

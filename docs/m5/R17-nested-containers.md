@@ -104,7 +104,7 @@ Issue #12. Design: [docs/design/R17-nested-containers.md](../design/R17-nested-c
 | `LegoContainerVisioTests` (real Visio) | The four-level Lego export (`artifacts/r17-containers/lego-containers.document.json`): all 24 containers in Visio, and all 132 exported memberships confirmed. Visio added 7 of its own (edge, or mostly inside a frame). After Visio saves, the editor re-imports every exported membership, plus the 1 shape Visio put in a container where the editor had none |
 | `dotnet test Diagram.Portable.slnx` | 498/498 pass (Visio tests 177, run against the installed Visio) |
 | `npx vitest run`, `generate:check` | 680/680 pass, contract check pass |
-| Windows suite (`Diagram.Windows.slnx`) | NOT RUN |
+| Windows suite (`Diagram.Windows.slnx`) | NOT RUN at stage 4; run after the review fixes (below) |
 | Manual in Visio: drag a container and see its members follow | NOT RUN. Hidden automation cannot show it (Visio moves members only interactively). File for the check: `artifacts/r17-containers/lego-containers.vsdx` |
 
 **Limits:**
@@ -119,6 +119,27 @@ R26 (#65) adds its own rule to layout inspection: a frame drawn round a connecto
 - declaring the containers takes it to 28. The free ends and lines that only containment explains are removed; the rest are R12 free polylines through ordinary shapes.
 
 The conflict was resolved in `inspectLayout.ts` (both `pageArea` and the container map are passed to `connectorChecks`) and in `EditorModel.ts` (imports). Fresh after the merge: web vitest 695/695, Playwright 192/192, `dotnet test Diagram.Portable.slnx` 498/498 (Visio tests against the installed Visio).
+
+## Review fixes (PR #93)
+
+The review on PR #93 found these; each fix has a test that fails without it.
+- **Dragging a member clear of nested containers** now takes it out of every container it lies clear of, up to the first it still touches. Before, it was handed up to the outer container, which then grew to swallow it when set to grow.
+- **A container fitted to a single straight line** keeps at least 1 pt of width and height. Before, it could be committed with zero height, and the document then failed validation.
+- **A container created with members** (the editor's Make container, or `createShape` with members) is stacked by the engine just behind its lowest member. Before, the editor sent it, and every container above it, to the back of the page, behind a page background.
+- **A Visio file whose containers claim each other in a loop** keeps them nested one way, with a `container_cycle_dropped` note, rather than failing to load.
+- **The drag preview** now also carries a connector glued at both ends to what a container carries, as the engine moves it. Covered by a unit test of the carried set; the on-screen preview was not checked by hand.
+
+Recorded as limits rather than changed:
+- A fit is worked out before connector routes are planned, so a free orthogonal member that the router then moves can be left outside until the next edit. `MEMBER_OUTSIDE_CONTAINER` reports it. This is in the design note.
+- Routing passes through declared containers, but inspection still reports an unrelated connector crossing one. This was noted on #61 for R22 to settle.
+
+| Check | Result |
+|---|---|
+| `npx vitest run`, `npm run typecheck` | 699/699 pass, typecheck clean |
+| `npx playwright test` | 192/192 pass |
+| `dotnet test Diagram.Portable.slnx` | 498/498 pass. In a run beside Playwright, the Visio test `GlueFollowsMovesAndGroupsScaleInVisio` failed once; it passed alone, and so did the whole Visio project (178/178) |
+| `dotnet test Diagram.Windows.slnx` | Pass: Windows tests 184 passed, 13 skipped; the other projects as above |
+| Manual checks in the editor and in Visio | NOT RUN |
 
 ## Remaining work
 

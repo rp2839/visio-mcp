@@ -717,9 +717,8 @@ export class EditorModel {
         style: { fill: { kind: 'solid', colour: '#f8fafc', opacity: 1 }, stroke: { kind: 'solid', colour: '#64748b', opacity: 1 }, dash: 'dashed' },
         container: { memberIds: units, fit: 'grow', marginPt: margin },
       },
+      // the engine stacks it just behind its lowest member, so it stays in front of its own container and of a page background
       ...(parent !== undefined ? [{ op: 'contain', container: parent, add: [id] } as Operation] : []),
-      // behind its members, and each enclosing container behind the one it holds
-      ...[id, ...(parent !== undefined ? [parent, ...containerAncestors(holders, parent)] : [])].map(target => ({ op: 'reorder', targets: [target], to: 'back' }) as Operation),
     ];
     const r = await this.apply('arrange', operations);
     if (!r.ok) return;

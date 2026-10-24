@@ -1257,6 +1257,18 @@ public sealed class NativeVsdxImporter : IVsdxImporter
                     }
                     direct[member] = inner;
                 }
+                // a file whose containers hold each other in a loop cannot keep it: the loop is broken where it is found
+                foreach (var start in direct.Keys.ToList())
+                {
+                    var seen = new HashSet<string>();
+                    for (var at = start; direct.TryGetValue(at, out var up); at = up)
+                    {
+                        if (seen.Add(at)) continue;
+                        direct.Remove(at);
+                        Note("container_cycle_dropped", "Visio lists these containers inside each other in a loop; the editor keeps containers nested one way, so this membership was not kept.", at, null, "membership dropped", "info");
+                        break;
+                    }
+                }
                 foreach (var (sid, _) in shapeById)
                 {
                     if (!IsContainer(sid) || !idByShape.TryGetValue(sid, out var cid) || !elementById.TryGetValue(cid, out var el) || el["kind"]!.GetValue<string>() != "shape") continue;

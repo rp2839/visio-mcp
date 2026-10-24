@@ -112,4 +112,17 @@ export function carriedLeaves(snapshot: Snapshot, targets: readonly string[]): s
   return [...out];
 }
 
+/** R17: connectors that are not members but are glued at both ends to what a container carries; the engine moves them whole with it. */
+export function carriedConnectors(snapshot: Snapshot, targets: readonly string[]): string[] {
+  const out = new Set<string>();
+  for (const t of targets) {
+    const index = indexHolding(snapshot, t);
+    const inside = carriedLeaves(snapshot, [t]);
+    if (!index || !inside.length) continue;
+    const moving = new Set([t, ...leavesUnder(index.byId, t), ...inside]);
+    for (const e of index.byId.values()) if (e.kind === 'connector' && !moving.has(e.id) && e.from.elementId && e.to.elementId && moving.has(e.from.elementId) && moving.has(e.to.elementId)) out.add(e.id);
+  }
+  return [...out];
+}
+
 export type { Element };

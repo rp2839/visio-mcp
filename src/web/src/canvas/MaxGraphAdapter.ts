@@ -13,7 +13,7 @@ import { edgeStyle, effectiveState, labelOf, registerCustomShapes, vertexStyle }
 import { planRoutes, type PlannedRoute, type RouteChange } from '../layout/routePlanner';
 import { installGestureHooks } from './gestureHooks';
 import { pageOf } from './intents';
-import { carriedLeaves } from './selection';
+import { carriedConnectors, carriedLeaves } from './selection';
 
 const MARGIN_PT = 40;
 const PX_PER_PT = 96 / 72; // 100% zoom
@@ -105,7 +105,8 @@ export class MaxGraphAdapter implements CanvasAdapter {
         if (!this.projected) return cells;
         const ids = new Set(cells.map(c => c.getId() ?? ''));
         const model = this.graph.getDataModel();
-        const extra = carriedLeaves(this.projected, [...ids]).filter(id => !ids.has(id)).map(id => model.getCell(id)).filter((c): c is Cell => !!c && this.graph.isCellMovable(c));
+        const carried = [...carriedLeaves(this.projected, [...ids]), ...carriedConnectors(this.projected, [...ids])];
+        const extra = carried.filter(id => !ids.has(id)).map(id => model.getCell(id)).filter((c): c is Cell => !!c && this.graph.isCellMovable(c));
         return [...cells, ...extra];
       };
     }

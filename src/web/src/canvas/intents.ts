@@ -198,10 +198,14 @@ export function membershipAfterDrag(snapshot: Snapshot, moved: readonly string[]
     const home = candidates.filter(c => inside(c.bounds, box) && (!staying || deeper(c))).sort((a, b) => a.bounds.width * a.bounds.height - b.bounds.width * b.bounds.height)[0];
     if (home && home.id !== now) push(adds, home.id, id);
     else if (staying) continue;
-    else if (!home && current !== undefined && !travelling.has(current.id) && !locked(current)) push(removes, current.id, id);
+    else if (!home) {
+      // a removed member passes up to the next container, so it leaves each one it now lies clear of, up to the first it still touches
+      for (let c = current; c !== undefined && clear(c.bounds, box) && !travelling.has(c.id) && !locked(c); c = byId.get(holders.get(c.id) ?? '')) push(removes, c.id, id);
+    }
   }
+  const depth = (id: string) => { let n = 0; for (let p = holders.get(id); p !== undefined; p = holders.get(p)) n++; return n; };
   return [
-    ...[...removes].map(([container, remove]) => ({ op: 'contain', container, remove }) as Operation),
+    ...[...removes].sort(([a], [b]) => depth(b) - depth(a)).map(([container, remove]) => ({ op: 'contain', container, remove }) as Operation),
     ...[...adds].map(([container, add]) => ({ op: 'contain', container, add }) as Operation),
   ];
 }
