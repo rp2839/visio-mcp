@@ -28,6 +28,17 @@ const TURN = 24;
 const SHARED = 1; // extra cost per point of overlap with an earlier route
 const EPS = 1e-6;
 
+function lowerBound(values: readonly number[], value: number): number {
+  let lo = 0, hi = values.length;
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (values[mid]! < value) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+function upperBound(values: readonly number[], value: number): number {
+  let lo = 0, hi = values.length;
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (values[mid]! <= value) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+
 export const inflate = (r: Rect, d: number): Rect => ({ x: r.x - d, y: r.y - d, width: r.width + 2 * d, height: r.height + 2 * d });
 
 /** Whether an axis-aligned segment passes through the open interior of a rectangle. */
@@ -134,11 +145,30 @@ class AestheticHeap {
   }
 }
 
-function crossingCount(a: V, b: V, occupied: readonly Segment[], ignored: ReadonlySet<string>): number {
+interface IndexedSegment { coordinate: number; segment: Segment }
+function segmentIndex(segments: readonly Segment[], horizontal: boolean): IndexedSegment[] {
+  return segments.filter(s => horizontal ? Math.abs(s.a.y - s.b.y) < EPS : Math.abs(s.a.x - s.b.x) < EPS)
+    .map(segment => ({ coordinate: horizontal ? segment.a.y : segment.a.x, segment }))
+    .sort((a, b) => a.coordinate - b.coordinate);
+}
+function lowerBoundIndexed<T extends { coordinate: number }>(items: readonly T[], value: number): number {
+  let lo = 0, hi = items.length;
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (items[mid]!.coordinate < value) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+function upperBoundIndexed<T extends { coordinate: number }>(items: readonly T[], value: number): number {
+  let lo = 0, hi = items.length;
+  while (lo < hi) { const mid = (lo + hi) >>> 1; if (items[mid]!.coordinate <= value) lo = mid + 1; else hi = mid; }
+  return lo;
+}
+
+function crossingCount(a: V, b: V, ignored: ReadonlySet<string>, crossings: { verticalByX: IndexedSegment[]; horizontalByY: IndexedSegment[] }): number {
   const horizontal = Math.abs(a.y - b.y) < EPS, start = horizontal ? a.x : a.y, end = horizontal ? b.x : b.y;
   const forward = end >= start, low = Math.min(start, end), high = Math.max(start, end), seen = new Set<string>();
-  for (const s of occupied) {
-    if ((s.ownerId && ignored.has(s.ownerId)) || (horizontal ? Math.abs(s.a.y - s.b.y) < EPS : Math.abs(s.a.x - s.b.x) < EPS)) continue;
+  const candidates = horizontal ? crossings.verticalByX : crossings.horizontalByY;
+  for (let i = lowerBoundIndexed(candidates, low - EPS); i < upperBoundIndexed(candidates, high + EPS); i++) {
+    const s = candidates[i]!.segment;
+    if (s.ownerId && ignored.has(s.ownerId)) continue;
     const x = horizontal ? s.a.x : a.x, y = horizontal ? a.y : s.a.y;
     const along = horizontal ? x : y, across = horizontal ? y : x;
     const occupiedLo = horizontal ? Math.min(s.a.y, s.b.y) : Math.min(s.a.x, s.b.x), occupiedHi = horizontal ? Math.max(s.a.y, s.b.y) : Math.max(s.a.x, s.b.x);
@@ -153,16 +183,16 @@ function crossingCount(a: V, b: V, occupied: readonly Segment[], ignored: Readon
 }
 
 function aestheticEdgeCost(a: V, b: V, direction: number, previousDirection: number, goalDirection: number, atGoal: boolean,
-  occupied: readonly Segment[], previous: readonly V[], labels: readonly Rect[]): number {
+  occupiedIndex: { horizontal: IndexedSegment[]; vertical: IndexedSegment[] }, previousIndex: { horizontal: Array<{ coordinate: number; lo: number; hi: number }>; vertical: Array<{ coordinate: number; lo: number; hi: number }> }, labelCandidates: readonly Rect[]): number {
   const len = Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
   let overlap = 0, near = 0;
   const horizontal = Math.abs(a.y - b.y) < EPS;
   const lo = horizontal ? Math.min(a.x, b.x) : Math.min(a.y, b.y), hi = horizontal ? Math.max(a.x, b.x) : Math.max(a.y, b.y);
   const coord = horizontal ? a.y : a.x;
-  for (const s of occupied) {
-    const sameAxis = horizontal ? Math.abs(s.a.y - s.b.y) < EPS : Math.abs(s.a.x - s.b.x) < EPS;
-    if (!sameAxis) continue;
-    const otherCoord = horizontal ? s.a.y : s.a.x, gap = Math.abs(coord - otherCoord);
+  const axisSegments = horizontal ? occupiedIndex.horizontal : occupiedIndex.vertical;
+  for (let i = lowerBoundIndexed(axisSegments, coord - TRACK_SPACING_PT); i < upperBoundIndexed(axisSegments, coord + TRACK_SPACING_PT); i++) {
+    const { segment: s, coordinate: otherCoord } = axisSegments[i]!;
+    const gap = Math.abs(coord - otherCoord);
     const sLo = horizontal ? Math.min(s.a.x, s.b.x) : Math.min(s.a.y, s.b.y), sHi = horizontal ? Math.max(s.a.x, s.b.x) : Math.max(s.a.y, s.b.y);
     const shared = Math.max(0, Math.min(hi, sHi) - Math.max(lo, sLo));
     if (gap <= 0.5) overlap += shared * 20;
@@ -170,19 +200,18 @@ function aestheticEdgeCost(a: V, b: V, direction: number, previousDirection: num
   }
   const deviationShared = (() => {
     const pieces: Array<[number, number]> = [];
-    for (let i = 1; i < previous.length; i++) {
-      const p = previous[i - 1]!, q = previous[i]!;
-      if (horizontal ? Math.abs(p.y - q.y) < EPS && Math.abs(p.y - coord) < 0.01 : Math.abs(p.x - q.x) < EPS && Math.abs(p.x - coord) < 0.01) {
-        const pLo = horizontal ? Math.min(p.x, q.x) : Math.min(p.y, q.y), pHi = horizontal ? Math.max(p.x, q.x) : Math.max(p.y, q.y);
-        const from = Math.max(lo, pLo), to = Math.min(hi, pHi); if (to > from) pieces.push([from, to]);
-      }
+    const runs = horizontal ? previousIndex.horizontal : previousIndex.vertical;
+    for (let i = lowerBoundIndexed(runs, coord - 0.01); i < upperBoundIndexed(runs, coord + 0.01); i++) {
+      const run = runs[i]!;
+      if (Math.abs(run.coordinate - coord) >= 0.01) continue;
+      const from = Math.max(lo, run.lo), to = Math.min(hi, run.hi); if (to > from) pieces.push([from, to]);
     }
     pieces.sort((x, y) => x[0] - y[0]);
     let covered = 0, from = Infinity, to = -Infinity;
     for (const [x, y] of pieces) { if (x > to) { covered += Math.max(0, to - from); from = x; to = y; } else to = Math.max(to, y); }
     return covered + Math.max(0, to - from);
   })();
-  const labelCost = labels.reduce((sum, r) => {
+  const labelCost = labelCandidates.reduce((sum, r) => {
     const hits = horizontal ? a.y >= r.y && a.y <= r.y + r.height && hi >= r.x && lo <= r.x + r.width
       : a.x >= r.x && a.x <= r.x + r.width && hi >= r.y && lo <= r.y + r.height;
     return sum + (hits ? 500 : 0);
@@ -217,21 +246,49 @@ function searchAesthetic(start: V, startDir: V, goal: V, goalDir: V, blockers: r
   const ignored = new Set(options.joinConnectorIds ?? []);
   // These edge costs and obstacle checks are independent of the path history. Compute them
   // once per directed grid edge rather than rescanning every shape and route during A*.
-  const blockedNodes = new Uint8Array(nx * ny);
-  for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
-    blockedNodes[y * nx + x] = blockers.some(r => X[x]! > r.x + EPS && X[x]! < r.x + r.width - EPS && Y[y]! > r.y + EPS && Y[y]! < r.y + r.height - EPS) ? 1 : 0;
+  const blockedNodes = new Uint8Array(nx * ny), blockedEdges = new Uint8Array(count);
+  // Rectangles contribute only within their coordinate ranges. This is equivalent to testing
+  // every node/edge against every blocker, while avoiding the page-wide blockers × grid scan.
+  for (const r of blockers) {
+    const x0 = upperBound(X, r.x + EPS), x1 = lowerBound(X, r.x + r.width - EPS);
+    const y0 = upperBound(Y, r.y + EPS), y1 = lowerBound(Y, r.y + r.height - EPS);
+    for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) blockedNodes[y * nx + x] = 1;
+    const right = r.x + r.width, bottom = r.y + r.height;
+    // Horizontal grid edges which cross the open interior of this rectangle.
+    const hx0 = Math.max(0, upperBound(X, r.x + EPS) - 1), hx1 = Math.min(nx - 1, lowerBound(X, right - EPS));
+    for (let y = y0; y < y1; y++) for (let x = hx0; x < hx1; x++) blockedEdges[state(x, y, 0)] = 1;
+    // Vertical edges use direction 1 (south); mark the reverse edge as well.
+    const vy0 = Math.max(0, upperBound(Y, r.y + EPS) - 1), vy1 = Math.min(ny - 1, lowerBound(Y, bottom - EPS));
+    for (let x = x0; x < x1; x++) for (let y = vy0; y < vy1; y++) blockedEdges[state(x, y, 1)] = 1;
   }
-  const blockedEdges = new Uint8Array(count), edgeCrossings = new Uint16Array(count), edgeQuality = new Float64Array(count);
+  for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
+    if (x + 1 < nx && blockedEdges[state(x, y, 0)]) blockedEdges[state(x + 1, y, 2)] = 1;
+    if (y + 1 < ny && blockedEdges[state(x, y, 1)]) blockedEdges[state(x, y + 1, 3)] = 1;
+  }
+  const edgeCrossings = new Uint16Array(count), edgeQuality = new Float64Array(count);
   const fixedMemoryBytes = nx * ny * 24 + count * (1 + 2 + 8) + nx * ny;
   if (stats) stats.peakMemoryBytes = fixedMemoryBytes;
+  const occupiedIndex = { horizontal: segmentIndex(occupied, true), vertical: segmentIndex(occupied, false) };
+  const crossingsIndex = { verticalByX: occupiedIndex.vertical, horizontalByY: occupiedIndex.horizontal };
+  const previousIndex = { horizontal: [] as Array<{ coordinate: number; lo: number; hi: number }>, vertical: [] as Array<{ coordinate: number; lo: number; hi: number }> };
+  for (let i = 1; i < (options.previous?.length ?? 0); i++) {
+    const p = options.previous![i - 1]!, q = options.previous![i]!;
+    if (Math.abs(p.y - q.y) < EPS) previousIndex.horizontal.push({ coordinate: p.y, lo: Math.min(p.x, q.x), hi: Math.max(p.x, q.x) });
+    else if (Math.abs(p.x - q.x) < EPS) previousIndex.vertical.push({ coordinate: p.x, lo: Math.min(p.y, q.y), hi: Math.max(p.y, q.y) });
+  }
+  previousIndex.horizontal.sort((a, b) => a.coordinate - b.coordinate);
+  previousIndex.vertical.sort((a, b) => a.coordinate - b.coordinate);
+  const horizontalLabelsByY = Y.map(y => (options.labelRects ?? []).filter(r => y >= r.y && y <= r.y + r.height));
+  const verticalLabelsByX = X.map(x => (options.labelRects ?? []).filter(r => x >= r.x && x <= r.x + r.width));
   for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
     for (let nd = 0; nd < 4; nd++) {
       const tx = x + DIRS[nd]!.x, ty = y + DIRS[nd]!.y;
       if (tx < 0 || ty < 0 || tx >= nx || ty >= ny) continue;
       const move = state(x, y, nd), a = { x: X[x]!, y: Y[y]! }, b = { x: X[tx]!, y: Y[ty]! };
-      if (blockedNodes[ty * nx + tx] || blockers.some(r => crosses(a, b, r))) { blockedEdges[move] = 1; continue; }
-      edgeCrossings[move] = options.crossingsPolicy === 'allow' ? 0 : crossingCount(a, b, occupied, ignored);
-      edgeQuality[move] = aestheticEdgeCost(a, b, nd, nd, arrive, false, occupied, options.previous ?? [], options.labelRects ?? []);
+      if (blockedNodes[ty * nx + tx] || blockedEdges[move]) continue;
+      edgeCrossings[move] = options.crossingsPolicy === 'allow' ? 0 : crossingCount(a, b, ignored, crossingsIndex);
+      edgeQuality[move] = aestheticEdgeCost(a, b, nd, nd, arrive, false, occupiedIndex, previousIndex,
+        nd === 0 || nd === 2 ? horizontalLabelsByY[y]! : verticalLabelsByX[x]!);
     }
   }
   let steps = 0, best = -1;
@@ -239,7 +296,8 @@ function searchAesthetic(start: V, startDir: V, goal: V, goalDir: V, blockers: r
     const top = heap.pop(), id = top.id, d = id % 4, cell = (id - d) / 4, x = cell % nx, y = (cell - x) / nx;
     if (top.crossings !== distCross[id] || Math.abs(top.f - distQuality[id]! - h(x, y)) > 1e-7) continue;
     if (x === gx && y === gy) { best = id; break; }
-    if (++steps > budget) { if (stats) { stats.expandedStates = steps; stats.peakMemoryBytes = fixedMemoryBytes + steps * 48; } return undefined; }
+    if (steps >= budget) { if (stats) { stats.expandedStates = steps; stats.peakMemoryBytes = fixedMemoryBytes + steps * 48; } return undefined; }
+    steps++;
     const gCross = distCross[id]!, gQuality = distQuality[id]!;
     for (let nd = 0; nd < 4; nd++) {
       if (nd === (d + 2) % 4) continue;

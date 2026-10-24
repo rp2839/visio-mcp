@@ -328,19 +328,22 @@ function stress(): Element[] {
 
 describe('route planner on the 60 shape, 60 connector diagram', () => {
   const els = stress();
-  it('bounds and reports ten opt-in searches in the 60/60 workload', () => {
-    const targets = new Set(els.filter(e => e.kind === 'connector').slice(0, 10).map(e => e.id));
+  it('bounds and reports all opt-in searches in the 60/60 workload', () => {
+    const started = performance.now();
+    const targets = new Set(els.filter(e => e.kind === 'connector').map(e => e.id));
     const result = planRoutes({ elements: els, layers: [], pageArea: 1_000_000, beautifyTargets: targets, costProfile: 'aesthetic' });
     const stats = [...(result.aestheticStats?.values() ?? [])];
     const maxExpanded = Math.max(0, ...stats.map(s => s.expandedStates));
     const totalExpanded = stats.reduce((n, s) => n + s.expandedStates, 0);
     const maxGridCells = Math.max(0, ...stats.map(s => s.gridCells));
     const maxPeakMemoryBytes = Math.max(0, ...stats.map(s => s.peakMemoryBytes));
-    console.info('R24 60/60 aesthetic stats', { searched: stats.length, maxExpanded, totalExpanded, maxGridCells, maxPeakMemoryBytes });
+    const elapsedMs = performance.now() - started;
+    console.info('R24 60/60 aesthetic stats', { searched: stats.length, maxExpanded, totalExpanded, maxGridCells, maxPeakMemoryBytes, elapsedMs: Math.round(elapsedMs) });
     expect(result.routes.size).toBe(60);
-    expect(stats.length).toBeGreaterThan(0);
+    expect(stats.length).toBe(60);
     expect(maxExpanded).toBeLessThanOrEqual(80_000);
-  });
+    expect(elapsedMs).toBeLessThan(30_000);
+  }, 35_000);
 
   it('baseline: fresh planning is deterministic and exact', async () => {
     const t0 = performance.now();
