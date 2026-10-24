@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Element } from '../src/contracts/generated';
 import { planRoutes, routeDefects, type PlanResult } from '../src/layout/routePlanner';
-import { isClear } from '../src/layout/obstacleRoute';
+import { isClear, search, type Segment } from '../src/layout/obstacleRoute';
 import { selectObstacles, visualRect } from '../src/layout/obstacles';
 import { compile } from '../src/script/compiler';
 import { createTestEngine, sequenceIds } from './support/engine';
@@ -45,6 +45,30 @@ describe('route planner', () => {
     const next = plan(moveBy(els, 'far', 1, 0), first.routes);
     expect(next.changes).toEqual([]);
     for (const id of ['ab', 'cd']) { expect(pts(next, id)).toEqual(pts(first, id)); expect(next.routes.get(id)!.provenance).toBe('kept'); }
+  });
+
+  it('keeps a clear beautified automatic route after an unrelated shape move, regardless of straightening hysteresis', () => {
+    const route = [{ x: 100, y: 130 }, { x: 200, y: 130 }, { x: 200, y: 50 }, { x: 600, y: 50 }, { x: 600, y: 130 }, { x: 700, y: 130 }];
+    const marked = { ...conn('ab', 'a', 'b', {}, 'east', 'west'), routing: { beautified: true, advisory: route } } as unknown as Element;
+    const els = [shape('a', 0, 100), shape('b', 700, 100), shape('far', 900, 900), marked];
+    const first = plan(els);
+    expect(pts(first, 'ab')).toEqual(route);
+    expect(first.routes.get('ab')!.provenance).toBe('beautified');
+
+    const moved = plan(moveBy(els, 'far', 1, 0), first.routes);
+    expect(pts(moved, 'ab')).toEqual(route);
+    expect(moved.routes.get('ab')!.provenance).toBe('beautified');
+    expect(moved.changes.map(change => change.id)).not.toContain('ab');
+  });
+
+  it('repairs a blocked beautified route and leaves its engine marker on the document connector', () => {
+    const route = [{ x: 100, y: 130 }, { x: 200, y: 130 }, { x: 200, y: 50 }, { x: 600, y: 50 }, { x: 600, y: 130 }, { x: 700, y: 130 }];
+    const marked = { ...conn('ab', 'a', 'b', {}, 'east', 'west'), routing: { beautified: true, advisory: route } } as unknown as Element;
+    const wall = shape('wall', 350, 30, 80, 40);
+    const next = plan([shape('a', 0, 100), shape('b', 700, 100), wall, marked]);
+    expect(next.routes.get('ab')!.provenance).toBe('repaired');
+    expect(routeDefects(pts(next, 'ab'))).toEqual([]);
+    expect((marked as never as { routing: { beautified: boolean } }).routing.beautified).toBe(true);
   });
 
   it('keeps the interior track when an end shape moves a few points, changing only the end runs', () => {
@@ -258,6 +282,34 @@ describe('route planner', () => {
   });
 });
 
+describe('aesthetic A* routing (R24)', () => {
+  it('prefers a longer crossing-free path inside search over a shorter crossing path', () => {
+    const path = search({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 100, y: 0 }, { x: 1, y: 0 },
+      [{ x: 40, y: -20, width: 20, height: 40 }],
+      [{ a: { x: 80, y: -100 }, b: { x: 80, y: 30 }, ownerId: 'existing' } as Segment], 6, 80_000,
+      { profile: 'aesthetic', crossingsPolicy: 'avoid' });
+    expect(path).toBeDefined();
+    expect(path!.some(point => point.y > 30)).toBe(true);
+  });
+
+  it('separates a 100 pt overlapping automatic route by at least the 6 pt Beautify track', () => {
+    const free = (id: string) => ({
+      id, kind: 'connector', layerIds: [], zIndex: 1, locked: false, hidden: false, bounds: { x: 0, y: 0, width: 0, height: 0 }, rotationDeg: 0, metadata: {},
+      from: { glue: 'none', point: { x: 0, y: 0 } }, to: { glue: 'none', point: { x: 100, y: 0 } }, route: 'orthogonal', waypoints: [],
+      style: { stroke: solid, strokeWidthPt: 1, dash: 'solid', lineCap: 'butt', lineJoin: 'miter' },
+    }) as unknown as Element;
+    const result = planRoutes({ elements: [free('a'), free('b')], layers: [], pageArea: 100_000, beautifyTargets: new Set(['b']), costProfile: 'aesthetic' });
+    const candidate = pts(result, 'b');
+    const parallelOverlap = candidate.slice(1).map((point, index) => {
+      const previous = candidate[index]!;
+      if (Math.abs(point.y - previous.y) > 1e-6) return { offset: 0, overlap: 0 };
+      return { offset: Math.abs(point.y), overlap: Math.max(0, Math.min(100, Math.max(point.x, previous.x)) - Math.max(0, Math.min(point.x, previous.x))) };
+    });
+    expect(parallelOverlap.some(run => run.offset >= 6 && run.overlap >= 80)).toBe(true);
+    expect(result.routes.get('b')!.provenance).toBe('beautified');
+  });
+});
+
 /** A seeded 60-shape, 60-connector diagram: the stress case from the performance targets. */
 function stress(): Element[] {
   let s = 12345;
@@ -276,6 +328,20 @@ function stress(): Element[] {
 
 describe('route planner on the 60 shape, 60 connector diagram', () => {
   const els = stress();
+  it('bounds and reports ten opt-in searches in the 60/60 workload', () => {
+    const targets = new Set(els.filter(e => e.kind === 'connector').slice(0, 10).map(e => e.id));
+    const result = planRoutes({ elements: els, layers: [], pageArea: 1_000_000, beautifyTargets: targets, costProfile: 'aesthetic' });
+    const stats = [...(result.aestheticStats?.values() ?? [])];
+    const maxExpanded = Math.max(0, ...stats.map(s => s.expandedStates));
+    const totalExpanded = stats.reduce((n, s) => n + s.expandedStates, 0);
+    const maxGridCells = Math.max(0, ...stats.map(s => s.gridCells));
+    const maxPeakMemoryBytes = Math.max(0, ...stats.map(s => s.peakMemoryBytes));
+    console.info('R24 60/60 aesthetic stats', { searched: stats.length, maxExpanded, totalExpanded, maxGridCells, maxPeakMemoryBytes });
+    expect(result.routes.size).toBe(60);
+    expect(stats.length).toBeGreaterThan(0);
+    expect(maxExpanded).toBeLessThanOrEqual(80_000);
+  });
+
   it('baseline: fresh planning is deterministic and exact', async () => {
     const t0 = performance.now();
     const r = plan(els);

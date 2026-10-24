@@ -1,7 +1,10 @@
 import type { Element, Layer } from '../contracts/generated';
 import { centreOfTerminal, endFor, routeOrthogonal, type End, type Terminal, type V } from './orthogonalRoute';
-import { avoidObstacles, blockedSegments, CLEARANCE, BUDGET, SPACING, STUB, inflate, isClear, search, segmentsOf, type Rect, type Segment } from './obstacleRoute';
+import { avoidObstacles, blockedSegments, CLEARANCE, BUDGET, SPACING, STUB, inflate, isClear, search, segmentsOf, type Rect, type SearchStats, type Segment } from './obstacleRoute';
 import { selectObstacles, visualRect } from './obstacles';
+import { effectiveState } from '../canvas/cellMapping';
+import { textRect } from './routingPolicy';
+import { isAestheticImprovement, scoreRoute } from './routeQuality';
 import { applyConstraints } from './routeSegments';
 import type { RouteFinding } from '../contracts/generated';
 import type { TextWidthMeasurer } from './textMeasurement';
@@ -20,7 +23,7 @@ import { measureTextBox } from './textMeasurement';
  * Connectors with author waypoints are `authored`: their route is computed from the waypoints and never searched.
  */
 type Connector = Extract<Element, { kind: 'connector' }>;
-export type RouteProvenance = 'authored' | 'frozen' | 'kept' | 'elastic' | 'repaired' | 'rerouted' | 'unresolved';
+export type RouteProvenance = 'authored' | 'frozen' | 'kept' | 'elastic' | 'repaired' | 'rerouted' | 'unresolved' | 'beautified';
 export interface PinnedEnd { x: number; y: number; perimeter: boolean }
 export interface PlannedRoute {
   /** The whole route including both anchors. */
@@ -40,6 +43,9 @@ export interface PlanInput {
   previous?: ReadonlyMap<string, PlannedRoute>;
   /** Shared canvas text measurement, used for protected text obstacles. */
   measureWidth?: TextWidthMeasurer;
+  /** Only explicit Beautify supplies these options; omitted options preserve the R19 route plan. */
+  beautifyTargets?: ReadonlySet<string>;
+  costProfile?: 'legacy' | 'aesthetic';
 }
 export interface RouteChange { id: string; provenance: RouteProvenance; reason?: string }
 export interface PlanResult {
@@ -47,6 +53,7 @@ export interface PlanResult {
   /** Connectors whose route differs from `previous` (or that had none), with why. */
   changes: RouteChange[];
   routeFindings: RouteFinding[];
+  aestheticStats?: Map<string, SearchStats>;
 }
 
 const EPS = 1e-6;
@@ -111,6 +118,7 @@ interface Work {
   others: Rect[];
   soft: Rect[];
   obstacleIds: Map<string, string[]>;
+  shapeRects: Rect[];
 }
 
 const lengthOf = (r: readonly V[]): number => r.slice(1).reduce((n, p, i) => n + Math.abs(p.x - r[i]!.x) + Math.abs(p.y - r[i]!.y), 0);
@@ -147,7 +155,7 @@ export function storedRoute(el: Connector): PlannedRoute | undefined {
   const points = pts.map(p => ({ x: p.x, y: p.y }));
   const n = points.length;
   return {
-    points, provenance: el.routing?.mode === 'frozen' ? 'frozen' : 'kept', fixed: {},
+    points, provenance: el.routing?.mode === 'frozen' ? 'frozen' : el.routing?.beautified ? 'beautified' : 'kept', fixed: {},
     ends: { a: { anchor: points[0]!, dir: dirOf(points[0]!, points[1]!) }, b: { anchor: points[n - 1]!, dir: dirOf(points[n - 1]!, points[n - 2]!) } },
   };
 }
@@ -165,7 +173,7 @@ export function planRoutes(input: PlanInput): PlanResult {
   // Protected connector labels use the same measured text metrics and normalized path anchor as the canvas.
   const connectorLabelRects = new Map<string, Rect>();
   for (const c of connectors) {
-    if (!c.label || c.routingPolicy?.text !== 'avoid') continue;
+    if (!c.label) continue;
     const ta = terminal(c.from), tb = terminal(c.to);
     const a = endFor(c.from, ta, c.to.point ?? (tb ? centreOfTerminal(tb) : { x: 0, y: 0 }));
     const b = endFor(c.to, tb, c.from.point ?? (ta ? centreOfTerminal(ta) : { x: 0, y: 0 }));
@@ -182,6 +190,16 @@ export function planRoutes(input: PlanInput): PlanResult {
     anchor = { x: anchor.x - tangent.y * offset, y: anchor.y + tangent.x * offset };
     const width = Math.max(measure.contentWidthPt, 1), height = Math.max(measure.contentHeightPt, c.label.fontSizePt * 1.2);
     connectorLabelRects.set(c.id, { x: anchor.x - width / 2, y: anchor.y - height / 2, width, height });
+  }
+  const measuredLabelRects = new Map<string, Rect>();
+  for (const c of connectors) if (c.label && effectiveState(c, input.layers).visible) {
+    const rect = connectorLabelRects.get(c.id);
+    if (rect) measuredLabelRects.set(c.id, rect);
+  }
+  for (const el of input.elements) {
+    if ((el.kind !== 'shape' && el.kind !== 'text') || !el.text || !effectiveState(el, input.layers).visible) continue;
+    const rect = textRect(el, el.text, input.measureWidth ?? ((value, font) => value.length * font.sizePt * 0.5));
+    if (rect) measuredLabelRects.set(el.id, rect);
   }
 
   const work: Work[] = connectors.map(el => {
@@ -208,8 +226,12 @@ export function planRoutes(input: PlanInput): PlanResult {
       const key = `${o.rect.x},${o.rect.y},${o.rect.width},${o.rect.height}`;
       obstacleIds.set(key, [...(obstacleIds.get(key) ?? []), o.id]);
     }
+    const shapeRects = adjusted.filter(o => o.source === 'element').flatMap(o => {
+      const element = byId.get(o.id);
+      return element && (element.kind === 'shape' || element.kind === 'image') && !endIds.has(o.id) ? [visualRect(element)] : [];
+    });
     return { el, a, b, base: routeOrthogonal(a, b, wp), endRects,
-      others: hard.map(o => o.rect), soft: soft.map(o => o.rect), obstacleIds };
+      others: hard.map(o => o.rect), soft: soft.map(o => o.rect), obstacleIds, shapeRects };
   });
 
   const routes = new Map<string, PlannedRoute>();
@@ -238,7 +260,7 @@ export function planRoutes(input: PlanInput): PlanResult {
       ? make(w, follow, 'unresolved', 'a frozen route follows the moved end but still crosses a hard obstacle')
       : make(w, follow, 'frozen', 'an end moved; only its end run followed');
   };
-  const put = (w: Work, r: PlannedRoute) => { routes.set(w.el.id, r); occupied.push(...segmentsOf(r.points)); };
+  const put = (w: Work, r: PlannedRoute) => { routes.set(w.el.id, r); occupied.push(...segmentsOf(r.points, w.el.id)); };
 
   /**
    * Guided routes (R21): the router draws the route as for an automatic connector, then holds each pinned run where it was put. If a
@@ -273,7 +295,7 @@ export function planRoutes(input: PlanInput): PlanResult {
     const unmoved = near(prev.ends.a.anchor, w.a.anchor) && near(prev.ends.b.anchor, w.b.anchor) && same(prev.ends.a.dir, w.a.dir) && same(prev.ends.b.dir, w.b.dir);
     const candidate = unmoved ? [...prev.points] : elastic(prev.points, w.a, w.b);
     if (!candidate) { pending.push({ w, why: 'an end moved and the old route cannot follow it' }); continue; }
-    if (isClear(candidate, [...w.others, ...w.soft], w.endRects, CLEARANCE) && !(detourPays(candidate, w))) put(w, guide(w, make(w, candidate, unmoved ? 'kept' : 'elastic', unmoved ? undefined : 'an end moved')));
+    if (isClear(candidate, [...w.others, ...w.soft], w.endRects, CLEARANCE) && !(prev.provenance !== 'beautified' && detourPays(candidate, w))) put(w, guide(w, make(w, candidate, unmoved ? prev.provenance === 'beautified' ? 'beautified' : 'kept' : 'elastic', unmoved ? undefined : 'an end moved')));
     else if (!isClear(candidate, w.others, w.endRects, CLEARANCE)) pending.push({ w, candidate, why: 'an obstacle is now in the way' });
     else pending.push({ w, why: 'the obstacle that forced a detour is gone and the direct route is much shorter' });
   }
@@ -305,6 +327,51 @@ export function planRoutes(input: PlanInput): PlanResult {
     else put(w, guide(w, make(w, relaxed.route, 'rerouted', why)));
   }
 
+  const aestheticStats = new Map<string, SearchStats>();
+  if (input.costProfile === 'aesthetic' && input.beautifyTargets?.size) {
+    const targetWork = work.filter(w => input.beautifyTargets!.has(w.el.id) && !w.el.waypoints.length && !isFrozen(w.el) && !w.el.locked);
+    const difficulty = (w: Work) => blockedSegments(w.base, [...w.others, ...w.soft], w.endRects, CLEARANCE).length;
+    const span = (w: Work) => Math.abs(w.a.anchor.x - w.b.anchor.x) + Math.abs(w.a.anchor.y - w.b.anchor.y);
+    targetWork.sort((a, b) => {
+      const ap = (a.el as unknown as { routingPolicy?: { priority?: number } }).routingPolicy?.priority ?? 0;
+      const bp = (b.el as unknown as { routingPolicy?: { priority?: number } }).routingPolicy?.priority ?? 0;
+      return bp - ap || difficulty(b) - difficulty(a) || span(b) - span(a) || (a.el.id < b.el.id ? -1 : a.el.id > b.el.id ? 1 : 0);
+    });
+    const workById = new Map(work.map(w => [w.el.id, w]));
+    for (const w of targetWork) {
+      const current = routes.get(w.el.id);
+      if (!current) continue;
+      const otherRoutes = [...routes].filter(([id]) => id !== w.el.id).map(([connectorId, route]) => ({
+        connectorId, points: route.points,
+        joinConnectorIds: workById.get(connectorId) ? [workById.get(connectorId)!.el.from.join?.connectorId, workById.get(connectorId)!.el.to.join?.connectorId].filter((id): id is string => Boolean(id)) : [],
+      }));
+      const labels = [...measuredLabelRects].filter(([id]) => id !== w.el.id).map(([, rect]) => rect);
+      const policy = (w.el as unknown as { routingPolicy?: { crossing?: 'avoid' | 'allow' } }).routingPolicy?.crossing ?? 'avoid';
+      const previousRoute = storedRoute(w.el)?.points ?? current.points;
+      const currentScore = scoreRoute({ route: current.points, previous: previousRoute, otherRoutes, labelRects: labels, obstacleRects: w.shapeRects, crossingsPolicy: policy });
+      const minimumQuality = lengthOf(current.points) + 24 * Math.max(0, current.points.length - 2);
+      const isOrdinaryBase = current.points.length === w.base.length && current.points.every((point, index) => same(point, w.base[index]!));
+      // A clear ordinary route with no aesthetic defect already has the baseline length and bend
+      // cost. Re-search only routes whose measured score shows a concrete quality opportunity.
+      if (isOrdinaryBase && currentScore.policyCrossings === 0
+        && currentScore.qualityPoints <= minimumQuality + EPS
+        && isClear(current.points, [...w.others, ...w.soft], w.endRects, CLEARANCE)) continue;
+      const stats: SearchStats = { expandedStates: 0, gridCells: 0, peakMemoryBytes: 0 };
+      aestheticStats.set(w.el.id, stats);
+      const options = { search: { profile: 'aesthetic' as const, crossingsPolicy: policy, previous: current.points, labelRects: labels,
+        joinConnectorIds: [w.el.from.join?.connectorId, w.el.to.join?.connectorId].filter((id): id is string => Boolean(id)), stats } };
+      let candidate = avoidObstacles(w.a, w.b, w.base, [...w.others, ...w.soft], w.endRects, otherRoutes.flatMap(r => segmentsOf(r.points, r.connectorId)), options);
+      if ((!candidate.rerouted || candidate.blocked) && w.soft.length) {
+        candidate = avoidObstacles(w.a, w.b, w.base, w.others, w.endRects, otherRoutes.flatMap(r => segmentsOf(r.points, r.connectorId)), options);
+      }
+      if (!candidate.rerouted || candidate.blocked) continue;
+      const score = scoreRoute({ route: candidate.route, previous: previousRoute, otherRoutes, labelRects: labels, obstacleRects: w.shapeRects, crossingsPolicy: policy });
+      if (!isAestheticImprovement(score, currentScore)) continue;
+      const { reason: _reason, ...retained } = current;
+      routes.set(w.el.id, { ...retained, points: candidate.route, provenance: 'beautified' });
+    }
+  }
+
   const changes: RouteChange[] = [];
   const routeFindings: RouteFinding[] = [];
   for (const w of work) {
@@ -320,5 +387,5 @@ export function planRoutes(input: PlanInput): PlanResult {
     const softIds = blockers(w.soft);
     if (softIds.length) routeFindings.push({ code: 'ROUTING_AVOIDANCE_VIOLATION', severity: 'warning', message: 'The route crosses one or more avoid-policy obstacles because no clear route was found', elementId: w.el.id, blockerIds: softIds });
   }
-  return { routes, changes, routeFindings };
+  return { routes, changes, routeFindings, ...(aestheticStats.size ? { aestheticStats } : {}) };
 }

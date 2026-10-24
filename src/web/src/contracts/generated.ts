@@ -240,6 +240,7 @@ export interface ConnectorElement {
   hops?: "none" | "arc";
   routing?: {
     mode?: "frozen";
+    beautified?: true;
     constraints?: RunConstraint[];
     advisory?: Point[];
   };
@@ -789,7 +790,7 @@ export interface TransactionResult {
 
 export interface RouteChange {
   id: Uuid;
-  provenance: "authored" | "frozen" | "kept" | "elastic" | "repaired" | "rerouted" | "unresolved";
+  provenance: "authored" | "frozen" | "kept" | "elastic" | "repaired" | "rerouted" | "unresolved" | "beautified";
   reason?: string;
 }
 
@@ -813,7 +814,7 @@ export interface ConnectorProjection {
   routePoints: Point[];
   visualBounds: Bounds;
   routeFindings?: RouteFinding[];
-  routeProvenance?: "authored" | "frozen" | "kept" | "elastic" | "repaired" | "rerouted" | "unresolved";
+  routeProvenance?: "authored" | "frozen" | "kept" | "elastic" | "repaired" | "rerouted" | "unresolved" | "beautified";
   routeReason?: string;
 }
 

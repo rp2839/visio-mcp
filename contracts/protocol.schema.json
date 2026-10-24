@@ -379,7 +379,7 @@
       "required": ["id", "provenance"],
       "properties": {
         "id": { "$ref": "document.schema.json#/$defs/Uuid" },
-        "provenance": { "enum": ["authored", "frozen", "kept", "elastic", "repaired", "rerouted", "unresolved"] },
+        "provenance": { "enum": ["authored", "frozen", "kept", "elastic", "repaired", "rerouted", "unresolved", "beautified"] },
         "reason": { "type": "string" }
       }
     },
@@ -438,7 +438,7 @@
         },
         "routeProvenance": {
           "description": "R19: how the router produced an automatic orthogonal route. 'unresolved' means no clear route was found and the best available one is shown.",
-          "enum": ["authored", "frozen", "kept", "elastic", "repaired", "rerouted", "unresolved"]
+          "enum": ["authored", "frozen", "kept", "elastic", "repaired", "rerouted", "unresolved", "beautified"]
         },
         "routeReason": {
           "type": "string",

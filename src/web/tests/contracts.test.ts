@@ -6,6 +6,18 @@ const fixture = (name: string) => JSON.parse(readFileSync(new URL(`../../../cont
 const U = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 
 describe('R22 routing policy contracts', () => {
+  it('accepts the engine-owned beautified route marker and its result provenance', () => {
+    const document = structuredClone(fixture('samples.json').DiagramDocument);
+    const connector = document.pages.flatMap((page: any) => page.elements).find((element: any) => element.kind === 'connector');
+    connector.routing = { ...connector.routing, beautified: true };
+    expect(validateDef('DiagramDocument', document).valid).toBe(true);
+    expect(validateDef('TransactionResult', {
+      transactionId: U(1), previousRevision: 1, revision: 2, noChange: false,
+      created: [], changed: [], deleted: [], changedPageIds: [], changedLayerIds: [], changedAssetIds: [], visuallyAffectedIds: [], warnings: [], projectionStatus: 'applied',
+      routeChanges: [{ id: connector.id, provenance: 'beautified' }],
+    }).valid).toBe(true);
+  });
+
   it('routingPolicy_accepts_supported_values_and_rejects_unknown_or_out_of_range_values', () => {
     for (const obstacle of ['automatic', 'forbidden', 'avoid', 'passThrough']) {
       expect(validateDef('RoutingPolicy', { obstacle, clearancePt: 0, text: 'avoid' }).valid, obstacle).toBe(true);
