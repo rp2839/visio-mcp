@@ -80,6 +80,7 @@ export function appCommands(model: EditorModel, ws: WorkspaceModel): AppCommand[
     { id: 'guides', label: 'Show guides', group: 'View', checked: model.showGuides, run: () => model.toggleGuides('showGuides') },
     { id: 'snap-guides', label: 'Snap to guides', group: 'View', checked: model.snapToGuides, run: () => model.toggleGuides('snapToGuides') },
     { id: 'snap', label: 'Snap to grid', group: 'View', checked: page.grid.snap, run: () => void model.toggleGrid('snap') },
+    { id: 'route-diagnostics', label: 'Show route diagnostics', group: 'View', checked: model.showRouteDiagnostics, run: () => model.toggleRouteDiagnostics() },
     { id: 'script-drawer', label: 'Script drawer', group: 'View', sepBefore: true, checked: model.drawerOpen && model.drawerTab === 'script', run: () => model.toggleDrawer('script') },
     { id: 'transaction-drawer', label: 'Transactions', group: 'View', checked: model.drawerOpen && model.drawerTab === 'transactions', run: () => model.toggleDrawer('transactions') },
 

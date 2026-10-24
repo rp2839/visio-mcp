@@ -153,6 +153,8 @@ if (import.meta.env.VITE_TEST_API === '1') {
     callTool: (method: string, params: Record<string, unknown>) => router!.dispatch({ protocolVersion: 1, kind: 'request', requestId: crypto.randomUUID(), method, ...cur().engine.scope(), params } as never),
     setHost: (h: Partial<HostApi>) => { shell.host = { ...noHost, ...h }; },
     pasteFromClipboard: () => shell.pasteFromClipboard(),
+    routeDiagnostics: () => JSON.parse(JSON.stringify(cur().routeDiagnostics())),
+    setCurrentPage: (id: string) => cur().setCurrentPage(id),
     exportSnapshot: async () => { const m = cur(); const r = await m.engine.exportSnapshot(m.engine.scope()); return r.ok ? JSON.parse(JSON.stringify(r.value)) : { error: r.error }; },
     changesSince: async (revision: number) => { const m = cur(); const r = await m.engine.getChanges(m.engine.scope(), revision); return r.ok ? JSON.parse(JSON.stringify(r.value)) : { error: r.error }; },
     targets: () => [...cur().targets],

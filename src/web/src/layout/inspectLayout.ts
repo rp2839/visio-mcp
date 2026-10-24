@@ -7,6 +7,7 @@ import { parsePath } from '../geometry/svgPath';
 import { inspectNearAlignments, isVisibleThinRule } from './inspectAlignment';
 import { passesBehind } from './routingPolicy';
 import { effectiveLevel } from '../model/elementOrder';
+import { inspectRoutes, intendedCrossing } from './inspectRoutes';
 import { findSwimlanes, isLaneStructure, isPartOfSwimlane, lanesCrossed, membershipOf } from './swimlane';
 
 export type Severity = 'info' | 'warning' | 'error';
@@ -79,7 +80,7 @@ export const contrastRatio = (a: string, b: string): number => {
 export function inspectLayout(snapshot: Snapshot, ctx: LayoutContext, opts: { pageId?: string } = {}): LayoutReport {
   const issues: LayoutIssue[] = [];
   const notes = ['Text size is estimated from font metrics measured in the editor; a borderline overflow may render differently.', 'Near-alignment hints are heuristic observations of comparable peer shapes, not proof that either object should move.'];
-  if (!ctx.projection) notes.push('Connector routes were not available, so crossings are judged by straight lines between the connected elements.');
+  if (!ctx.projection) notes.push('Connector routes were not available, so crossings are judged by straight lines between the connected elements, and connector-to-connector and route-shape checks were skipped.');
   if (!ctx.assetSize) notes.push('Image sizes were not available, so picture distortion was not checked.');
 
   for (const page of snapshot.document.pages) {
@@ -129,7 +130,7 @@ function inspectPage(page: Page, ctx: LayoutContext, issues: LayoutIssue[], note
       }
     }
 
-    if (el.kind === 'connector') connectorChecks(el, add, ctx, byId, parents, shown);
+    if (el.kind === 'connector') connectorChecks(el, add, ctx, byId, parents, shown, page.widthPt * page.heightPt);
   }
 
   const alignment = inspectNearAlignments(page, shown, parents);
@@ -165,6 +166,12 @@ function inspectPage(page: Page, ctx: LayoutContext, issues: LayoutIssue[], note
       if (sharesGroup(a.e.id, b.e.id, parents)) continue;
       add('OVERLAP', 'warning', [a.e.id, b.e.id].sort(), hit, 'Two shapes overlap without one containing the other.', { overlapAreaPt2: Math.round(hit.width * hit.height), fractionOfSmaller: Math.round((hit.width * hit.height / smaller) * 100) / 100 });
     }
+  }
+
+  // R26: connectors against each other and the shape of each route, judged on the routes as drawn
+  if (ctx.projection) {
+    const routes = new Map(Object.entries(ctx.projection.connectors).map(([id, c]) => [id, { points: c.routePoints, ...(c.routeProvenance ? { provenance: c.routeProvenance } : {}) }] as const));
+    inspectRoutes(page, shown, routes, add);
   }
 }
 
@@ -203,7 +210,7 @@ function textChecks(el: Exclude<Element, { kind: 'connector' } | { kind: 'group'
 function connectorChecks(
   el: Extract<Element, { kind: 'connector' }>,
   add: (c: string, s: Severity, ids: string[], b: Bounds, m: string, e?: Record<string, unknown>) => void,
-  ctx: LayoutContext, byId: ReadonlyMap<string, Element>, parents: ReadonlyMap<string, string>, shown: Element[],
+  ctx: LayoutContext, byId: ReadonlyMap<string, Element>, parents: ReadonlyMap<string, string>, shown: Element[], pageArea: number,
 ): void {
   const box = visualBounds(el);
   const ends: Array<{ side: 'from' | 'to'; ep: typeof el.from }> = [{ side: 'from', ep: el.from }, { side: 'to', ep: el.to }];
@@ -227,7 +234,7 @@ function connectorChecks(
   const softReported = new Set(findings.filter(finding => finding.code === 'ROUTING_AVOIDANCE_VIOLATION').flatMap(finding => finding.blockerIds ?? []));
   const ancestorsOfEnds = new Set<string>();
   for (const id of [el.from.elementId, el.to.elementId]) for (let p = id ? parents.get(id) : undefined; p; p = parents.get(p)) ancestorsOfEnds.add(p);
-  const crossed: string[] = [], over: string[] = [];
+  const crossed: string[] = [], over: string[] = [], container: string[] = [], background: string[] = [];
   const level = effectiveLevel(el);
   for (const other of shown) {
     if (other.id === el.from.elementId || other.id === el.to.elementId || other.kind !== 'shape' && other.kind !== 'image') continue;
@@ -236,12 +243,21 @@ function connectorChecks(
     if (isLaneStructure(other)) continue; // a lane is something a connector runs inside, not a shape in its way
     if (ancestorsOfEnds.has(other.id)) continue;
     const b = visualBounds(other);
-    const into = passesBehind(other, level) ? over : crossed; // R23: a shape on a lower level is behind the connector, not in its way
+    // R23: a shape on a lower level is behind the connector; R26: a frame round one of its ends, or a page-size backdrop, is crossed on purpose
+    const intended = passesBehind(other, level) ? 'over' : intendedCrossing(el, other, byId, pageArea);
+    const into = intended === 'over' ? over : intended === 'container' ? container : intended === 'background' ? background : crossed;
     for (let i = 0; i + 1 < route.length; i++) if (segmentCrosses(route[i]!, route[i + 1]!, b)) { into.push(other.id); break; }
   }
   if (over.length) add('CONNECTOR_PASSES_OVER_SHAPE', 'info', [el.id, ...over.sort()], box, 'The connector runs over shapes on a lower level; they are behind it, so the route does not avoid them.',
     { passedOverElementIds: over, rule: 'lower_level', connectorLevel: level, levels: Object.fromEntries(over.map(id => [id, effectiveLevel(byId.get(id)!)])) });
-  if (crossed.length) add('CONNECTOR_CROSSES_SHAPE', 'warning', [el.id, ...crossed.sort()], union([box, ...crossed.map(id => visualBounds(byId.get(id)!))]), 'The connector passes through shapes it is not attached to.', { crossedElementIds: crossed.sort(), routeFrom: ctx.projection?.connectors[el.id] ? 'resolved route' : 'straight line between ends' });
+  const routeFrom = ctx.projection?.connectors[el.id] ? 'resolved route' : 'straight line between ends';
+  const policyOf = (id: string) => { const o = byId.get(id)!; return ('routingPolicy' in o ? o.routingPolicy?.obstacle : undefined) ?? 'automatic'; };
+  if (container.length) add('CONNECTOR_CROSSES_CONTAINER', 'info', [el.id, ...container.sort()], box, 'The connector crosses the outline of a shape that holds one of its ends; it enters or leaves the container on purpose.',
+    { classification: 'container_boundary', intended: true, crossedElementIds: container, routeFrom });
+  if (background.length) add('CONNECTOR_CROSSES_BACKGROUND', 'info', [el.id, ...background.sort()], box, 'The connector runs over a page-size backdrop, which is decoration, not an obstacle.',
+    { classification: 'background_decoration', intended: true, crossedElementIds: background, routeFrom });
+  if (crossed.length) add('CONNECTOR_CROSSES_SHAPE', 'warning', [el.id, ...crossed.sort()], union([box, ...crossed.map(id => visualBounds(byId.get(id)!))]), 'The connector passes through shapes it is not attached to.',
+    { crossedElementIds: crossed.sort(), routeFrom, classification: 'obstacle_crossing', intended: false, policies: Object.fromEntries(crossed.map(id => [id, policyOf(id)])), ...(proj?.routeProvenance ? { provenance: proj.routeProvenance } : {}) });
 }
 
 export { union as unionBounds };

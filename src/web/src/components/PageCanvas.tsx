@@ -5,6 +5,7 @@ import type { GestureToken } from '../canvas/GestureController';
 import { ContextMenu } from './ContextMenu';
 import { ObjectList } from './ObjectList';
 import { SegmentHandles } from './SegmentHandles';
+import { RouteDiagnostics } from './RouteDiagnostics';
 import { Ruler, RULER_SIZE } from './Ruler';
 import { useModel } from './useModel';
 
@@ -103,6 +104,7 @@ export function PageCanvas({ model }: { model: EditorModel }) {
           return <div key={g.id} data-testid={'guide-'+g.id} role="separator" aria-label={g.orientation+' guide'} aria-orientation={g.orientation} style={{position:'absolute',pointerEvents:'auto',cursor:horizontal?'ns-resize':'ew-resize',...(horizontal?{left:0,right:0,top:pos-3,height:7,borderTop:'1px dashed #0284c7',transform:'translateY(3px)'}:{top:0,bottom:0,left:pos-3,width:7,borderLeft:'1px dashed #0284c7',transform:'translateX(3px)'})}} />;
         })}
       </div>}
+      <RouteDiagnostics model={model} />
       <SegmentHandles model={model} />
       <ObjectList model={model} />
       {menuAt && <ContextMenu model={model} at={menuAt} onClose={() => setMenuAt(null)} />}
