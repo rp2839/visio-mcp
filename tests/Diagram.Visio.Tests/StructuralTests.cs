@@ -289,20 +289,6 @@ public class StructuralTests
     }
 
     [Fact]
-    public void ContainersAreReportedAsNotYetNativeRatherThanDroppedSilently()
-    {
-        var shapes = new object[]
-        {
-            Doc.Shape(1, 80, 80, 300, 120, new { container = new { memberIds = new[] { Doc.Id(2) }, fit = "grow" } }),
-            Doc.Shape(2, 100, 100, 100, 60),
-        };
-        var (exp, _) = RT.Trip(Doc.Snapshot(Doc.Page(shapes)));
-        var d = Assert.Single(exp.Diagnostics, d => d.Code == "container_not_native");
-        Assert.Equal(Doc.Id(1), d.ElementId);
-        Assert.Equal("warning", d.Severity);
-    }
-
-    [Fact]
     public void NonzeroLevelsRoundTripInEffectiveOrderWithoutChangingSchemaMarker()
     {
         var shapes = new object[]

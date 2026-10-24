@@ -113,18 +113,34 @@ This section answers the 2026-10-20 comment on #12. R17 provides one read-only h
 
 ## VSDX export and import
 
-- **Container shape:** user cells `msvStructureType = "Container"`, `msvSDContainerResize` (`none`/`grow`/`fit` → 0/1/2) and `msvSDContainerMargin`. Its `Relationships` cell is `DEPENDSON(1, <member sheets>)`.
-- **Member:** its `Relationships` cell is `DEPENDSON(4, <container sheets>)`.
-- **Nesting, from a real Visio file.** `C:/Dev/vsdx/app-service-reference-architectures.vsdx` was saved by Visio with three nested containers, and it shows the relationships are transitive. The outer container's type-1 list names every shape at every depth. Each member's type-4 list names every enclosing container, for example `DEPENDSON(4, Sheet.1000, Sheet.1010, Sheet.1015)`. The exporter therefore writes the full transitive lists, and the importer takes a container's direct members to be its type-1 list minus the members of the containers nested inside it. In that file `msvSDContainerMargin` is in inches (0.125 and 0.25 appear) and `msvSDContainerResize` takes 0 and 1.
-- **Still to verify in Visio (feasibility gate):** every container in that file comes from Visio's container masters, which carry style, heading and category cells. It is not yet known whether Visio treats a plain exported shape that has only these cells as a container. I'll check by opening an exported file through the existing Visio test harness and asking Visio for each container's members. The resize value for `fit` (2) also needs checking.
-- If Visio rejects the native form, the fallback exports plain shapes with `AgentContainer` user cells for round trip, plus a `container_not_native` export warning. Nothing would be silently flattened.
-- **Import (R15 importer):** a shape with `msvStructureType = "Container"` becomes a container. Its type-1 relationships, minus those owned by nested containers, become `memberIds`. Its resize and margin cells map back to `fit` and `marginPt`.
+**Feasibility result (Visio 16.0 build 20430, 2026-10-24; reproduce with `tools/probe-visio-containers.ps1`).** Visio treats a plain, master-less shape as a container when it has `User.msvStructureType = "Container"`: `GetContainers` finds it and `AddMember` works. Membership added through Visio's API is written as direct membership. `msvSDContainerResize` 0/1/2 reads back as Visio's resize-as-needed setting 0/1/2, and the margin cell is in inches. The native form is therefore used, and the fallback is not needed.
+
+**Export, as Visio itself writes it:**
+- **Container:** user cells `msvStructureType = "Container"`, `msvSDContainerResize` (`none`/`grow`/`fit` → 0/1/2) and `msvSDContainerMargin` in inches. Its `Relationships` cell is `SUM(DEPENDSON(1, <direct member sheets>))`.
+- **Member:** its `Relationships` cell is `SUM(DEPENDSON(4, <container sheet>))`. A nested container carries both parts. A member also carries `User.AgentContainer`, which names the editor's container (see below).
+- **Visio's reading:** Visio follows the nesting. `GetMemberShapes(0)` and `MemberOfContainers` report every depth, and `GetMemberShapes(16)` reports direct members.
+
+**Visio adds members of its own accord.** On opening the Lego export, Visio also listed:
+- shapes resting on a container's edge (a boundary relationship, `DEPENDSON` 7 to 10, beside 4);
+- shapes lying mostly inside another container's frame.
+
+So after Visio saves, a shape can be listed by two containers that aren't nested.
+
+**Import:**
+- **Shapes and settings:** a shape with `msvStructureType = "Container"` becomes a container, and the resize and margin cells map back to `fit` and `marginPt`.
+- **A member's direct container is chosen in this order:**
+  1. the container named in `User.AgentContainer`, while Visio still lists the member there;
+  2. otherwise, ordinary membership over resting on an edge;
+  3. then the innermost claimant (this handles both the direct form and the every-depth form a drag in Visio writes);
+  4. then, for containers that aren't nested, the smallest one, with a `container_member_ambiguous` note.
+- **Group mismatch:** a member in a different group from its container is skipped, with a note.
+- **Visio's stencil containers:** a container from Visio's own stencil is a group of frame and heading parts. It becomes one container frame: the group's box, line and fill, plus the heading text. A `container_master_simplified` note says the stencil's heading style is not kept.
 
 ## Acceptance evidence plan
 
 - **Unit:** each invariant and error code; nested move translating every level, including free and advisory connector geometry; resize leaving members untouched; `grow` and `fit` settling innermost first; delete `keep` and `delete`; contain re-parenting; duplicate, copy and paste; group refusal; undo and redo of each as one step; an unchanged legacy document producing identical reports and bytes.
 - **Inspection:** a Lego-shaped fixture showing the false OVERLAP and CROSSES warnings gone and real ones kept (overlapping members, a sibling straddle, a member outside its container).
-- **MCP (real server):** build the four-level Lego containers (public cloud > tenant > component frames) from `artifacts/lego-infra/ops.json` plus `contain` operations; move the outer frame; check every level moves and that routes inside are kept.
+- **Four-level Lego build:** build the four-level Lego containers (public cloud > tenant > component frames) from `artifacts/lego-infra/ops.json` plus `contain` operations; move the outer frame; check every level moves and that routes inside are kept. This ran through the engine the MCP server calls (`tests/legoContainers.test.ts`); a separate real-server run was not made.
 - **Visio:** export, open in Visio, confirm the native containers move their members and the nesting reads back. Then a Visio round trip.
 - **Manual:** marked NOT RUN until the owner checks the editor and Visio.
 

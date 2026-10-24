@@ -84,6 +84,36 @@ Issue #12. Design: [docs/design/R17-nested-containers.md](../design/R17-nested-c
 
 **Limits:** no drop-target highlight while dragging. Rotating a container with members is refused, so the angle field reports it.
 
-## Remaining stages
+## Stage 4: Visio export and import
 
-4. Native VSDX export and import, after the Visio feasibility check; the four-level Lego build.
+**Feasibility check, before export code:** done in Visio 16.0 build 20430 (`tools/probe-visio-containers.ps1`). A master-less shape with `User.msvStructureType = "Container"` is a native Visio container, so no fallback was needed. Details are in the design note's VSDX section.
+
+**What it delivers:**
+- **Exporter (`NativeVsdxExporter.cs`):** container user cells (structure type, resize 0/1/2, margin in inches) and the `Relationships` cell in Visio's own direct form, plus `User.AgentContainer` on members. The stage-1 `container_not_native` warning is gone.
+- **Importer (`NativeVsdxImporter.cs`):**
+  - containers and their settings;
+  - membership in both the direct and every-depth forms;
+  - Visio's extra members, resolved in a fixed order: the editor's recorded choice, then ordinary membership over edge, then innermost, then smallest with a note;
+  - containers from Visio's own stencil, imported as container frames with their heading text.
+
+**Verification (fresh):**
+| Check | Result |
+|---|---|
+| `ContainerVsdxTests` (6) | Exact XML for nested containers; round trip of members, nesting, fit and margin; the every-depth form; the editor's choice, then innermost, then edge; a tie between containers that aren't nested goes to the smaller, with a note; Microsoft's stencil sample imports as containers nested 3+ deep (uses `C:/Dev/vsdx`; skipped if absent) |
+| `ContainerVisioAcceptanceTests` (real Visio) | Visio reports both containers, direct members (`GetMemberShapes(16)`), all depths, resize = grow, margin 12/72 in. After a Visio save and re-import, the members and fit are unchanged |
+| `LegoContainerVisioTests` (real Visio) | The four-level Lego export (`artifacts/r17-containers/lego-containers.document.json`): all 24 containers in Visio, and all 132 exported memberships confirmed. Visio added 7 of its own (edge, or mostly inside a frame). After Visio saves, the editor re-imports every exported membership, plus the 1 shape Visio put in a container where the editor had none |
+| `dotnet test Diagram.Portable.slnx` | 498/498 pass (Visio tests 177, run against the installed Visio) |
+| `npx vitest run`, `generate:check` | 680/680 pass, contract check pass |
+| Windows suite (`Diagram.Windows.slnx`) | NOT RUN |
+| Manual in Visio: drag a container and see its members follow | NOT RUN. Hidden automation cannot show it (Visio moves members only interactively). File for the check: `artifacts/r17-containers/lego-containers.vsdx` |
+
+**Limits:**
+- Visio's stencil heading styles are not kept.
+- Visio may add shapes to containers when it opens a file. The editor keeps its own choice while Visio agrees.
+- Members-follow-drag in Visio needs the owner's interactive check.
+
+## Remaining work
+
+- Owner's manual checks: the editor (stage 3), and Visio dragging a container in `artifacts/r17-containers/lego-containers.vsdx`.
+- Follow-up: a drop-target highlight while dragging into a container.
+- Follow-up: swim-lanes as containers, which Visio's cross-functional lists need (R09).

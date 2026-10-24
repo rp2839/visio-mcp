@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { expect, it } from 'vitest';
 import type { Bounds, Operation, ShapeElement } from '../src/contracts/generated';
 import { containerAncestors, containerParents, isContainer } from '../src/layout/containers';
@@ -58,6 +58,9 @@ it('the Lego frames become four levels of containers and the false containment w
   }
   expect(crossings.length).toBeLessThan(before.crosses / 2);
   expect(after.filter(i => i.code === 'OVERLAP').length).toBeLessThan(before.overlaps);
+  // R17_WRITE_LEGO=1 refreshes the committed document the Visio acceptance test exports (tests/Diagram.Visio.Tests/LegoContainerVisioTests.cs)
+  if (process.env.R17_WRITE_LEGO) writeFileSync(new URL('../../../artifacts/r17-containers/lego-containers.document.json', import.meta.url), `${JSON.stringify({ ...t.store.snapshot().document, pages: [page()], assets: [] }, null, 1)}
+`);
   // moving the outermost frame carries everything inside it, the free lines included
   const outer = [...declared].find(id => !parents.has(id) && containerAncestors(parents, id).length === 0 && page().elements.some(e => containerAncestors(parents, e.id).length === 4 && containerAncestors(parents, e.id).includes(id)))!;
   const inside = page().elements.filter(e => containerAncestors(parents, e.id).includes(outer));
