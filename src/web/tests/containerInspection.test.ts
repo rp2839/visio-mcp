@@ -61,9 +61,8 @@ describe('layout inspection of containers (R17)', () => {
       { op: 'createConnector', id: id(11), from: { elementId: Y, glue: 'dynamic' }, to: { elementId: id(8), glue: 'dynamic' }, route: 'straight' },
     ];
     const outsider: Operation = { op: 'createShape', id: id(8), bounds: box(20, 160) }; // Y to here runs through the frame
-    const plain = await scene([...base(), outsider, ...connectors]);
     const crossedBy = (t: Awaited<ReturnType<typeof scene>>, c: string) => codes(t, 'CONNECTOR_CROSSES_SHAPE').find(i => i.elementIds[0] === c)?.evidence.crossedElementIds as string[] | undefined;
-    expect(crossedBy(plain, id(10))).toContain(FRAME);
+    // (R26 already passes a frame drawn round a connector's end without declaring anything; a declared container is passed the same way)
     const declared = await scene([...base(true), outsider, ...connectors]);
     expect(crossedBy(declared, id(10)) ?? []).not.toContain(FRAME);
     expect(crossedBy(declared, id(11))).toContain(FRAME);

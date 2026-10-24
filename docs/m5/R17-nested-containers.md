@@ -46,7 +46,7 @@ Issue #12. Design: [docs/design/R17-nested-containers.md](../design/R17-nested-c
 **Lego acceptance (`tests/legoContainers.test.ts`, on the R15 reproduction in `artifacts/lego-infra/ops.json`):**
 - **Method:** the 24 shapes that wholly hold another shape are declared containers. The inspector's own `UNLISTED_INSIDE_CONTAINER` findings fill them; labels that straddle a frame edge go to the frame they mostly sit in.
 - **Structure:** 132 members, nested four deep (public cloud > tenant > component > contents). Moving the outermost frame carries 102 elements, including 40 free lines, by exactly the same amount.
-- **`CONNECTOR_CROSSES_SHAPE`:** 62 → 28. No remaining crossing involves a container that a line starts or ends inside. The 28 left are free polylines through ordinary shapes, which is the R12 free-line limitation, not containment.
+- **`CONNECTOR_CROSSES_SHAPE`:** 62 → 28 on the branch (47 → 28 after merging R26; see below). No remaining crossing involves a container that a line starts or ends inside. The 28 left are free polylines through ordinary shapes, which is the R12 free-line limitation, not containment.
 - **`OVERLAP`:** 29 → 25, plus 3 `MEMBER_OUTSIDE_CONTAINER`. Most of the 25 are real geometry that containment cannot express. For example, the "AWS to Corona Site VPN" box spans two frames, and an element belongs to one container. Labels also overlap icons. These are reported on purpose.
 
 **Verification (fresh):**
@@ -111,6 +111,14 @@ Issue #12. Design: [docs/design/R17-nested-containers.md](../design/R17-nested-c
 - Visio's stencil heading styles are not kept.
 - Visio may add shapes to containers when it opens a file. The editor keeps its own choice while Visio agrees.
 - Members-follow-drag in Visio needs the owner's interactive check.
+
+## Merged with R26 (main at 81a1a80)
+
+R26 (#65) adds its own rule to layout inspection: a frame drawn round a connector's end is crossed on purpose, whether or not it is declared. With both changes:
+- the Lego baseline is 47 `CONNECTOR_CROSSES_SHAPE` rather than 62;
+- declaring the containers takes it to 28. The free ends and lines that only containment explains are removed; the rest are R12 free polylines through ordinary shapes.
+
+The conflict was resolved in `inspectLayout.ts` (both `pageArea` and the container map are passed to `connectorChecks`) and in `EditorModel.ts` (imports). Fresh after the merge: web vitest 695/695, Playwright 192/192, `dotnet test Diagram.Portable.slnx` 498/498 (Visio tests against the installed Visio).
 
 ## Remaining work
 

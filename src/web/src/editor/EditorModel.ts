@@ -13,6 +13,8 @@ import { MaxGraphAdapter, DEFAULT_SCALE } from '../canvas/MaxGraphAdapter';
 import type { GestureNotice, Tool, ViewportInfo } from '../canvas/CanvasAdapter';
 import { GestureController, type GestureKind, type GestureToken } from '../canvas/GestureController';
 import { createSnapshotProjector } from '../canvas/SnapshotProjector';
+import { inspectLayout, type LayoutIssue } from '../layout/inspectLayout';
+import { ROUTE_FINDING_CODES } from '../layout/inspectRoutes';
 import { carriedLeaves, collapseToGroups, expandToGroups, leavesOfTargets, outermostTargets } from '../canvas/selection';
 import { containerAncestors, containerParents, isContainer } from '../layout/containers';
 import { parentMap } from '../commands/groups';
@@ -312,6 +314,22 @@ export class EditorModel {
   showGuides = true;
   snapToGuides = true;
   toggleGuides(field: 'showGuides' | 'snapToGuides'): void { this[field] = !this[field]; this.bump(); }
+  /** R26: the route diagnostics overlay. Off by default; it only draws, it never changes the document. */
+  showRouteDiagnostics = false;
+  toggleRouteDiagnostics(): void { this.showRouteDiagnostics = !this.showRouteDiagnostics; this.bump(); }
+  private diagnosed: { key: string; issues: LayoutIssue[] } | null = null;
+  /** R26: the routing findings for the page on screen, judged on the routes this canvas draws. A pure read, cached per revision and page. */
+  routeDiagnostics(): LayoutIssue[] {
+    if (!this.adapter) return [];
+    const key = `${this.snapshot.revision}|${this.currentPage.id}`;
+    if (this.diagnosed?.key === key) return this.diagnosed.issues;
+    const projection = this.adapter.readProjection(this.snapshot, this.currentPage.id);
+    const codes = new Set<string>(ROUTE_FINDING_CODES);
+    // routing findings do not measure text, so a rough width is enough here
+    const issues = inspectLayout(this.snapshot, { measureWidth: (t, f) => t.length * f.sizePt * 0.5, projection }, { pageId: this.currentPage.id }).issues.filter(i => codes.has(i.code));
+    this.diagnosed = { key, issues };
+    return issues;
+  }
   /** Called when the interlock should hold agent mutations (I30 wires this to the admission gate). */
   onGestureState: (active: boolean) => void = () => {};
 
