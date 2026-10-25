@@ -135,13 +135,13 @@
 **Interfaces:**
 - Produces: `buildBeautifyPreview(document, pageId, targetIds, options): Promise<BeautifyPreview>` with `baseRevision`, sorted `targets`, exact `proposedRoutes`, `skipped`, and `changedCount`. Preview passes the canonical measured label rectangles to the planner.
 
-- [ ] Test preview route count and exact proposed points, deterministic ordering, selected-only versus page materialization, Manual/Frozen/locked skips, shared label measurements, and no document/advisory mutation.
-- [ ] Test that one infeasible or budget-exhausted connector is skipped while a feasible target still receives a proposed route.
-- [ ] Run `npm --prefix src/web test -- tests/beautifyPreview.test.ts` and confirm failure.
-- [ ] Implement the preview using one document snapshot and the Task 2 planner profile; skip unchanged/unfeasible targets and retain their exact current route/advisory.
-- [ ] Test exact proposal serialization and deterministic target ordering; no coordinate rounding is used in the preview-to-commit path.
-- [ ] Run the focused suite and typecheck; expect all pass.
-- [ ] Commit `feat: plan revision-bound beautification previews`.
+- [x] Test preview route count and exact proposed points, deterministic ordering, selected-only versus page materialization, Manual/Frozen/locked skips, shared label measurements, and no document/advisory mutation.
+- [x] Test that one infeasible or budget-exhausted connector is skipped while a feasible target still receives a proposed route.
+- [x] Run `npm --prefix src/web test -- tests/beautifyPreview.test.ts` and confirm failure.
+- [x] Implement the preview using one document snapshot and the Task 2 planner profile; skip unchanged/unfeasible targets and retain their exact current route/advisory.
+- [x] Test exact proposal serialization and deterministic target ordering; no coordinate rounding is used in the preview-to-commit path.
+- [x] Run the focused suite and typecheck; expect all pass.
+- [x] Commit `feat: plan revision-bound beautification previews`.
 
 ### Task 5: Commit Beautify atomically and add editor preview
 

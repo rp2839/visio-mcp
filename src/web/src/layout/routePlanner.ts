@@ -46,6 +46,8 @@ export interface PlanInput {
   /** Only explicit Beautify supplies these options; omitted options preserve the R19 route plan. */
   beautifyTargets?: ReadonlySet<string>;
   costProfile?: 'legacy' | 'aesthetic';
+  /** Document default is consumed only by explicit Beautify; an element policy still wins. */
+  beautifyCrossingDefault?: 'avoid' | 'allow';
 }
 export interface RouteChange { id: string; provenance: RouteProvenance; reason?: string }
 export interface PlanResult {
@@ -346,7 +348,7 @@ export function planRoutes(input: PlanInput): PlanResult {
         joinConnectorIds: workById.get(connectorId) ? [workById.get(connectorId)!.el.from.join?.connectorId, workById.get(connectorId)!.el.to.join?.connectorId].filter((id): id is string => Boolean(id)) : [],
       }));
       const labels = [...measuredLabelRects].filter(([id]) => id !== w.el.id).map(([, rect]) => rect);
-      const policy = (w.el as unknown as { routingPolicy?: { crossing?: 'avoid' | 'allow' } }).routingPolicy?.crossing ?? 'avoid';
+      const policy = (w.el as unknown as { routingPolicy?: { crossing?: 'avoid' | 'allow' } }).routingPolicy?.crossing ?? input.beautifyCrossingDefault ?? 'avoid';
       const previousRoute = storedRoute(w.el)?.points ?? current.points;
       const currentScore = scoreRoute({ route: current.points, previous: previousRoute, otherRoutes, labelRects: labels, obstacleRects: w.shapeRects, crossingsPolicy: policy });
       const minimumQuality = lengthOf(current.points) + 24 * Math.max(0, current.points.length - 2);
