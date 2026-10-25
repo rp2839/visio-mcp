@@ -231,7 +231,7 @@ export class CommandEngine {
     if (!planned.ok) return spans ? withSpan(planned, spans()) : planned;
     const exactBeautify = planned.value.exactRouteIds !== undefined;
     const snapshotOf = (doc: DiagramDocument) => ({ ...before, revision: before.revision + 1, document: doc });
-    const joined = exactBeautify ? planned.value : settleJoins(before.document, planned.value, this.snapshotProjector, snapshotOf);
+    const joined = settleJoins(before.document, planned.value, this.snapshotProjector, snapshotOf);
     const routed = exactBeautify ? joined : settleRoutes(before.document, joined);
     if (!exactBeautify && requestsHardRoutePreflight(ops.value)) {
       const existing = new Set(before.document.pages.flatMap(page => planRoutes({ elements: page.elements, layers: page.layers, pageArea: page.widthPt * page.heightPt }).routeFindings)
@@ -248,7 +248,7 @@ export class CommandEngine {
         return spans ? withSpan(rejected, spans()) : rejected;
       }
     }
-    const plan = exactBeautify ? routed : settleAttachments(before.document, routed, this.snapshotProjector, snapshotOf);
+    const plan = settleAttachments(before.document, routed, this.snapshotProjector, snapshotOf);
     const previousRevision = before.revision;
 
     if (plan.noChange) {

@@ -1145,7 +1145,6 @@ class Planner {
       if (item.points.length < 2) refuse('invalid_beautify_route', `route ${el.id} needs at least two points`, { target: el.id });
       for (const point of item.points) {
         this.assertFinite(point.x, 'route point x'); this.assertFinite(point.y, 'route point y');
-        if (point.x < 0 || point.y < 0 || point.x > page.widthPt || point.y > page.heightPt) refuse('invalid_beautify_route', `route ${el.id} leaves the page bounds`, { target: el.id });
       }
       const defects = routeDefects(item.points);
       if (defects.length) refuse('invalid_beautify_route', `route ${el.id} is not a clean orthogonal path: ${defects[0]}`, { target: el.id, defects });
@@ -1163,7 +1162,7 @@ class Planner {
       const { mode: _mode, ...routing } = element.routing ?? {};
       return { ...element, waypoints: [], routing: { ...routing, advisory: points, beautified: true as const } };
     });
-    const checked = planRoutes({ elements: candidateElements, layers: page.layers, pageArea: page.widthPt * page.heightPt });
+    const checked = planRoutes({ elements: candidateElements, layers: page.layers, pageArea: page.widthPt * page.heightPt, ignoreTextObstacles: true });
     for (const [id, points] of proposed) {
       const result = checked.routes.get(id);
       if (!result || result.provenance === 'unresolved' || result.points.length !== points.length || result.points.some((point, index) => point.x !== points[index]!.x || point.y !== points[index]!.y)) {

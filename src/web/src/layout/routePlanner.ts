@@ -43,6 +43,8 @@ export interface PlanInput {
   previous?: ReadonlyMap<string, PlannedRoute>;
   /** Shared canvas text measurement, used for protected text obstacles. */
   measureWidth?: TextWidthMeasurer;
+  /** Commit validation may trust the exact measured preview for text clearance while still checking hard geometry. */
+  ignoreTextObstacles?: boolean;
   /** Only explicit Beautify supplies these options; omitted options preserve the R19 route plan. */
   beautifyTargets?: ReadonlySet<string>;
   costProfile?: 'legacy' | 'aesthetic';
@@ -213,7 +215,7 @@ export function planRoutes(input: PlanInput): PlanResult {
     const endIds = new Set([el.from.elementId, el.to.elementId].filter((id): id is string => !!id));
     const endRects = [ta, tb].filter((t): t is Terminal => !!t).map(t => visualRect({ bounds: t.box, rotationDeg: t.rotationDeg }));
     const free = [el.from, el.to].filter(ep => ep.glue === 'none' && ep.point).map(ep => ep.point!);
-    const records = wp.length ? [] : selectObstacles(input.elements, input.layers, endIds, endRects, free, input.pageArea, input.measureWidth, el.id, connectorLabelRects);
+    const records = wp.length ? [] : selectObstacles(input.elements, input.layers, endIds, endRects, free, input.pageArea, input.measureWidth, el.id, connectorLabelRects, input.ignoreTextObstacles);
     const adjusted = records.map(o => {
       const obstacle = byId.get(o.id);
       const stroke = obstacle && 'style' in obstacle && 'strokeWidthPt' in obstacle.style ? Number(obstacle.style.strokeWidthPt) / 2 : 0;

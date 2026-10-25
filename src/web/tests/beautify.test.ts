@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { ConnectorElement, DiagramDocument, Operation } from '../src/contracts/generated';
+import type { ConnectorElement, DiagramDocument, Element, Operation } from '../src/contracts/generated';
 import { buildBeautifyPreview } from '../src/editor/beautifyPreview';
 import { createTestEngine, element, seedDocument } from './support/engine';
 
@@ -78,6 +78,29 @@ describe('atomic Beautify transaction', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.code).toBe('invalid_request');
     expect(t.store.snapshot()).toEqual(before);
+  });
+
+  it('accepts a valid route that uses space beyond the page edge', async () => {
+    const source = documentWithConnectors();
+    const page = source.pages[0]!;
+    const points = [{ x: 0, y: 200 }, { x: 10, y: 200 }, { x: 10, y: 180 }, { x: -20, y: 180 }, { x: -20, y: 220 }, { x: 90, y: 220 }, { x: 90, y: 200 }, { x: 100, y: 200 }];
+    const t = createTestEngine({ document: source });
+    const result = await t.engine.execute(t.request([operation(page.id, 0, [id(701)], [{ id: id(701), points }])]), 'gui');
+    expect(result.ok, JSON.stringify(result)).toBe(true);
+    expect((element(t.store.snapshot(), id(701)) as ConnectorElement).routing?.advisory).toEqual(points);
+  });
+
+  it('commits a route that crosses a text-avoid region using the preview route as authoritative', async () => {
+    const source = documentWithConnectors();
+    const page = source.pages[0]!;
+    page.elements.push({ id: id(710), kind: 'text', layerIds: [], zIndex: 4, locked: false, hidden: false,
+      bounds: { x: 40, y: 190, width: 20, height: 20 }, rotationDeg: 0, metadata: {},
+      text: { value: 'Label', fontFamily: 'Arial', fontSizePt: 10, bold: false, italic: false, underline: false, colour: '#000000', horizontalAlign: 'center', verticalAlign: 'middle', wrap: false, paddingPt: 0 },
+      routingPolicy: { text: 'avoid' } } as Element);
+    const points = [{ x: 0, y: 200 }, { x: 100, y: 200 }];
+    const t = createTestEngine({ document: source });
+    const result = await t.engine.execute(t.request([operation(page.id, 0, [id(701)], [{ id: id(701), points }])]), 'gui');
+    expect(result.ok, JSON.stringify(result)).toBe(true);
   });
 
   it('converts a manual connector only when includeManual is explicit', async () => {
