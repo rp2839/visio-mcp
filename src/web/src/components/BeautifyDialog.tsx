@@ -42,7 +42,7 @@ export function BeautifyDialog({ model }: { model: EditorModel }) {
     <div className="dialog-actions">
       <button type="button" data-testid="beautify-apply" disabled={prompt.busy || !preview?.proposedRoutes.length || stale} onClick={() => void model.acceptBeautify()}>Apply {preview?.changedCount ?? 0} route changes</button>
       <button type="button" data-testid="beautify-refresh" disabled={prompt.busy} onClick={() => void model.refreshBeautify()}>Refresh preview</button>
-      <button type="button" disabled={prompt.busy} onClick={() => model.cancelBeautify()}>Cancel</button>
+      <button type="button" disabled={prompt.busy && !prompt.abortController} onClick={() => model.cancelBeautify()}>Cancel</button>
     </div>
   </div></div>;
 }

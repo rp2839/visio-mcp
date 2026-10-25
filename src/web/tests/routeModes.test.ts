@@ -102,6 +102,18 @@ describe('stored routes (R20)', () => {
     expect(canonicalSerialize(s.doc().pages)).toBe(before);
   });
 
+  it('clears the beautified marker when moving an endpoint makes the saved route elastic', async () => {
+    const s = await setup();
+    const document = structuredClone(s.doc());
+    const connector = document.pages[0]!.elements.find(e => e.alias === 'ab') as ConnectorElement;
+    connector.routing = { ...connector.routing!, beautified: true };
+    s.t.store.commit(document);
+
+    const result = await s.ok([{ op: 'move', target: 'b', delta: { xPt: 0, yPt: 10 } }]);
+    expect(result.routeChanges?.find(change => change.id === connector.id)?.provenance).toBe('elastic');
+    expect(s.conn('ab').routing?.beautified).toBeUndefined();
+  });
+
   it('a joined branch stores the route from the settled join endpoint', async () => {
     const s = await setup();
     s.t.engine.setSnapshotProjector(joinedRouteProjection);

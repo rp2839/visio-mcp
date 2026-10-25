@@ -33,6 +33,7 @@ describe('buildBeautifyPreview', () => {
     const again = await buildBeautifyPreview(source, 'page', ['a', 'b']);
 
     expect(preview.baseRevision).toBe(7);
+    expect(preview.pageId).toBe('page');
     expect(preview.targets).toEqual(['a', 'b']);
     expect(preview.proposedRoutes.map(r => r.id)).toEqual(again.proposedRoutes.map(r => r.id));
     expect(preview.proposedRoutes).toEqual(again.proposedRoutes);

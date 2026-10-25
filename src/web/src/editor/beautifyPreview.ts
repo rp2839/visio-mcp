@@ -8,6 +8,7 @@ export interface BeautifyPreviewRoute { id: string; points: Array<{ x: number; y
 export interface BeautifyPreviewSkipped { id: string; reason: string }
 export interface BeautifyPreview {
   baseRevision: number;
+  pageId: string;
   /** Eligible targets in stable id order. */
   targets: string[];
   /** Exact, unrounded routes that an explicit Beautify commit can apply. */
@@ -79,5 +80,5 @@ export async function buildBeautifyPreview(
     proposedRoutes.push({ id, points: route.points.map(point => ({ x: point.x, y: point.y })) });
   }
 
-  return { baseRevision: document.revision, targets, proposedRoutes, skipped: skipped.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0), changedCount: proposedRoutes.length };
+  return { baseRevision: document.revision, pageId, targets, proposedRoutes, skipped: skipped.sort((a, b) => a.id < b.id ? -1 : a.id > b.id ? 1 : 0), changedCount: proposedRoutes.length };
 }

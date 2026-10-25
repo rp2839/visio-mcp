@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { elements, openEditor, revision, selection, snapshot } from './support';
+import { elements, openEditor, ptToClient, revision, selection, snapshot } from './support';
 
 const id = (n: number) => `00000000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 
@@ -93,5 +93,25 @@ test('a page-wide preview for 60 connectors keeps the editor event loop responsi
   }));
   expect(tickDelay).toBeLessThan(250);
   await expect(page.getByTestId('beautify-changed-count')).toBeVisible({ timeout: 30_000 });
+  expect(errors).toEqual([]);
+});
+
+test('selected-shape Beautify omits non-connectors from skipped results', async ({ page }) => {
+  const errors = await openEditor(page);
+  const shapeId = id(984);
+  const created = await page.evaluate(shapeId => (window as any).__editor.agentApply([{ op: 'createShape', id: shapeId,
+    bounds: { x: 100, y: 100, width: 120, height: 60 }, geometry: { preset: 'rectangle' },
+  }]), shapeId);
+  expect(created.ok).toBe(true);
+  const point = await ptToClient(page, { x: 160, y: 130 });
+  await page.mouse.click(point.x, point.y);
+  await expect.poll(() => selection(page)).toContain(shapeId);
+  await page.getByTestId('menu-arrange').click();
+  await page.getByTestId('menu-beautify-preview').click();
+  await expect(page.getByTestId('beautify-dialog')).toBeVisible();
+  await expect(page.getByTestId('beautify-scope')).toHaveValue('selection');
+  await expect(page.getByRole('heading', { name: 'Skipped' })).toHaveCount(0);
+  await expect(page.getByTestId('beautify-dialog')).not.toContainText(shapeId);
+  await page.getByRole('button', { name: 'Cancel' }).click();
   expect(errors).toEqual([]);
 });

@@ -165,7 +165,7 @@ export interface Status { text: string; kind: 'info' | 'warning' | 'error' }
  * `version` changes whenever anything the UI shows may have changed (React subscribes through `subscribe`/`getVersion`).
  */
 export class EditorModel {
-  beautifyPrompt: { scope: 'selection' | 'page'; busy: boolean; preview?: BeautifyPreview; error?: string } | null = null;
+  beautifyPrompt: { scope: 'selection' | 'page'; busy: boolean; preview?: BeautifyPreview; error?: string; abortController?: AbortController } | null = null;
   exportPrompt: {options:EditorExportOptions;busy:boolean;error?:string}|null=null;
   printPrompt: {options:EditorPrintOptions;devices:PrintDevice[];jobId:string|null;sheets:PrintSheetPreview[];marginWarnings:string[];busy:boolean;loadingDevices:boolean;error:string|null}|null=null;
   beginPrint(): void {
@@ -237,21 +237,26 @@ export class EditorModel {
     this.bump();
     void this.refreshBeautify();
   }
-  cancelBeautify(): void { this.beautifyPrompt = null; this.bump(); }
+  cancelBeautify(): void { this.beautifyPrompt?.abortController?.abort(); this.beautifyPrompt = null; this.bump(); }
   async refreshBeautify(): Promise<void> {
     const prompt = this.beautifyPrompt;
     if (!prompt || prompt.busy) return;
     const snapshot = this.snapshot, page = this.currentPage;
-    const ids = prompt.scope === 'selection' ? [...this.selection] : undefined;
+    const selected = new Set(this.selection);
+    const ids = prompt.scope === 'selection' ? page.elements.filter((element): element is Extract<Element, { kind: 'connector' }> => element.kind === 'connector' && selected.has(element.id)).map(element => element.id) : undefined;
+    const controller = new AbortController();
+    prompt.abortController = controller;
     prompt.busy = true; prompt.error = undefined; prompt.preview = undefined; this.bump();
     try {
       await document.fonts.ready;
-      const preview = await buildBeautifyPreviewOffThread(snapshot.document, page.id, ids);
+      if (controller.signal.aborted) { const error = new Error('Beautify preview was cancelled'); error.name = 'AbortError'; throw error; }
+      const preview = await buildBeautifyPreviewOffThread(snapshot.document, page.id, ids, controller.signal);
       if (this.beautifyPrompt !== prompt) return;
       prompt.preview = preview;
     } catch (error) {
-      if (this.beautifyPrompt === prompt) prompt.error = String(error);
+      if (this.beautifyPrompt === prompt && (error as Error)?.name !== 'AbortError') prompt.error = String(error);
     } finally {
+      if (prompt.abortController === controller) delete prompt.abortController;
       if (this.beautifyPrompt === prompt) { prompt.busy = false; this.bump(); }
     }
   }
@@ -262,7 +267,7 @@ export class EditorModel {
     if (!preview.proposedRoutes.length) return;
     prompt.busy = true; this.bump();
     const result = await this.apply('inspector', [{
-      op: 'beautify', pageId: this.currentPage.id, baseRevision: preview.baseRevision,
+      op: 'beautify', pageId: preview.pageId, baseRevision: preview.baseRevision,
       targets: preview.targets, routes: preview.proposedRoutes, includeManual: false,
     }]);
     if (this.beautifyPrompt !== prompt) return;
