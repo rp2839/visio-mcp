@@ -7,7 +7,6 @@ type PreviewResponse = { preview: BeautifyPreview } | { error: string };
 const scope = self as unknown as {
   onmessage: ((event: MessageEvent<PreviewRequest>) => void) | null;
   postMessage: (message: PreviewResponse) => void;
-  fonts?: { ready: Promise<unknown> };
 };
 
 scope.onmessage = async ({ data }) => {
