@@ -137,4 +137,18 @@ describe('atomic Beautify transaction', () => {
     expect((element(t.store.snapshot(), id(701)) as ConnectorElement).routing?.advisory).toEqual(points);
     expect(JSON.stringify(element(t.store.snapshot(), id(700)))).toBe(before);
   });
+
+  it('clears the beautified marker when an ordinary edit repairs the saved route', async () => {
+    const source = documentWithConnectors({ a: { routing: { beautified: true, advisory: [{ x: 0, y: 200 }, { x: 100, y: 200 }] } },
+      b: { from: { glue: 'none', point: { x: 0, y: 400 } }, to: { glue: 'none', point: { x: 100, y: 400 } }, bounds: { x: 0, y: 400, width: 100, height: 0 } } });
+    const page = source.pages[0]!;
+    const t = createTestEngine({ document: source });
+    const wall = id(710);
+    const result = await t.engine.execute(t.request([{ op: 'createShape', id: wall, bounds: { x: 40, y: 180, width: 20, height: 40 } }]), 'gui');
+    if (!result.ok) throw new Error(JSON.stringify(result.error));
+    const saved = element(t.store.snapshot(), id(700)) as ConnectorElement;
+    expect(saved.routing?.advisory).not.toEqual([{ x: 0, y: 200 }, { x: 100, y: 200 }]);
+    expect(saved.routing?.beautified).toBeUndefined();
+    expect(t.store.snapshot().document.pages[0]!.id).toBe(page.id);
+  });
 });

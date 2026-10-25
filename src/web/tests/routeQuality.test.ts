@@ -19,6 +19,19 @@ describe('aesthetic route score (R24)', () => {
     expect(scoreRoute(base(route, { otherRoutes, crossingsPolicy: 'allow' })).policyCrossings).toBe(0);
   });
 
+  it('scores only contacts between the candidate and other connectors', () => {
+    const route = [{ x: 0, y: 0 }, { x: 100, y: 0 }];
+    const otherRoutes = [
+      { connectorId: 'vertical', points: [{ x: 50, y: 20 }, { x: 50, y: 80 }] },
+      { connectorId: 'horizontal', points: [{ x: 20, y: 50 }, { x: 80, y: 50 }] },
+      { connectorId: 'overlap-a', points: [{ x: 20, y: 100 }, { x: 80, y: 100 }] },
+      { connectorId: 'overlap-b', points: [{ x: 30, y: 100 }, { x: 70, y: 100 }] },
+    ];
+    const score = scoreRoute(base(route, { otherRoutes }));
+    expect(score.policyCrossings).toBe(0);
+    expect(score.terms.overlap).toBe(0);
+  });
+
   it('charges 20 points per point of collinear overlap', () => {
     const score = scoreRoute(base([{ x: 0, y: 0 }, { x: 100, y: 0 }], { otherRoutes: [{ connectorId: 'other', points: [{ x: 20, y: 0 }, { x: 80, y: 0 }] }] }));
     expect(score.terms.overlap).toBe(1200);

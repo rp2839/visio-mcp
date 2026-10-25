@@ -55,6 +55,7 @@ describe('buildBeautifyPreview', () => {
     const source = documentOf([
       free('manual', { waypoints: [{ x: 50, y: 10 }] }),
       free('frozen', { routing: { mode: 'frozen', advisory: [{ x: 0, y: 0 }, { x: 100, y: 0 }] } }),
+      free('guided', { routing: { constraints: [{ axis: 'h', index: 0, at: 10 }] } }),
       free('locked', { locked: true }),
       free('layer-locked', { layerIds: ['locked-layer'] }),
       free('ready'),
@@ -62,7 +63,8 @@ describe('buildBeautifyPreview', () => {
     source.pages[0]!.layers.push({ id: 'locked-layer', name: 'Locked', visible: true, locked: true, printable: true, snap: true, glue: true });
     const preview = await buildBeautifyPreview(source, 'page');
     expect(preview.targets).toEqual(['ready']);
-    expect(preview.skipped.map(x => x.id)).toEqual(['frozen', 'layer-locked', 'locked', 'manual', 'ready']);
+    expect(preview.skipped.map(x => x.id)).toEqual(['frozen', 'guided', 'layer-locked', 'locked', 'manual']);
+    expect(preview.skipped.find(x => x.id === 'guided')?.reason).toBe('guided connectors keep their pinned runs');
     expect(preview.skipped.every(x => x.reason.length > 0)).toBe(true);
   });
 

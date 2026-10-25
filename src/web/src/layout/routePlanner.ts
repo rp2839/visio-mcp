@@ -238,6 +238,7 @@ export function planRoutes(input: PlanInput): PlanResult {
 
   const routes = new Map<string, PlannedRoute>();
   const relaxedSideIds = new Set<string>();
+  const requiredSideFailed = new Set<string>();
   const occupied: Segment[] = [];
   const make = (w: Work, points: V[], provenance: RouteProvenance, reason?: string): PlannedRoute => ({
     points, provenance, ...(reason ? { reason } : {}), fixed: { from: pin(w.a), to: pin(w.b) },
@@ -325,13 +326,25 @@ export function planRoutes(input: PlanInput): PlanResult {
     }
     // Avoid-policy obstacles are soft: retry once with only forbidden blockers before declaring failure.
     const relaxed = w.soft.length ? avoidObstacles(w.a, w.b, w.base, w.others, w.endRects, occupied) : strict;
-    if (relaxed.blocked) put(w, make(w, candidate ?? relaxed.route, 'unresolved', 'no clear route was found'));
-    else put(w, guide(w, make(w, relaxed.route, 'rerouted', why)));
+    if (relaxed.blocked) {
+      const hasRequiredSide = !!w.el.from.requiredSide || !!w.el.to.requiredSide;
+      if (hasRequiredSide) {
+        const withoutRequired = (ep: Connector['from']): Connector['from'] => ({ ...ep, requiredSide: undefined });
+        const from = withoutRequired(w.el.from), to = withoutRequired(w.el.to);
+        const ta = terminal(from), tb = terminal(to);
+        const pointOf = (t: Terminal | undefined, ep: Connector['from']) => (t ? centreOfTerminal(t) : ep.point ?? { x: 0, y: 0 });
+        const autoA = endFor(from, ta, pointOf(tb, to)), autoB = endFor(to, tb, pointOf(ta, from));
+        const autoBase = routeOrthogonal(autoA, autoB, []);
+        const withoutSide = avoidObstacles(autoA, autoB, autoBase, w.others, w.endRects, occupied);
+        if (!withoutSide.blocked) requiredSideFailed.add(w.el.id);
+      }
+      put(w, make(w, candidate ?? relaxed.route, 'unresolved', 'no clear route was found'));
+    } else put(w, guide(w, make(w, relaxed.route, 'rerouted', why)));
   }
 
   const aestheticStats = new Map<string, SearchStats>();
   if (input.costProfile === 'aesthetic' && input.beautifyTargets?.size) {
-    const targetWork = work.filter(w => input.beautifyTargets!.has(w.el.id) && !w.el.waypoints.length && !isFrozen(w.el) && !w.el.locked);
+    const targetWork = work.filter(w => input.beautifyTargets!.has(w.el.id) && !w.el.waypoints.length && !w.el.routing?.constraints?.length && !isFrozen(w.el) && !w.el.locked);
     const difficulty = (w: Work) => blockedSegments(w.base, [...w.others, ...w.soft], w.endRects, CLEARANCE).length;
     const span = (w: Work) => Math.abs(w.a.anchor.x - w.b.anchor.x) + Math.abs(w.a.anchor.y - w.b.anchor.y);
     targetWork.sort((a, b) => {
@@ -357,15 +370,15 @@ export function planRoutes(input: PlanInput): PlanResult {
       // cost. Re-search only routes whose measured score shows a concrete quality opportunity.
       if (isOrdinaryBase && currentScore.policyCrossings === 0
         && currentScore.qualityPoints <= minimumQuality + EPS
-        && isClear(current.points, [...w.others, ...w.soft], w.endRects, CLEARANCE)) continue;
+        && isClear(current.points, [...w.others, ...w.soft], w.endRects, CLEARANCE)) {
+        aestheticStats.set(w.el.id, { expandedStates: 0, gridCells: 0, peakMemoryBytes: 0 });
+        continue;
+      }
       const stats: SearchStats = { expandedStates: 0, gridCells: 0, peakMemoryBytes: 0 };
       aestheticStats.set(w.el.id, stats);
       const options = { search: { profile: 'aesthetic' as const, crossingsPolicy: policy, previous: current.points, labelRects: labels,
         joinConnectorIds: [w.el.from.join?.connectorId, w.el.to.join?.connectorId].filter((id): id is string => Boolean(id)), stats } };
       let candidate = avoidObstacles(w.a, w.b, w.base, [...w.others, ...w.soft], w.endRects, otherRoutes.flatMap(r => segmentsOf(r.points, r.connectorId)), options);
-      if ((!candidate.rerouted || candidate.blocked) && w.soft.length) {
-        candidate = avoidObstacles(w.a, w.b, w.base, w.others, w.endRects, otherRoutes.flatMap(r => segmentsOf(r.points, r.connectorId)), options);
-      }
       if (!candidate.rerouted || candidate.blocked) continue;
       const score = scoreRoute({ route: candidate.route, previous: previousRoute, otherRoutes, labelRects: labels, obstacleRects: w.shapeRects, crossingsPolicy: policy });
       if (!isAestheticImprovement(score, currentScore)) continue;
@@ -385,7 +398,7 @@ export function planRoutes(input: PlanInput): PlanResult {
       return rects.filter(r => !isClear([a, b], [r], [], CLEARANCE)).flatMap(r => w.obstacleIds.get(`${r.x},${r.y},${r.width},${r.height}`) ?? []);
     }))].sort();
     if (now.provenance === 'unresolved') {
-      const hasRequiredSide = !!w.el.from.requiredSide || !!w.el.to.requiredSide;
+      const hasRequiredSide = requiredSideFailed.has(w.el.id);
       routeFindings.push({
         code: hasRequiredSide ? 'ROUTE_REQUIRED_SIDE_UNRESOLVED' : 'UNRESOLVED_ROUTE', severity: 'error',
         message: hasRequiredSide ? 'The required endpoint side could not be routed without violating hard constraints' : now.reason ?? 'No clear route was found',

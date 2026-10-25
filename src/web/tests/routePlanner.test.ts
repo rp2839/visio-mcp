@@ -58,8 +58,15 @@ describe('route planner', () => {
   it('reports_a_distinct_finding_when_a_required_side_cannot_route', () => {
     const a = shape('a', 100, 100), b = shape('b', 700, 100);
     const link = { ...conn('ab', 'a', 'b'), from: { elementId: 'a', glue: 'dynamic', requiredSide: 'north' } } as unknown as Element;
-    const wall = shape('wall', 0, 0, 1000, 700, { routingPolicy: { obstacle: 'forbidden' } });
+    const wall = shape('wall', 120, 65, 60, 30, { routingPolicy: { obstacle: 'forbidden' } });
     expect(plan([a, b, wall, link]).routeFindings).toContainEqual(expect.objectContaining({ code: 'ROUTE_REQUIRED_SIDE_UNRESOLVED', elementId: 'ab' }));
+  });
+
+  it('does not blame the required side when another hard obstacle still blocks the route', () => {
+    const a = shape('a', 100, 100), b = shape('b', 700, 100);
+    const link = { ...conn('ab', 'a', 'b'), from: { elementId: 'a', glue: 'dynamic', requiredSide: 'north' } } as unknown as Element;
+    const wall = shape('wall', 0, 0, 1000, 700, { routingPolicy: { obstacle: 'forbidden' } });
+    expect(plan([a, b, wall, link]).routeFindings).toContainEqual(expect.objectContaining({ code: 'UNRESOLVED_ROUTE', elementId: 'ab' }));
   });
 
   it('keeps a clear beautified automatic route after an unrelated shape move, regardless of straightening hysteresis', () => {
@@ -323,6 +330,17 @@ describe('aesthetic A* routing (R24)', () => {
     });
     expect(parallelOverlap.some(run => run.offset >= 6 && run.overlap >= 60)).toBe(true);
     expect(result.routes.get('b')!.provenance).toBe('beautified');
+  });
+
+  it('does not relax avoid-policy shapes during Beautify searches', () => {
+    const free = (id: string) => ({
+      id, kind: 'connector', layerIds: [], zIndex: 1, locked: false, hidden: false, bounds: { x: 0, y: 0, width: 0, height: 0 }, rotationDeg: 0, metadata: {},
+      from: { glue: 'none', point: { x: 0, y: 0 } }, to: { glue: 'none', point: { x: 100, y: 0 } }, route: 'orthogonal', waypoints: [],
+      style: { stroke: solid, strokeWidthPt: 1, dash: 'solid', lineCap: 'butt', lineJoin: 'miter' },
+    }) as unknown as Element;
+    const avoid = shape('avoid', -100, -100, 500, 500, { routingPolicy: { obstacle: 'avoid' } });
+    const result = planRoutes({ elements: [avoid, free('a'), free('b')], layers: [], pageArea: 1_000_000, beautifyTargets: new Set(['b']), costProfile: 'aesthetic' });
+    expect(result.routes.get('b')!.provenance).not.toBe('beautified');
   });
 });
 

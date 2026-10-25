@@ -74,7 +74,7 @@ describe('incremental commit and rollback', () => {
     if (!conflict.ok) expect(conflict.error.details).toMatchObject({ reason: 'routing_side_conflict', connectorId: '00000000-0000-4000-8000-000000000f26', endpoint: 'from' });
   });
 
-  it('hard_required_side_that_cannot_route_is_rejected_with_a_typed_reason', async () => {
+  it('reports a general routing failure when hard obstacles block every required-side alternative', async () => {
     const { engine, request, ids } = createTestEngine();
     const blocked = await engine.execute(request([
       { op: 'createShape', id: '00000000-0000-4000-8000-000000000f29', bounds: { x: 0, y: 0, width: 841, height: 595 } },
@@ -82,7 +82,7 @@ describe('incremental commit and rollback', () => {
       { op: 'createConnector', id: '00000000-0000-4000-8000-000000000f30', from: { elementId: ids.shapes[0]!, glue: 'dynamic', requiredSide: 'north' }, to: { elementId: ids.shapes[1]!, glue: 'dynamic' }, route: 'orthogonal' },
     ]), 'mcp');
     expect(blocked.ok).toBe(false);
-    if (!blocked.ok) expect(blocked.error.details?.reason).toBe('required_side_unresolved');
+    if (!blocked.ok) expect(blocked.error.details?.reason).toBe('routing_policy_unresolved');
   });
 
   it('one_logo_patch_changes_one_object_and_leaves_19_byte_identical', async () => {

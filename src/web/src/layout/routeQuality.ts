@@ -108,8 +108,9 @@ export function scoreRoute(input: RouteQualityInput): RouteQualityScore {
   const route = input.route;
   const routeInput = { connectorId: '__candidate__', points: route, mode: 'automatic' as const, joinConnectorIds: [] };
   const contacts = classifyRouteContacts([routeInput, ...input.otherRoutes.map(other => ({ connectorId: other.connectorId, points: other.points, mode: 'automatic' as const, joinConnectorIds: other.joinConnectorIds ?? [] }))]);
-  const uniqueCrossings = new Set(contacts.filter(c => c.classification === 'crossing').map(c => `${c.connectorIds.join('|')}:${c.point?.x}:${c.point?.y}`));
-  const overlap = contacts.filter(c => c.classification === 'collinear_overlap' || c.classification === 'collinear_shared_end').reduce((sum, c) => sum + (c.overlap?.length ?? 0) * 20, 0);
+  const candidateContacts = contacts.filter(c => c.connectorIds.includes(routeInput.connectorId));
+  const uniqueCrossings = new Set(candidateContacts.filter(c => c.classification === 'crossing').map(c => `${c.connectorIds.join('|')}:${c.point?.x}:${c.point?.y}`));
+  const overlap = candidateContacts.filter(c => c.classification === 'collinear_overlap' || c.classification === 'collinear_shared_end').reduce((sum, c) => sum + (c.overlap?.length ?? 0) * 20, 0);
   const labels = new Set(input.labelRects.flatMap((rect, index) => route.slice(1).some((p, i) => intersectsRect(route[i]!, p, rect)) ? [index] : [])).size * 500;
   const shortRuns = intervalRuns(route).reduce((sum, run) => sum + Math.max(0, 2 - (run.hi - run.lo)) * 20, 0);
   const reversals = reversalCount(route) * 100;

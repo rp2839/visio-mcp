@@ -90,6 +90,8 @@ describe('R24 routing contracts', () => {
     expect(validateDef('Endpoint', { glue: 'dynamic', requiredSide: 'up' }).valid).toBe(false);
     expect(validateDef('Endpoint', { glue: 'none', point: { x: 0, y: 0 }, requiredSide: 'north' }).valid).toBe(false);
     expect(validateDef('EndpointInput', { glue: 'none', point: { x: 0, y: 0 }, requiredSide: 'north' }).valid).toBe(false);
+    expect(validateDef('EndpointInput', { glue: 'none', point: { x: 0, y: 0 }, requiredSide: null }).valid).toBe(true);
+    expect(validateDef('EndpointInput', { glue: 'dynamic', requiredSide: 'north' }).valid).toBe(false);
   });
 
   it('accepts routing-defaults and exact-route beautify transaction operations', () => {
@@ -97,6 +99,7 @@ describe('R24 routing contracts', () => {
     expect(validateOperation({ op: 'setRoutingDefaults', crossing: 'invalid' }).ok).toBe(false);
     expect(validateOperation({ op: 'beautify', baseRevision: 4, pageId: U(1), targets: [U(2)], includeManual: false,
       routes: [{ id: U(2), points: [{ x: 0, y: 0 }, { x: 10, y: 0 }] }] }).ok).toBe(true);
+    expect(validateOperation({ op: 'set', target: U(2), patch: { routing: { mode: 'automatic', beautified: true } } }).ok).toBe(false);
   });
 
   it('accepts the required-side unresolved route finding', () => {

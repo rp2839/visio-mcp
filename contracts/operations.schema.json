@@ -773,7 +773,7 @@
     "EndpointInput": {
       "type": "object",
       "additionalProperties": false,
-      "allOf": [{ "if": { "required": ["requiredSide"] }, "then": { "required": ["elementId"], "properties": { "glue": { "enum": ["dynamic", "static"] } } } }],
+      "allOf": [{ "if": { "required": ["requiredSide"], "properties": { "requiredSide": { "type": "string" } } }, "then": { "required": ["elementId"], "properties": { "glue": { "enum": ["dynamic", "static"] } } } }],
       "required": [
         "glue"
       ],

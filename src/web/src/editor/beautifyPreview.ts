@@ -47,6 +47,7 @@ export async function buildBeautifyPreview(
     if (element.route !== 'orthogonal') { skipped.push({ id, reason: 'only orthogonal connectors can be beautified' }); continue; }
     if (element.waypoints.length) { skipped.push({ id, reason: 'manual connectors are not eligible for Beautify' }); continue; }
     if (element.routing?.mode === 'frozen') { skipped.push({ id, reason: 'frozen connectors keep their stored route' }); continue; }
+    if (element.routing?.constraints?.length) { skipped.push({ id, reason: 'guided connectors keep their pinned runs' }); continue; }
     const state = effectiveState(element, page.layers);
     if (!state.visible) { skipped.push({ id, reason: 'hidden connectors are not eligible for Beautify' }); continue; }
     if (state.locked) { skipped.push({ id, reason: 'connector or assigned layer is locked' }); continue; }

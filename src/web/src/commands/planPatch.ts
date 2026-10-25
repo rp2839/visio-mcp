@@ -1420,7 +1420,6 @@ class Planner {
     }
     inverse.deletes.elementIds.push(...createdSorted.map(c => c.element.id));
 
-    // ---- assets. Undoing a removal re-appends, so later assets are removed and restored in order to keep the catalogue order exact.
     if (canonicalSerialize(this.doc.routingDefaults ?? null) !== canonicalSerialize(this.routingDefaults ?? null)) {
       forward.upserts.routingDefaults = this.routingDefaults ?? null;
       inverse.upserts.routingDefaults = this.doc.routingDefaults ?? null;
