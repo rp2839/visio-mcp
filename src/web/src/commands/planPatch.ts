@@ -22,6 +22,8 @@ import { addressOf, applyConstraints, moveSegment, readdress, segmentsOf, type R
 import { readDocumentDefaults, textDefaults } from '../model/documentDefaults';
 import { compareElementOrder, effectiveLevel } from '../model/elementOrder';
 
+const BEAUTIFY_ROUTE_PAGE_MARGIN_PT = 24;
+
 export interface PlanContext {
   newId(): string;
   /** Page scope of the request; defaults to the only page of a one-page document. */
@@ -1145,6 +1147,10 @@ class Planner {
       if (item.points.length < 2) refuse('invalid_beautify_route', `route ${el.id} needs at least two points`, { target: el.id });
       for (const point of item.points) {
         this.assertFinite(point.x, 'route point x'); this.assertFinite(point.y, 'route point y');
+        if (point.x < -BEAUTIFY_ROUTE_PAGE_MARGIN_PT || point.y < -BEAUTIFY_ROUTE_PAGE_MARGIN_PT ||
+            point.x > page.widthPt + BEAUTIFY_ROUTE_PAGE_MARGIN_PT || point.y > page.heightPt + BEAUTIFY_ROUTE_PAGE_MARGIN_PT) {
+          refuse('invalid_beautify_route', `route ${el.id} extends beyond the allowed page margin`, { target: el.id, reason: 'route_out_of_bounds' });
+        }
       }
       const defects = routeDefects(item.points);
       if (defects.length) refuse('invalid_beautify_route', `route ${el.id} is not a clean orthogonal path: ${defects[0]}`, { target: el.id, defects });
@@ -1162,7 +1168,7 @@ class Planner {
       const { mode: _mode, ...routing } = element.routing ?? {};
       return { ...element, waypoints: [], routing: { ...routing, advisory: points, beautified: true as const } };
     });
-    const checked = planRoutes({ elements: candidateElements, layers: page.layers, pageArea: page.widthPt * page.heightPt, ignoreTextObstacles: true });
+    const checked = planRoutes({ elements: candidateElements, layers: page.layers, pageArea: page.widthPt * page.heightPt });
     for (const [id, points] of proposed) {
       const result = checked.routes.get(id);
       if (!result || result.provenance === 'unresolved' || result.points.length !== points.length || result.points.some((point, index) => point.x !== points[index]!.x || point.y !== points[index]!.y)) {

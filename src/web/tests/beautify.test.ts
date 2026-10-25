@@ -90,7 +90,18 @@ describe('atomic Beautify transaction', () => {
     expect((element(t.store.snapshot(), id(701)) as ConnectorElement).routing?.advisory).toEqual(points);
   });
 
-  it('commits a route that crosses a text-avoid region using the preview route as authoritative', async () => {
+  it('rejects a route far beyond the page margin', async () => {
+    const source = documentWithConnectors();
+    const page = source.pages[0]!;
+    const points = [{ x: 0, y: 200 }, { x: 10, y: 200 }, { x: 10, y: 180 }, { x: 900, y: 180 }, { x: 900, y: 220 }, { x: 90, y: 220 }, { x: 90, y: 200 }, { x: 100, y: 200 }];
+    const t = createTestEngine({ document: source });
+    const before = t.store.snapshot();
+    const result = await t.engine.execute(t.request([operation(page.id, 0, [id(701)], [{ id: id(701), points }])]), 'gui');
+    expect(result.ok).toBe(false);
+    expect(t.store.snapshot()).toEqual(before);
+  });
+
+  it('rejects a submitted route that crosses a text-avoid region', async () => {
     const source = documentWithConnectors();
     const page = source.pages[0]!;
     page.elements.push({ id: id(710), kind: 'text', layerIds: [], zIndex: 4, locked: false, hidden: false,
@@ -99,8 +110,10 @@ describe('atomic Beautify transaction', () => {
       routingPolicy: { text: 'avoid' } } as Element);
     const points = [{ x: 0, y: 200 }, { x: 100, y: 200 }];
     const t = createTestEngine({ document: source });
+    const before = t.store.snapshot();
     const result = await t.engine.execute(t.request([operation(page.id, 0, [id(701)], [{ id: id(701), points }])]), 'gui');
-    expect(result.ok, JSON.stringify(result)).toBe(true);
+    expect(result.ok).toBe(false);
+    expect(t.store.snapshot()).toEqual(before);
   });
 
   it('converts a manual connector only when includeManual is explicit', async () => {

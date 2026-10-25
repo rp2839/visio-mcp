@@ -81,7 +81,6 @@ export function selectObstacles(
   measureWidth: TextWidthMeasurer = defaultMeasureWidth,
   connectorId?: string,
   connectorLabelRects: ReadonlyMap<string, Rect> = new Map(),
-  ignoreTextObstacles = false,
 ): RoutingObstacle[] {
   const legacyCandidates: Array<{ id: string; rect: Rect; behind: boolean }> = [];
   const explicit: RoutingObstacle[] = [];
@@ -93,7 +92,7 @@ export function selectObstacles(
     const policy = policyOf(el);
     const isHidden = !effectiveState(el, layers).visible;
     if (isHidden) continue;
-    if (!ignoreTextObstacles && policy?.text === 'avoid' && el.id !== connectorId) {
+    if (policy?.text === 'avoid' && el.id !== connectorId) {
       const text = el.kind === 'shape' || el.kind === 'text' ? el.text : el.kind === 'connector' ? el.label : undefined;
       if (text && el.kind !== 'image') {
         const rect = el.kind === 'connector' ? connectorLabelRects.get(el.id) : textRect(el, text, measureWidth);

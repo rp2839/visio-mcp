@@ -149,3 +149,34 @@ test('routing defaults and connector policies are editable without changing rout
   expect(routesAfter).toEqual(routesBefore);
   expect(errors).toEqual([]);
 });
+
+test('routing defaults dialog contains focus and blocks editor shortcuts', async ({ page }) => {
+  await openEditor(page);
+  const shape = '00000000-0000-4000-8000-000000000975';
+  const created = await page.evaluate(shape => (window as any).__editor.agentApply([
+    { op: 'createShape', id: shape, bounds: { x: 120, y: 130, width: 100, height: 60 } },
+  ]), shape);
+  expect(created.ok).toBe(true);
+  await selectAt(page, { x: 170, y: 160 });
+  await expect.poll(async () => (await snapshot(page)).document.pages[0]!.elements.some(e => e.id === shape)).toBe(true);
+  await page.getByTestId('tool-connector').click();
+  await page.getByTestId('menu-edit').click();
+  await page.getByTestId('menu-routing-defaults').click();
+  const dialog = page.getByTestId('routing-defaults-dialog');
+  await expect(dialog).toBeVisible();
+  const before = await snapshot(page);
+  await expect(page.getByTestId('routing-default-crossing')).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(page.getByTestId('routing-defaults-close')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByTestId('routing-default-crossing')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.getByTestId('routing-defaults-close')).toBeFocused();
+  await page.keyboard.press('Delete');
+  await page.keyboard.press('Control+z');
+  expect((await snapshot(page)).revision).toBe(before.revision);
+  expect((await snapshot(page)).document.pages[0]!.elements.some(e => e.id === shape)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByTestId('tool-connector')).toHaveAttribute('aria-pressed', 'true');
+});

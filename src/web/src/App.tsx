@@ -27,6 +27,7 @@ import { HelpDialogs } from './components/HelpDialogs';
 import { ConnectDialog } from './components/ConnectDialog';
 import { FileIngressQueue } from './components/FileIngressQueue';
 import { BeautifyDialog } from './components/BeautifyDialog';
+import { RoutingDefaultsDialog } from './components/RoutingDefaultsDialog';
 
 const typing = (t: EventTarget | null) =>
   t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t instanceof HTMLSelectElement || (t instanceof HTMLElement && t.isContentEditable);
@@ -36,7 +37,7 @@ function useShortcuts(ws: WorkspaceModel) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const model = ws.active;
-      if (ws.preferences.dialogOpen || ws.tabs.some(t => t.beautifyPrompt)) return;
+      if (ws.preferences.dialogOpen || ws.tabs.some(t => t.beautifyPrompt || t.routingDefaultsOpen)) return;
       if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'p') { e.preventDefault(); if (!ws.recentPrompt && !ws.tabs.some(t => t.newDocument.prompt || t.closePrompt || t.exportPrompt || t.printPrompt || t.report || t.files.prompt || t.connectPrompt)) ws.help.toggle('palette'); return; }
       if (ws.help.panel) return; // a Help panel is up: it takes the keys
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase()==='f') {
@@ -123,6 +124,7 @@ export function App({ ws }: { ws: WorkspaceModel }) {
       <DocumentTitle model={model} />
       <StatusBar model={model} />
       <PreferencesDialog ws={ws} />
+      <RoutingDefaultsDialog model={model} />
       <FileIngressQueue ws={ws} />
     </div>
   );

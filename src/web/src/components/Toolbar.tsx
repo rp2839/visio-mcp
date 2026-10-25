@@ -5,22 +5,6 @@ import { appCommands, type CommandGroup } from '../editor/appCommands';
 import type { WorkspaceModel } from '../workspace/WorkspaceModel';
 import { useModel } from './useModel';
 
-function RoutingDefaultsDialog({ model }: { model: EditorModel }) {
-  if (!model.routingDefaultsOpen) return null;
-  const configuredCrossing = model.snapshot.document.routingDefaults?.crossing;
-  const crossing = configuredCrossing ?? 'default';
-  return <div className="dialog-backdrop" role="presentation"><div className="dialog" role="dialog" aria-modal="true" aria-labelledby="routing-defaults-title" data-testid="routing-defaults-dialog" onKeyDown={e => { if (e.key === 'Escape') model.closeRoutingDefaults(); }}>
-    <h2 id="routing-defaults-title">Routing defaults</h2>
-    <p>These defaults apply only when you preview Beautify. Ordinary edits keep existing routes.</p>
-    <label className="field"><span>Connector crossings</span>
-      <select aria-label="Default crossing policy" data-testid="routing-default-crossing" value={crossing} onChange={e => void model.apply('inspector', [{ op: 'setRoutingDefaults', crossing: e.target.value === 'default' ? null : e.target.value as 'avoid' | 'allow' }])}>
-        <option value="default">Default (avoid crossings)</option><option value="avoid">Avoid crossings</option><option value="allow">Allow crossings</option>
-      </select>
-    </label>
-    <div className="row dialog-actions"><button type="button" autoFocus data-testid="routing-defaults-close" onClick={() => model.closeRoutingDefaults()}>Close</button></div>
-  </div></div>;
-}
-
 const MENUS: CommandGroup[] = ['File', 'Edit', 'Arrange', 'View', 'Help'];
 
 export function Toolbar({ model, ws }: { model: EditorModel; ws: WorkspaceModel }) {
@@ -79,7 +63,6 @@ export function Toolbar({ model, ws }: { model: EditorModel; ws: WorkspaceModel 
         </label>
         <span className="dirty" data-testid="dirty" title={status.dirty ? 'Unsaved changes' : 'All changes saved'}>{status.dirty ? '●' : '○'}</span>
       </div>
-      <RoutingDefaultsDialog model={model} />
     </header>
   );
 }
