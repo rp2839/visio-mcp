@@ -30,6 +30,7 @@ import { connectable, navigableObjects, nearestIn, stepFrom, type Direction } fr
 import { iconOperations } from '../icons/catalog';
 import type { AgentDocument } from '../bridge/engineHandlers';
 import type { AboutInfo } from '../workspace/HelpState';
+import { buildBeautifyPreview, type BeautifyPreview } from './beautifyPreview';
 
 /** What the page needs from the host. In a plain browser (tests, dev) a stub stands in. */
 export interface HostApi extends FileHost {
@@ -163,6 +164,7 @@ export interface Status { text: string; kind: 'info' | 'warning' | 'error' }
  * `version` changes whenever anything the UI shows may have changed (React subscribes through `subscribe`/`getVersion`).
  */
 export class EditorModel {
+  beautifyPrompt: { scope: 'selection' | 'page'; busy: boolean; preview?: BeautifyPreview; error?: string } | null = null;
   exportPrompt: {options:EditorExportOptions;busy:boolean;error?:string}|null=null;
   printPrompt: {options:EditorPrintOptions;devices:PrintDevice[];jobId:string|null;sheets:PrintSheetPreview[];marginWarnings:string[];busy:boolean;loadingDevices:boolean;error:string|null}|null=null;
   beginPrint(): void {
@@ -226,6 +228,51 @@ export class EditorModel {
   }
   beginImageExport(format: 'png'|'pdf'='png'):void {
     this.exportPrompt={busy:false,options:{expected:{...this.engine.scope(),baseRevision:this.engine.revision},format,scope:format==='pdf'?'all':'page',pageId:this.currentPage.id,elementIds:[...this.selection],scale:1,background:'page'}};
+    this.bump();
+  }
+  beginBeautify(scope: 'selection' | 'page' = this.selection.length ? 'selection' : 'page'): void {
+    const prompt = { scope, busy: false } as NonNullable<EditorModel['beautifyPrompt']>;
+    this.beautifyPrompt = prompt;
+    this.bump();
+    void this.refreshBeautify();
+  }
+  cancelBeautify(): void { this.beautifyPrompt = null; this.bump(); }
+  async refreshBeautify(): Promise<void> {
+    const prompt = this.beautifyPrompt;
+    if (!prompt || prompt.busy) return;
+    const snapshot = this.snapshot, page = this.currentPage;
+    const ids = prompt.scope === 'selection' ? [...this.selection] : undefined;
+    prompt.busy = true; prompt.error = undefined; prompt.preview = undefined; this.bump();
+    try {
+      await document.fonts.ready;
+      const measureCanvas = document.createElement('canvas').getContext('2d')!;
+      const preview = await buildBeautifyPreview(snapshot.document, page.id, ids, {
+        measureWidth: (text, font) => {
+          measureCanvas.font = `${font.italic ? 'italic ' : ''}${font.bold ? 'bold ' : ''}${font.sizePt}px "${font.family}"`;
+          return measureCanvas.measureText(text).width;
+        },
+      });
+      if (this.beautifyPrompt !== prompt) return;
+      prompt.preview = preview;
+    } catch (error) {
+      if (this.beautifyPrompt === prompt) prompt.error = String(error);
+    } finally {
+      if (this.beautifyPrompt === prompt) { prompt.busy = false; this.bump(); }
+    }
+  }
+  async acceptBeautify(): Promise<void> {
+    const prompt = this.beautifyPrompt, preview = prompt?.preview;
+    if (!prompt || !preview || prompt.busy) return;
+    if (this.snapshot.revision !== preview.baseRevision) { prompt.error = 'The drawing changed. Refresh the preview before applying it.'; this.bump(); return; }
+    if (!preview.proposedRoutes.length) return;
+    prompt.busy = true; this.bump();
+    const result = await this.apply('inspector', [{
+      op: 'beautify', pageId: this.currentPage.id, baseRevision: preview.baseRevision,
+      targets: preview.targets, routes: preview.proposedRoutes, includeManual: false,
+    }]);
+    if (this.beautifyPrompt !== prompt) return;
+    if (result.ok) this.beautifyPrompt = null;
+    else { prompt.busy = false; prompt.error = result.error.message; }
     this.bump();
   }
   cancelImageExport():void { if(!this.exportPrompt?.busy){this.exportPrompt=null;this.bump();} }

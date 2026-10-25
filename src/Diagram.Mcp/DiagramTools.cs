@@ -208,7 +208,7 @@ public sealed class DiagramTools(PipeClient app)
         return Finish(await Send("doc.getObjects", documentId, sessionId, Obj(("ids", new JsonArray(ids.Select(i => (JsonNode)JsonValue.Create(i)!).ToArray())), ("pageId", pageId)), Read, ct));
     }
 
-    [McpServerTool(Name = "apply_operations"), Description("Applies a batch of typed operations as one atomic transaction at baseRevision. Call get_operation_schema first for operation schemas and examples, including text/style fields, units and targeting rules. If the document changed since baseRevision the call fails with revision_conflict and changes nothing. You supply the transactionId: retrying with the same id and payload returns the original result instead of applying twice. " + Identity)]
+    [McpServerTool(Name = "apply_operations"), Description("Applies a batch of typed operations as one atomic transaction at baseRevision. Call get_operation_schema first for operation schemas and examples, including text/style fields, units and targeting rules. Beautify accepts exact previewed route points for eligible Automatic connectors without converting them to Manual; the engine validates all proposed routes, sets its own beautified marker, and requires Beautify to be the only operation in that transaction. If the document changed since baseRevision the call fails with revision_conflict and changes nothing. You supply the transactionId: retrying with the same id and payload returns the original result instead of applying twice. " + Identity)]
     public async Task<CallToolResult> ApplyOperations(
         [Description("The document id from get_document_summary.")] string documentId,
         [Description("The session id from get_document_summary.")] string sessionId,

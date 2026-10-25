@@ -229,10 +229,11 @@ export class CommandEngine {
     if (!ops.ok) return ops;
     const planned = planPatch(before.document, ops.value, { newId: this.newId, ...(req.pageId ? { pageId: req.pageId } : {}) });
     if (!planned.ok) return spans ? withSpan(planned, spans()) : planned;
+    const exactBeautify = planned.value.exactRouteIds !== undefined;
     const snapshotOf = (doc: DiagramDocument) => ({ ...before, revision: before.revision + 1, document: doc });
-    const joined = settleJoins(before.document, planned.value, this.snapshotProjector, snapshotOf);
-    const routed = settleRoutes(before.document, joined);
-    if (requestsHardRoutePreflight(ops.value)) {
+    const joined = exactBeautify ? planned.value : settleJoins(before.document, planned.value, this.snapshotProjector, snapshotOf);
+    const routed = exactBeautify ? joined : settleRoutes(before.document, joined);
+    if (!exactBeautify && requestsHardRoutePreflight(ops.value)) {
       const existing = new Set(before.document.pages.flatMap(page => planRoutes({ elements: page.elements, layers: page.layers, pageArea: page.widthPt * page.heightPt }).routeFindings)
         .filter(finding => finding.code === 'UNRESOLVED_ROUTE' || finding.code === 'ROUTE_REQUIRED_SIDE_UNRESOLVED')
         .map(finding => `${finding.elementId}:${finding.code}`));
@@ -247,7 +248,7 @@ export class CommandEngine {
         return spans ? withSpan(rejected, spans()) : rejected;
       }
     }
-    const plan = settleAttachments(before.document, routed, this.snapshotProjector, snapshotOf);
+    const plan = exactBeautify ? routed : settleAttachments(before.document, routed, this.snapshotProjector, snapshotOf);
     const previousRevision = before.revision;
 
     if (plan.noChange) {

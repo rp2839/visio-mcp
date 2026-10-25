@@ -71,6 +71,7 @@ export function appCommands(model: EditorModel, ws: WorkspaceModel): AppCommand[
     { id: 'preferences', label: 'Preferences…', group: 'Edit', sepBefore: true, run: () => void ws.openPreferences() },
 
     ...arrange,
+    { id: 'beautify-preview', label: 'Preview Beautify…', group: 'Arrange', sepBefore: true, run: () => model.beginBeautify(model.selection.length ? 'selection' : 'page') },
 
     { id: 'zoom-in', label: 'Zoom in', group: 'View', shortcut: 'Ctrl++', run: () => model.zoomBy(1.25) },
     { id: 'zoom-out', label: 'Zoom out', group: 'View', shortcut: 'Ctrl+-', run: () => model.zoomBy(0.8) },

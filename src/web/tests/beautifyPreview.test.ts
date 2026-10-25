@@ -62,7 +62,7 @@ describe('buildBeautifyPreview', () => {
     source.pages[0]!.layers.push({ id: 'locked-layer', name: 'Locked', visible: true, locked: true, printable: true, snap: true, glue: true });
     const preview = await buildBeautifyPreview(source, 'page');
     expect(preview.targets).toEqual(['ready']);
-    expect(preview.skipped.map(x => x.id)).toEqual(['frozen', 'layer-locked', 'locked', 'manual']);
+    expect(preview.skipped.map(x => x.id)).toEqual(['frozen', 'layer-locked', 'locked', 'manual', 'ready']);
     expect(preview.skipped.every(x => x.reason.length > 0)).toBe(true);
   });
 

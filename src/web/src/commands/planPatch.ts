@@ -17,8 +17,8 @@ import { pointOnRoute } from './pathAnchor';
 import { parsePath } from '../geometry/svgPath';
 import { isOutlinePreset, PRESET_PORTS } from '../geometry/presetOutlines';
 import { paintProblem } from '../model/paint';
-import { planRoutes } from '../layout/routePlanner';
-import { addressOf, moveSegment, readdress, segmentsOf, type RunConstraint } from '../layout/routeSegments';
+import { planRoutes, routeDefects } from '../layout/routePlanner';
+import { addressOf, applyConstraints, moveSegment, readdress, segmentsOf, type RunConstraint } from '../layout/routeSegments';
 import { readDocumentDefaults, textDefaults } from '../model/documentDefaults';
 import { compareElementOrder, effectiveLevel } from '../model/elementOrder';
 
@@ -46,6 +46,8 @@ export interface Plan {
   routeChanges?: RouteChange[];
   /** R22: policy-aware route findings used by transaction preflight. */
   routeFindings?: import('../contracts/generated').RouteFinding[];
+  /** R24: exact route proposals bypass normal route settlement so no other route changes or point rounding occur. */
+  exactRouteIds?: string[];
 }
 
 const DEFAULT_SHAPE_STYLE: ShapeStyle = {
@@ -120,6 +122,7 @@ class Planner {
   /** Elements written by the operation in progress; their ancestor groups get fresh derived bounds afterwards. */
   private touched = new Set<string>();
   private readonly scopePageId: string | undefined;
+  private exactRouteIds?: string[];
 
   constructor(private readonly doc: DiagramDocument, private readonly ctx: PlanContext) {
     this.pages = doc.pages.slice();
@@ -360,6 +363,7 @@ class Planner {
 
   // ---------------------------------------------------------------- batch
   run(operations: Operation[]): Plan {
+    if (operations.some(op => op.op === 'beautify') && operations.length !== 1) refuse('beautify_must_be_standalone', 'Beautify must be the only operation in its transaction so its revision-pinned routes cannot be invalidated by another edit');
     for (const [index, op] of operations.entries()) {
       this.touched = new Set();
       try {
@@ -372,7 +376,9 @@ class Planner {
       }
     }
     this.finalValidate();
-    return this.buildPlan(operations);
+    const plan = this.buildPlan(operations);
+    if (!this.exactRouteIds) return plan;
+    return { ...plan, exactRouteIds: this.exactRouteIds, routeChanges: this.exactRouteIds.map(id => ({ id, provenance: 'beautified' })) };
   }
 
   private nextZ(page: Page): number {
@@ -602,7 +608,7 @@ class Planner {
         this.routingDefaults = op.crossing === null ? undefined : { crossing: op.crossing };
         return;
       case 'beautify':
-        stop('invalid_request', 'Beautify route commits are not available until the exact-route transaction handler is enabled');
+        return this.applyBeautify(op);
       case 'move': {
         const { page, pageIdx, index, element } = this.resolve(op.target, this.ctx.pageId);
         this.assertFinite(op.delta.xPt, 'delta.xPt'); this.assertFinite(op.delta.yPt, 'delta.yPt');
@@ -1112,6 +1118,69 @@ class Planner {
   }
 
   // ---------------------------------------------------------------- route modes (R20)
+  /** Applies exact R24 route points only after every target has passed the same validation. */
+  private applyBeautify(op: Extract<Operation, { op: 'beautify' }>): void {
+    if (op.baseRevision !== this.doc.revision) stop('revision_conflict', `the Beautify preview is for revision ${op.baseRevision}, not ${this.doc.revision}`, { expected: op.baseRevision, actual: this.doc.revision });
+    if (this.ctx.pageId && this.ctx.pageId !== op.pageId) refuse('page_scope_mismatch', 'the Beautify page does not match the transaction page scope');
+    const pageIdx = this.pageIndex(op.pageId), page = this.pages[pageIdx]!;
+    if (new Set(op.targets).size !== op.targets.length) refuse('duplicate_target', 'Beautify targets must be unique');
+    if (!op.targets.length || !op.routes.length) refuse('empty_beautify', 'there are no proposed routes to commit');
+    const targetIds = new Set(op.targets);
+    const byId = new Map(page.elements.map((element, index) => [element.id, { element, index }]));
+    for (const id of op.targets) {
+      if (byId.get(id)?.element.kind !== 'connector') refuse('not_a_connector', `Beautify target ${id} is not a connector on this page`, { target: id });
+    }
+    if (new Set(op.routes.map(route => route.id)).size !== op.routes.length) refuse('duplicate_target', 'Beautify routes must be unique');
+
+    const proposed = new Map<string, Point[]>();
+    for (const item of op.routes) {
+      if (!targetIds.has(item.id)) refuse('beautify_route_not_targeted', `route ${item.id} is not in the Beautify target list`, { target: item.id });
+      const hit = byId.get(item.id);
+      if (!hit || hit.element.kind !== 'connector' || hit.element.route !== 'orthogonal') refuse('not_an_orthogonal_connector', `Beautify applies only to orthogonal connectors on the selected page`, { target: item.id });
+      const el = hit.element;
+      if (el.routing?.mode === 'frozen') refuse('route_not_automatic', `frozen connector ${el.id} cannot be beautified`, { target: el.id });
+      if (el.waypoints.length && !op.includeManual) refuse('route_not_automatic', `manual connector ${el.id} requires includeManual to convert it to Automatic`, { target: el.id });
+      this.assertEditable(page, el, 'beautify');
+      if (el.hidden) refuse('hidden_target', `hidden connector ${el.id} cannot be beautified`, { target: el.id });
+      if (item.points.length < 2) refuse('invalid_beautify_route', `route ${el.id} needs at least two points`, { target: el.id });
+      for (const point of item.points) {
+        this.assertFinite(point.x, 'route point x'); this.assertFinite(point.y, 'route point y');
+        if (point.x < 0 || point.y < 0 || point.x > page.widthPt || point.y > page.heightPt) refuse('invalid_beautify_route', `route ${el.id} leaves the page bounds`, { target: el.id });
+      }
+      const defects = routeDefects(item.points);
+      if (defects.length) refuse('invalid_beautify_route', `route ${el.id} is not a clean orthogonal path: ${defects[0]}`, { target: el.id, defects });
+      const constrained = applyConstraints(item.points, el.routing?.constraints ?? []);
+      if (constrained.unmet.length || constrained.points.length !== item.points.length || constrained.points.some((p, index) => p.x !== item.points[index]!.x || p.y !== item.points[index]!.y)) {
+        refuse('invalid_beautify_route', `route ${el.id} does not satisfy its pinned-run constraints`, { target: el.id });
+      }
+      proposed.set(el.id, item.points.map(point => ({ x: point.x, y: point.y })));
+    }
+
+    // Let the shared ordinary planner check endpoint anchors/sides, hard clearance, and guide constraints with the submitted paths held as stored routes.
+    const candidateElements = page.elements.map(element => {
+      const points = proposed.get(element.id);
+      if (!points || element.kind !== 'connector') return element;
+      const { mode: _mode, ...routing } = element.routing ?? {};
+      return { ...element, waypoints: [], routing: { ...routing, advisory: points, beautified: true as const } };
+    });
+    const checked = planRoutes({ elements: candidateElements, layers: page.layers, pageArea: page.widthPt * page.heightPt });
+    for (const [id, points] of proposed) {
+      const result = checked.routes.get(id);
+      if (!result || result.provenance === 'unresolved' || result.points.length !== points.length || result.points.some((point, index) => point.x !== points[index]!.x || point.y !== points[index]!.y)) {
+        refuse('invalid_beautify_route', `route ${id} does not preserve its endpoints or clear the hard routing constraints`, { target: id, reason: result?.reason });
+      }
+    }
+
+    for (const [id, points] of proposed) {
+      const { element, index } = byId.get(id)!;
+      const connector = element as ConnectorElement;
+      const { mode: _mode, ...routingOptions } = connector.routing ?? {};
+      const routing = { ...routingOptions, advisory: points, beautified: true as const };
+      this.store(pageIdx, index, { ...connector, waypoints: [], routing });
+    }
+    this.exactRouteIds = [...proposed.keys()].sort();
+  }
+
   /** The route the router draws for a connector in the document as it stands in this plan, anchors included. */
   private drawnRoute(pageIdx: number, id: string): Point[] {
     const page = this.pages[pageIdx]!;

@@ -175,7 +175,7 @@ function crossingCount(a: V, b: V, ignored: ReadonlySet<string>, crossings: { ve
     const onOccupiedAxis = horizontal ? a.y : a.x;
     if ((horizontal ? Math.abs(across - a.y) > EPS : Math.abs(across - a.x) > EPS) || along < low - EPS || along > high + EPS || onOccupiedAxis <= occupiedLo + 0.5 || onOccupiedAxis >= occupiedHi - 0.5) continue;
     const delta = forward ? along - start : start - along;
-    if (delta <= EPS || delta > Math.abs(end - start) + EPS) continue; // half-open: far endpoint counts, start endpoint does not
+    if (delta <= EPS || delta >= Math.abs(end - start) - EPS) continue; // route elbows that join a track are not crossings
     const key = `${s.ownerId ?? 'unowned'}:${Math.round(x * 100)}:${Math.round(y * 100)}`;
     seen.add(key);
   }
@@ -221,6 +221,11 @@ function aestheticEdgeCost(a: V, b: V, direction: number, previousDirection: num
 
 function searchAesthetic(start: V, startDir: V, goal: V, goalDir: V, blockers: readonly Rect[], occupied: readonly Segment[], spacing: number, budget: number, options: SearchOptions): V[] | undefined {
   const xs = new Set<number>([start.x, goal.x]), ys = new Set<number>([start.y, goal.y]);
+  // Add local turn tracks around both endpoint stubs. Without an interior
+  // coordinate just before the goal, a path that fans away from a parallel
+  // route can only rejoin at the goal and then violates its arrival direction.
+  for (const x of [start.x, goal.x]) { xs.add(x - spacing); xs.add(x + spacing); }
+  for (const y of [start.y, goal.y]) { ys.add(y - spacing); ys.add(y + spacing); }
   for (const r of blockers) {
     for (const x of [r.x, r.x + r.width]) { xs.add(x); xs.add(x < r.x + r.width / 2 ? x - spacing : x + spacing); }
     for (const y of [r.y, r.y + r.height]) { ys.add(y); ys.add(y < r.y + r.height / 2 ? y - spacing : y + spacing); }
@@ -295,7 +300,10 @@ function searchAesthetic(start: V, startDir: V, goal: V, goalDir: V, blockers: r
   while (heap.size) {
     const top = heap.pop(), id = top.id, d = id % 4, cell = (id - d) / 4, x = cell % nx, y = (cell - x) / nx;
     if (top.crossings !== distCross[id] || Math.abs(top.f - distQuality[id]! - h(x, y)) > 1e-7) continue;
-    if (x === gx && y === gy) { best = id; break; }
+    // Aesthetic cost can prefer a visually attractive final segment, but endpoint
+    // direction is a routing constraint. Do not accept the goal until the route
+    // arrives along the axis that enters the endpoint correctly.
+    if (x === gx && y === gy && d === arrive) { best = id; break; }
     if (steps >= budget) { if (stats) { stats.expandedStates = steps; stats.peakMemoryBytes = fixedMemoryBytes + steps * 48; } return undefined; }
     steps++;
     const gCross = distCross[id]!, gQuality = distQuality[id]!;

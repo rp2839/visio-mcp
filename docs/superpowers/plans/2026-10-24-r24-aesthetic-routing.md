@@ -162,17 +162,17 @@
 - Consumes: the exact Task 4 preview and `beautify` operation with its base revision and exact proposed route points.
 - Produces: one `TransactionResult` whose `changed`/`routeChanges` list contains only committed target IDs; the existing transaction stack provides exact undo/redo.
 
-- [ ] Add engine tests for stale revision rejection, invalid proposed-route rejection, exact preview-to-commit point equality including a nearby measured label, target-only commit, one undo/redo, explicit Manual-to-Automatic conversion, and Frozen/locked skips.
-- [ ] Add a transaction test with one newly infeasible target and one feasible target; assert the infeasible route is untouched, the feasible one commits, and broad R22 preflight does not reject the batch.
-- [ ] Run `npm --prefix src/web test -- tests/beautify.test.ts` and confirm failure.
-- [ ] Implement `beautify` apply so base revision and all proposed paths are validated before any diff; apply supplied points directly; add upserts only for changed eligible routes and avoid unresolved updates for skipped targets.
-- [ ] Add `Preview Beautify` in Arrange menu and selected/page dialog; draw exact candidate paths, changed count and skip reasons; disable acceptance on stale snapshot and close without mutation on cancel.
+- [x] Add engine tests for stale revision rejection, invalid proposed-route rejection, exact preview-to-commit point equality including a nearby measured label, target-only commit, one undo/redo, explicit Manual-to-Automatic conversion, and Frozen/locked skips.
+- [x] Add a transaction test with one newly infeasible target and one feasible target; assert the infeasible route is untouched, the feasible one commits, and broad R22 preflight does not reject the batch.
+- [x] Run `npm --prefix src/web test -- tests/beautify.test.ts` and confirm failure.
+- [x] Implement `beautify` apply so base revision and all proposed paths are validated before any diff; apply supplied points directly; add upserts only for changed eligible routes and avoid unresolved updates for skipped targets.
+- [x] Add `Preview Beautify` in Arrange menu and selected/page dialog; draw exact candidate paths, changed count and skip reasons; disable acceptance on stale snapshot and close without mutation on cancel.
 
-- [ ] Update MCP descriptions to explain that callers may set exact proposed points on eligible Automatic connectors without converting them to Manual; the transaction sets the engine-owned marker.
-- [ ] Add Playwright coverage for no-side-effect preview, page/selection scope, exact preview overlay, stale revision, accepted undo, skipped Manual recovery and continuing past infeasible targets.
-- [ ] Run `npm --prefix src/web test -- tests/beautify.test.ts tests/beautifyPreview.test.ts` and `npm --prefix src/web run test:browser -- tests/browser/beautify.spec.ts`; expect all pass.
-- [ ] Commit `feat: add previewed beautify command`.
-- [ ] **Review checkpoint 2:** stop for user review after the full Beautify flow passes end-to-end, including exact proposal commit and persistent marker behavior.
+- [x] Update MCP descriptions to explain that callers may set exact proposed points on eligible Automatic connectors without converting them to Manual; the transaction sets the engine-owned marker.
+- [x] Add Playwright coverage for no-side-effect preview, page/selection scope, exact preview overlay, stale revision, accepted undo, skipped Manual recovery and continuing past infeasible targets.
+- [x] Run `npm --prefix src/web test -- tests/beautify.test.ts tests/beautifyPreview.test.ts` and `npm --prefix src/web run test:browser -- tests/browser/beautify.spec.ts`; expect all pass.
+- [x] Commit `feat: add previewed beautify command`.
+- [x] **Review checkpoint 2:** stop for user review after the full Beautify flow passes end-to-end, including exact proposal commit and persistent marker behavior.
 
 ### Task 6: Add routing policy controls
 

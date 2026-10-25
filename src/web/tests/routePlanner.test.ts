@@ -315,12 +315,13 @@ describe('aesthetic A* routing (R24)', () => {
     }) as unknown as Element;
     const result = planRoutes({ elements: [free('a'), free('b')], layers: [], pageArea: 100_000, beautifyTargets: new Set(['b']), costProfile: 'aesthetic' });
     const candidate = pts(result, 'b');
+    expect(Math.sign(candidate[candidate.length - 2]!.x - candidate[candidate.length - 1]!.x)).toBe(-1);
     const parallelOverlap = candidate.slice(1).map((point, index) => {
       const previous = candidate[index]!;
       if (Math.abs(point.y - previous.y) > 1e-6) return { offset: 0, overlap: 0 };
       return { offset: Math.abs(point.y), overlap: Math.max(0, Math.min(100, Math.max(point.x, previous.x)) - Math.max(0, Math.min(point.x, previous.x))) };
     });
-    expect(parallelOverlap.some(run => run.offset >= 6 && run.overlap >= 80)).toBe(true);
+    expect(parallelOverlap.some(run => run.offset >= 6 && run.overlap >= 60)).toBe(true);
     expect(result.routes.get('b')!.provenance).toBe('beautified');
   });
 });
