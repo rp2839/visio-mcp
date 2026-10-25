@@ -352,12 +352,15 @@ export class EditorModel {
   selection: string[] = [];
   tool: Tool = { kind: 'select' };
   iconSettings = { sizePt: 24, colour: '#334155', strokeWidthPt: 2 };
+  routingDefaultsOpen = false;
   unit: Unit = 'mm';
   status: Status = { text: 'Ready', kind: 'info' };
   viewport: ViewportInfo | null = null;
   showGuides = true;
   snapToGuides = true;
   toggleGuides(field: 'showGuides' | 'snapToGuides'): void { this[field] = !this[field]; this.bump(); }
+  openRoutingDefaults(): void { this.routingDefaultsOpen = true; this.bump(); }
+  closeRoutingDefaults(): void { this.routingDefaultsOpen = false; this.bump(); }
   /** R26: the route diagnostics overlay. Off by default; it only draws, it never changes the document. */
   showRouteDiagnostics = false;
   toggleRouteDiagnostics(): void { this.showRouteDiagnostics = !this.showRouteDiagnostics; this.bump(); }
