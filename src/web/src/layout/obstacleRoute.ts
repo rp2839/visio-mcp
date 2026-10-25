@@ -182,6 +182,44 @@ function crossingCount(a: V, b: V, ignored: ReadonlySet<string>, crossings: { ve
   return seen.size;
 }
 
+/** Counts crossings strictly inside one route step. Crossings at grid vertices are charged separately. */
+export function countCrossingsOnSegment(a: V, b: V, occupied: readonly Segment[], ignored: ReadonlySet<string> = new Set()): number {
+  return crossingCount(a, b, ignored, {
+    verticalByX: segmentIndex(occupied, false),
+    horizontalByY: segmentIndex(occupied, true),
+  });
+}
+
+/** Counts only a perpendicular crossing where the candidate route passes straight through a grid vertex. */
+export function countCrossingsAtVertex(point: V, incoming: V, outgoing: V, occupied: readonly Segment[], ignored: ReadonlySet<string> = new Set()): number {
+  return crossingsAtVertex(point, incoming, outgoing, ignored, {
+    verticalByX: segmentIndex(occupied, false),
+    horizontalByY: segmentIndex(occupied, true),
+  });
+}
+
+function crossingsAtVertex(point: V, incoming: V, outgoing: V, ignored: ReadonlySet<string>, crossings: { verticalByX: IndexedSegment[]; horizontalByY: IndexedSegment[] }): number {
+  const horizontalPass = incoming.y === 0 && outgoing.y === 0 && incoming.x === -outgoing.x;
+  const verticalPass = incoming.x === 0 && outgoing.x === 0 && incoming.y === -outgoing.y;
+  if (!horizontalPass && !verticalPass) return 0;
+  const candidates = horizontalPass ? crossings.verticalByX : crossings.horizontalByY;
+  const coordinate = horizontalPass ? point.x : point.y;
+  const seen = new Set<string>();
+  for (let i = lowerBoundIndexed(candidates, coordinate - EPS); i < upperBoundIndexed(candidates, coordinate + EPS); i++) {
+    const segment = candidates[i]!.segment;
+    if (segment.ownerId && ignored.has(segment.ownerId)) continue;
+    const horizontal = Math.abs(segment.a.y - segment.b.y) < EPS;
+    if (horizontalPass === horizontal) continue;
+    const lo = horizontal ? Math.min(segment.a.x, segment.b.x) : Math.min(segment.a.y, segment.b.y);
+    const hi = horizontal ? Math.max(segment.a.x, segment.b.x) : Math.max(segment.a.y, segment.b.y);
+    const across = horizontal ? point.y : point.x;
+    if (across <= lo + 0.5 || across >= hi - 0.5) continue;
+    const key = `${segment.ownerId ?? 'unowned'}:${Math.round(point.x * 100)}:${Math.round(point.y * 100)}`;
+    seen.add(key);
+  }
+  return seen.size;
+}
+
 function aestheticEdgeCost(a: V, b: V, direction: number, previousDirection: number, goalDirection: number, atGoal: boolean,
   occupiedIndex: { horizontal: IndexedSegment[]; vertical: IndexedSegment[] }, previousIndex: { horizontal: Array<{ coordinate: number; lo: number; hi: number }>; vertical: Array<{ coordinate: number; lo: number; hi: number }> }, labelCandidates: readonly Rect[]): number {
   const len = Math.abs(b.x - a.x) + Math.abs(b.y - a.y);
@@ -270,11 +308,18 @@ function searchAesthetic(start: V, startDir: V, goal: V, goalDir: V, blockers: r
     if (x + 1 < nx && blockedEdges[state(x, y, 0)]) blockedEdges[state(x + 1, y, 2)] = 1;
     if (y + 1 < ny && blockedEdges[state(x, y, 1)]) blockedEdges[state(x, y + 1, 3)] = 1;
   }
-  const edgeCrossings = new Uint16Array(count), edgeQuality = new Float64Array(count);
-  const fixedMemoryBytes = nx * ny * 24 + count * (1 + 2 + 8) + nx * ny;
+  const edgeCrossings = new Uint16Array(count), horizontalVertexCrossings = new Uint16Array(nx * ny), verticalVertexCrossings = new Uint16Array(nx * ny), edgeQuality = new Float64Array(count);
+  const fixedMemoryBytes = nx * ny * 24 + count * (1 + 2 + 8) + nx * ny * 3;
   if (stats) stats.peakMemoryBytes = fixedMemoryBytes;
   const occupiedIndex = { horizontal: segmentIndex(occupied, true), vertical: segmentIndex(occupied, false) };
   const crossingsIndex = { verticalByX: occupiedIndex.vertical, horizontalByY: occupiedIndex.horizontal };
+  if (options.crossingsPolicy !== 'allow') {
+    for (let y = 0; y < ny; y++) for (let x = 0; x < nx; x++) {
+      const point = { x: X[x]!, y: Y[y]! }, cell = y * nx + x;
+      horizontalVertexCrossings[cell] = crossingsAtVertex(point, { x: -1, y: 0 }, { x: 1, y: 0 }, ignored, crossingsIndex);
+      verticalVertexCrossings[cell] = crossingsAtVertex(point, { x: 0, y: -1 }, { x: 0, y: 1 }, ignored, crossingsIndex);
+    }
+  }
   const previousIndex = { horizontal: [] as Array<{ coordinate: number; lo: number; hi: number }>, vertical: [] as Array<{ coordinate: number; lo: number; hi: number }> };
   for (let i = 1; i < (options.previous?.length ?? 0); i++) {
     const p = options.previous![i - 1]!, q = options.previous![i]!;
@@ -313,7 +358,10 @@ function searchAesthetic(start: V, startDir: V, goal: V, goalDir: V, blockers: r
       if (tx < 0 || ty < 0 || tx >= nx || ty >= ny) continue;
       const move = id - d + nd;
       if (blockedEdges[move]) continue;
-      const ns = state(tx, ty, nd), nextCross = gCross + edgeCrossings[move]!;
+      const vertexCrossings = id !== startState && nd === d
+        ? (nd === 0 || nd === 2 ? horizontalVertexCrossings[cell]! : verticalVertexCrossings[cell]!)
+        : 0;
+      const ns = state(tx, ty, nd), nextCross = gCross + edgeCrossings[move]! + vertexCrossings;
       const nextQuality = gQuality + edgeQuality[move]! + (nd === d ? 0 : 24) + (tx === gx && ty === gy && nd !== arrive ? 24 : 0);
       if (nextCross < distCross[ns]! || (nextCross === distCross[ns]! && nextQuality < distQuality[ns]! - 1e-9)) {
         distCross[ns] = nextCross; distQuality[ns] = nextQuality; prev[ns] = id; heap.push(nextCross, nextQuality + h(tx, ty), ns);

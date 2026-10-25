@@ -305,6 +305,28 @@ describe('route planner', () => {
 });
 
 describe('aesthetic A* routing (R24)', () => {
+  const free = (id: string, from: { x: number; y: number }, to: { x: number; y: number }, advisory = [from, to]) => ({
+    id, kind: 'connector', layerIds: [], zIndex: 1, locked: false, hidden: false, bounds: { x: 0, y: 0, width: 0, height: 0 }, rotationDeg: 0, metadata: {},
+    from: { glue: 'none', point: from }, to: { glue: 'none', point: to }, route: 'orthogonal', waypoints: [], routing: { advisory },
+    style: { stroke: solid, strokeWidthPt: 1, dash: 'solid', lineCap: 'butt', lineJoin: 'miter' },
+  }) as unknown as Element;
+
+  it('beautifies a crossing at a grid vertex even when an unrelated shape adds that grid line', () => {
+    const horizontal = free('horizontal', { x: 0, y: 0 }, { x: 100, y: 0 });
+    const vertical = free('vertical', { x: 50, y: -100 }, { x: 50, y: 100 });
+    const run = (extra: Element[] = []) => planRoutes({ elements: [horizontal, vertical, ...extra], layers: [], pageArea: 1_000_000,
+      beautifyTargets: new Set(['horizontal']), costProfile: 'aesthetic' });
+    const alone = run();
+    const withGridLine = run([shape('far', 50, 200, 10, 10)]);
+    const hasCrossing = (route: readonly { x: number; y: number }[]) => route.some((p, i) => i > 0
+      && Math.abs(p.y - route[i - 1]!.y) < 1e-6 && p.y > -100 && p.y < 100
+      && Math.min(p.x, route[i - 1]!.x) < 50 && Math.max(p.x, route[i - 1]!.x) > 50);
+    expect(hasCrossing(pts(alone, 'horizontal'))).toBe(true); // establishes the original crossing at x=50, y=0
+    expect(withGridLine.routes.get('horizontal')!.provenance).toBe('beautified');
+    expect(hasCrossing(pts(withGridLine, 'horizontal'))).toBe(false);
+    expect(withGridLine.aestheticStats?.get('horizontal')?.expandedStates).toBeLessThan(80_000);
+  });
+
   it('prefers a longer crossing-free path inside search over a shorter crossing path', () => {
     const path = search({ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 100, y: 0 }, { x: 1, y: 0 },
       [{ x: 40, y: -20, width: 20, height: 40 }],
