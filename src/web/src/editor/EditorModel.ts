@@ -30,7 +30,8 @@ import { connectable, navigableObjects, nearestIn, stepFrom, type Direction } fr
 import { iconOperations } from '../icons/catalog';
 import type { AgentDocument } from '../bridge/engineHandlers';
 import type { AboutInfo } from '../workspace/HelpState';
-import { buildBeautifyPreview, type BeautifyPreview } from './beautifyPreview';
+import { type BeautifyPreview } from './beautifyPreview';
+import { buildBeautifyPreviewOffThread } from './beautifyPreviewWorker';
 
 /** What the page needs from the host. In a plain browser (tests, dev) a stub stands in. */
 export interface HostApi extends FileHost {
@@ -245,13 +246,7 @@ export class EditorModel {
     prompt.busy = true; prompt.error = undefined; prompt.preview = undefined; this.bump();
     try {
       await document.fonts.ready;
-      const measureCanvas = document.createElement('canvas').getContext('2d')!;
-      const preview = await buildBeautifyPreview(snapshot.document, page.id, ids, {
-        measureWidth: (text, font) => {
-          measureCanvas.font = `${font.italic ? 'italic ' : ''}${font.bold ? 'bold ' : ''}${font.sizePt}px "${font.family}"`;
-          return measureCanvas.measureText(text).width;
-        },
-      });
+      const preview = await buildBeautifyPreviewOffThread(snapshot.document, page.id, ids);
       if (this.beautifyPrompt !== prompt) return;
       prompt.preview = preview;
     } catch (error) {

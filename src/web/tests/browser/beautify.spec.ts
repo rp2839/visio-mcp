@@ -75,3 +75,23 @@ test('Beautify previews exact routes, reports skipped manual routes, applies one
   await expect(page.getByTestId('beautify-scope')).toHaveValue('page');
   await page.getByTestId('beautify-dialog').getByRole('button', { name: 'Cancel' }).click();
 });
+
+test('a page-wide preview for 60 connectors keeps the editor event loop responsive', async ({ page }) => {
+  const errors = await openEditor(page);
+  const ids = Array.from({ length: 60 }, (_, index) => id(800 + index));
+  const created = await page.evaluate(ids => (window as any).__editor.agentApply(ids.map((id: string) => ({
+    op: 'createConnector', id, from: { glue: 'none', point: { x: 0, y: 200 } }, to: { glue: 'none', point: { x: 100, y: 200 } },
+    route: 'orthogonal', waypoints: [], style: { colour: '#334155', widthPt: 1 },
+  }))), ids);
+  expect(created.ok).toBe(true);
+  await page.getByTestId('menu-arrange').click();
+  await page.getByTestId('menu-beautify-preview').click();
+  await expect(page.getByTestId('beautify-dialog')).toBeVisible();
+  const tickDelay = await page.evaluate(() => new Promise<number>(resolve => {
+    const started = performance.now();
+    setTimeout(() => resolve(performance.now() - started), 0);
+  }));
+  expect(tickDelay).toBeLessThan(250);
+  await expect(page.getByTestId('beautify-changed-count')).toBeVisible({ timeout: 30_000 });
+  expect(errors).toEqual([]);
+});
