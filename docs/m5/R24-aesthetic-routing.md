@@ -35,3 +35,32 @@ the per-search state bound and completion under 30 seconds.
 - The A* budget check no longer records an artificial 80,001st expanded state.
 - No denser-than-60/60 fixture has been measured yet. The 60/60 acceptance test protects elapsed time, expansion limit,
   grid size, and estimated memory for this deterministic workload.
+
+## Task 7 acceptance — 2026-10-26
+
+### Native Visio routing metadata and geometry
+
+- **PASS — round-trip regression:** `StructuralTests.R24RoutingMetadataLossIsReportedAndAutomaticGeometryRoundTrips` verifies the four exported connector points against the VSDX geometry rows, then imports the package and verifies the exact advisory coordinates return on an Automatic connector with no waypoints.
+- **PASS — explicit loss diagnostics:** export reports `routingDefaults.crossing`, `routingPolicy.crossing`, `routingPolicy.priority`, `from.requiredSide`, `to.requiredSide`, and `routing.beautified` as `ROUTING_POLICY_NOT_NATIVE` informational diagnostics. The crossing defaults, connector policy, required sides and Beautified marker are absent after import. The route advisory is carried in `AgentAdvisory`, so the next planner pass has the same route geometry while the missing marker permits normal straightening.
+- **PASS — normal straightening after marker loss:** the web planner regression `allows normal straightening when Visio import preserves advisory geometry but drops the Beautified marker` confirms that an imported unmarked detour is eligible for the normal 48 pt straightening rule.
+
+### Regression and stress results
+
+- **PASS — R05 pinned reference:** `ReferenceFixtureRegressionTests.SixtyTwoObjectsPreserveSemanticsAndDetectVisibleRegressionsThroughMcpAndNativeVisio` passed. It checked the committed editor/Visio screenshot hashes, 62 object identities and semantics, and native Visio save/reopen through MCP.
+- **PASS — PSGL/Lego diagnostic fixtures:** the browser `route-diagnostics.spec.ts` checks the `psgl-swimlane` and `lego-infra` fixture findings and matched the expected R26 codes in the full browser suite (196 passed after Task 6).
+- **NOT RUN — owner Lego file:** `C:\Dev\vsdx\Lego Infrastructure - v2.vsdx` is not present, so `LegoJunctionTests` returns without exercising the owner’s drawing.
+- **PASS — 60/60 deterministic Beautify searches:** 60 searched; max 80,000 expansions per search; 1,219,378 total expansions; max 47,200 grid cells; max estimated peak memory 6,317,119 bytes; 5,414 ms planner time.
+- **PASS — denser 60/90 deterministic workload:** 90 searched; max 80,000 expansions per search; 3,275,703 total expansions; max 71,896 grid cells; max estimated peak memory 8,418,364 bytes; 41,350 ms planner time. Both workloads stay within the 80,000 per-search cap.
+
+### Verification
+
+- `pnpm exec vitest run` — **725 passed** after the marker-loss regression was added.
+- `pnpm run typecheck`, `pnpm run generate:check`, and `pnpm run build` — **passed**. Build retains the existing maxgraph `eval` and large-chunk warnings. The full Playwright suite passed **196/196** after Task 6; Task 7 reran the three PSGL/Lego diagnostic tests and all passed.
+- `dotnet test Diagram.Portable.slnx --configuration Release` — **490 passed** across contract, IPC, MCP, host, and Visio projects.
+- `dotnet test tests/Diagram.Visio.Tests/Diagram.Visio.Tests.csproj --configuration Release --filter FullyQualifiedName~VisioAcceptanceTests` — **4 passed** using Microsoft Visio **16.0 build 20430**; exported files opened without repair and Visio save/reopen preserved the recorded identities and geometry.
+- `dotnet test tests/Diagram.Windows.Tests/Diagram.Windows.Tests.csproj --configuration Release --filter FullyQualifiedName~ReferenceFixtureRegressionTests` — **1 passed**.
+- The first full Windows solution run reported `FrameTests.ThirtyTwoMiBCap` failing because its process-wide allocation counter observed two allocations from concurrent tests. The test passed alone (1/1). The Windows UI test host then ran without results for about 12 minutes and was interrupted; the full Windows suite is therefore **NOT RUN to completion**.
+
+### Remaining acceptance limits
+
+The owner Lego VSDX file is unavailable here, and the full Windows UI suite did not complete. The targeted R05 and real-Visio checks passed. The broader editor/browser suite passed after Task 6; the final Task 7 web rerun passed 725/725.

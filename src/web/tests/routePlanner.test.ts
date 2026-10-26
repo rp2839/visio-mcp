@@ -83,6 +83,15 @@ describe('route planner', () => {
     expect(moved.changes.map(change => change.id)).not.toContain('ab');
   });
 
+  it('allows normal straightening when Visio import preserves advisory geometry but drops the Beautified marker', () => {
+    const importedAdvisory = [{ x: 100, y: 130 }, { x: 200, y: 130 }, { x: 200, y: 50 }, { x: 600, y: 50 }, { x: 600, y: 130 }, { x: 700, y: 130 }];
+    const imported = { ...conn('ab', 'a', 'b', {}, 'east', 'west'), routing: { advisory: importedAdvisory } } as unknown as Element;
+    const result = plan([shape('a', 0, 100), shape('b', 700, 100), imported]);
+    expect(pts(result, 'ab')).not.toEqual(importedAdvisory);
+    expect(pts(result, 'ab')).toEqual([{ x: 100, y: 130 }, { x: 700, y: 130 }]);
+    expect(result.routes.get('ab')!.provenance).not.toBe('beautified');
+  });
+
   it('repairs a blocked beautified route and leaves its engine marker on the document connector', () => {
     const route = [{ x: 100, y: 130 }, { x: 200, y: 130 }, { x: 200, y: 50 }, { x: 600, y: 50 }, { x: 600, y: 130 }, { x: 700, y: 130 }];
     const marked = { ...conn('ab', 'a', 'b', {}, 'east', 'west'), routing: { beautified: true, advisory: route } } as unknown as Element;
@@ -367,16 +376,16 @@ describe('aesthetic A* routing (R24)', () => {
 });
 
 /** A seeded 60-shape, 60-connector diagram: the stress case from the performance targets. */
-function stress(): Element[] {
+function stress(shapeCount = 60, connectorCount = 60): Element[] {
   let s = 12345;
   const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
   const els: Element[] = [];
   const id = (p: string, n: number) => `${p}${String(n).padStart(3, '0')}`;
-  for (let i = 0; i < 60; i++) els.push(shape(id('s', i), 40 + (i % 10) * 170, 40 + Math.floor(i / 10) * 130, 100, 60));
-  for (let i = 0; i < 60; i++) {
-    const a = Math.floor(rnd() * 60);
-    let b = Math.floor(rnd() * 60);
-    if (b === a) b = (b + 1) % 60;
+  for (let i = 0; i < shapeCount; i++) els.push(shape(id('s', i), 40 + (i % 10) * 170, 40 + Math.floor(i / 10) * 130, 100, 60));
+  for (let i = 0; i < connectorCount; i++) {
+    const a = Math.floor(rnd() * shapeCount);
+    let b = Math.floor(rnd() * shapeCount);
+    if (b === a) b = (b + 1) % shapeCount;
     els.push(conn(id('c', i), id('s', a), id('s', b)));
   }
   return els;
@@ -400,6 +409,24 @@ describe('route planner on the 60 shape, 60 connector diagram', () => {
     expect(maxExpanded).toBeLessThanOrEqual(80_000);
     expect(elapsedMs).toBeLessThan(30_000);
   }, 35_000);
+
+  it('bounds and reports every opt-in search in a denser 60/90 workload', () => {
+    const dense = stress(60, 90);
+    const started = performance.now();
+    const targets = new Set(dense.filter(e => e.kind === 'connector').map(e => e.id));
+    const result = planRoutes({ elements: dense, layers: [], pageArea: 1_000_000, beautifyTargets: targets, costProfile: 'aesthetic' });
+    const stats = [...(result.aestheticStats?.values() ?? [])];
+    const maxExpanded = Math.max(0, ...stats.map(s => s.expandedStates));
+    const totalExpanded = stats.reduce((n, s) => n + s.expandedStates, 0);
+    const maxGridCells = Math.max(0, ...stats.map(s => s.gridCells));
+    const maxPeakMemoryBytes = Math.max(0, ...stats.map(s => s.peakMemoryBytes));
+    const elapsedMs = performance.now() - started;
+    console.info('R24 60/90 aesthetic stats', { searched: stats.length, maxExpanded, totalExpanded, maxGridCells, maxPeakMemoryBytes, elapsedMs: Math.round(elapsedMs) });
+    expect(result.routes.size).toBe(90);
+    expect(stats.length).toBe(90);
+    expect(maxExpanded).toBeLessThanOrEqual(80_000);
+    expect(elapsedMs).toBeLessThan(60_000);
+  }, 65_000);
 
   it('baseline: fresh planning is deterministic and exact', async () => {
     const t0 = performance.now();

@@ -198,15 +198,15 @@
 **Interfaces:**
 - Produces: reproducible R24 acceptance evidence and a clear list of `PASS`, `FAIL`, or `NOT RUN` for real Visio and dense fixtures.
 
-- [ ] Compare ordinary-routing PSGL, Lego, R05 baselines and R26 expected diagnostics against the merged #90 baseline; no diagnostic threshold changes are expected.
-- [ ] Run `npm --prefix src/web test`, `npm --prefix src/web run typecheck`, `npm --prefix src/web run generate:check`, and `npm --prefix src/web run build`.
-- [ ] Run `dotnet test Diagram.Portable.slnx --configuration Release`; run `dotnet test Diagram.Windows.slnx --configuration Release` and real Visio acceptance separately when available.
-- [ ] Run the 60/60 and denser deterministic routing fixtures, record expanded-state counts, route changes, and preview wall-clock measurements; verify no route exceeds 80,000 expanded states.
-- [ ] Run native Visio import/export round-trip coverage with non-default crossing policy, priority, requiredSide and beautified marker. Confirm route geometry survives, identify the dropped metadata, and document that loss of the marker restores normal straightening behavior after import.
-- [ ] Record implementation commits, test totals, Visio round-trip behavior, manual Visio status and remaining dynamic-anchor/fan-out limits in `docs/m5/R24-aesthetic-routing.md` and issue #63.
+- [x] Compare ordinary-routing PSGL, Lego, R05 baselines and R26 expected diagnostics against the merged #90 baseline; no diagnostic threshold changes are expected.
+- [x] Run `npm --prefix src/web test`, `npm --prefix src/web run typecheck`, `npm --prefix src/web run generate:check`, and `npm --prefix src/web run build`.
+- [x] Run `dotnet test Diagram.Portable.slnx --configuration Release`; run `dotnet test Diagram.Windows.slnx --configuration Release` and real Visio acceptance separately when available.
+- [x] Run the 60/60 and denser deterministic routing fixtures, record expanded-state counts, route changes, and preview wall-clock measurements; verify no route exceeds 80,000 expanded states.
+- [x] Run native Visio import/export round-trip coverage with non-default crossing policy, priority, requiredSide and beautified marker. Confirm route geometry survives, identify the dropped metadata, and document that loss of the marker restores normal straightening behavior after import.
+- [x] Record implementation commits, test totals, Visio round-trip behavior, manual Visio status and remaining dynamic-anchor/fan-out limits in `docs/m5/R24-aesthetic-routing.md` and issue #63.
 
-- [ ] Run full web and portable .NET suites again if any preceding edit changes code; commit `test: record R24 aesthetic routing evidence`.
-- [ ] **Review checkpoint 3:** stop for final user review after the complete regression suite, Visio round-trip, and evidence commit.
+- [x] Run full web and portable .NET suites again if any preceding edit changes code; commit `test: record R24 aesthetic routing evidence`.
+- [x] **Review checkpoint 3:** stop for final user review after the complete regression suite, Visio round-trip, and evidence commit.
 
 ## Self-review
 
