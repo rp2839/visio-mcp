@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS  Builds a release package: artifacts\dist\AgenticDiagram-<version>.zip with the app, the MCP companion and the install scripts.
-.EXAMPLE   pwsh -File tools/installer/package.ps1 -Version 0.2.0
+.EXAMPLE   pwsh -File tools/installer/package.ps1 -Version 0.2.1
 .NOTES     The package is not signed. Signing needs a code-signing certificate: pass -SignWith <thumbprint> where signtool.exe is installed.
 #>
 param(

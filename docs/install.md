@@ -49,10 +49,10 @@ These run `claude mcp add diagram --scope user -- <exe>` and `codex mcp add diag
 ## Building a package
 
 ```powershell
-pwsh -File tools/installer/package.ps1 -Version 0.2.0
+pwsh -File tools/installer/package.ps1 -Version 0.2.1
 ```
 
-It needs a `## 0.2.0` section in `RELEASE-NOTES.md`, builds the web UI, publishes the app and companion with that version (the About box shows it), and writes `artifacts/dist/AgenticDiagram-0.2.0.zip` and its `.sha256`. `-SignWith <thumbprint>` signs the app and companion binaries with `signtool.exe` if you have a certificate.
+It needs a `## 0.2.1` section in `RELEASE-NOTES.md`, builds the web UI, publishes the app and companion with that version (the About box shows it), and writes `artifacts/dist/AgenticDiagram-0.2.1.zip` and its `.sha256`. `-SignWith <thumbprint>` signs the app and companion binaries with `signtool.exe` if you have a certificate.
 
 `tools/installer/test-installer.ps1` checks install, update, rollback, the running-app guard, MCP commands (dry run) and uninstall in a scratch folder and a scratch registry key, touching nothing of a real install.
 
