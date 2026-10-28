@@ -57,18 +57,24 @@ describe('workspace: several documents in one page', () => {
     expect(events(toHost, 'editor.committed').map(e => e.documentId)).toEqual([bg.documentId]); // journalled under its own document
   });
 
-  it('a person dragging in the active document holds agent edits to it, but not edits to a background document', async () => {
+  it('a person dragging a shape holds agent edits to that shape only, and not edits to a background document', async () => {
     const app = startApp(fakeWebView().wv, null);
     const background = app.openDocument({ activate: false });
+    const edit = (scope: { documentId: string; sessionId: string }, base: number, operations: object[]) =>
+      call(app, 'doc.apply', scope, { transactionId: crypto.randomUUID(), baseRevision: base, atomic: true, operations });
+    const create = (alias: string) => ({ op: 'createShape', alias, bounds: { x: 10, y: 10, width: 40, height: 20 } });
+    const made = await edit(app.engine.scope(), 0, [create('mine'), create('other')]);
+    expect(made.error).toBeUndefined();
+    const mine = app.engine.store.snapshot().document.pages[0]!.elements.find(e => e.alias === 'mine')!.id;
     app.router.setGestureActive(true);
-    const edit = (scope: { documentId: string; sessionId: string }, base: number) =>
-      call(app, 'doc.apply', scope, { transactionId: crypto.randomUUID(), baseRevision: base, atomic: true, operations: [{ op: 'createShape', alias: crypto.randomUUID().slice(0, 8), bounds: { x: 10, y: 10, width: 40, height: 20 } }] });
-    const bg = await edit(background.engine.scope(), 0);
-    expect(bg.error).toBeUndefined(); // not held
+    app.engine.holdElements(1, 'move', [mine]);
+    expect((await edit(background.engine.scope(), 0, [create('bg')])).error).toBeUndefined(); // another document: not held
+    expect((await edit(app.engine.scope(), 1, [{ op: 'move', target: 'other', delta: { xPt: 5, yPt: 0 } }])).error).toBeUndefined(); // another shape: not held
     let settled = false;
-    const held = edit(app.engine.scope(), 0).then(r => { settled = true; return r; });
+    const held = edit(app.engine.scope(), 2, [{ op: 'move', target: 'mine', delta: { xPt: 5, yPt: 0 } }]).then(r => { settled = true; return r; });
     await new Promise(r => setTimeout(r, 30));
-    expect(settled).toBe(false); // the active document's edit waits for the gesture to end
+    expect(settled).toBe(false); // the shape being dragged waits for the gesture to end
+    app.engine.releaseElements(1);
     app.router.setGestureActive(false);
     expect((await held).error).toBeUndefined();
   });

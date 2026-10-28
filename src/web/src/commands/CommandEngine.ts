@@ -14,6 +14,7 @@ import { settleAttachments } from './attachments';
 import { settleRoutes } from './routes';
 import { settleJoins } from './joins';
 import { planPatch } from './planPatch';
+import { lockedChanges, type ElementLock } from './elementLocks';
 import { readDocumentDefaults } from '../model/documentDefaults';
 import { planRoutes } from '../layout/routePlanner';
 
@@ -71,6 +72,8 @@ export interface EngineStatus {
  */
 export class CommandEngine {
   readonly store: DocumentStore;
+  /** What the person's gestures in progress protect. An agent edit that would change any of it is refused; the person's own edits never are. */
+  private readonly locks = new Map<number, ElementLock>();
   private readonly newId: () => string;
   private readonly newSessionId: () => string;
   private history: History;
@@ -145,6 +148,11 @@ export class CommandEngine {
     return ok(undefined);
   }
 
+  // ------------------------------------------------------------------ element locks
+  holdElements(token: number, kind: string, ids: readonly string[]): void { this.locks.set(token, { token, kind, ids }); }
+  releaseElements(token: number): void { this.locks.delete(token); }
+  get heldLocks(): readonly ElementLock[] { return [...this.locks.values()]; }
+
   // ------------------------------------------------------------------ mutations
   execute(req: MutationRequest, source: TransactionSource | 'gui' | 'script' | 'mcp'): Promise<Result<TransactionResult>> {
     const v = validateMutationRequest(req);
@@ -179,6 +187,8 @@ export class CommandEngine {
   }
 
   /** The newest transaction summaries (including undo and redo records), newest last. A read: it does not enter the queue. */
+  /** Summaries of everything committed after `revision`, or null when the log no longer reaches back that far. */
+  changesSince(revision: number): TransactionSummary[] | null { return this.history.since(revision); }
   recentTransactions(limit = 50): TransactionSummary[] { return this.history.recent(limit); }
 
   /** The transaction an undo would take back now, if any. Only this one can be undone: there is no selective undo across later changes. */
@@ -244,6 +254,15 @@ export class CommandEngine {
     }
     const plan = settleAttachments(before.document, routed, this.snapshotProjector, snapshotOf);
     const previousRevision = before.revision;
+
+    if (!plan.noChange && source !== 'gui' && this.locks.size) {
+      const lockedIds = lockedChanges(this.locks.values(), before.document, plan.forward);
+      if (lockedIds.length) {
+        return fail('busy_user_editing', 'the person is editing part of what this would change; change other elements, or try again in a moment', {
+          retryable: true, outcome: 'none', details: { lockedIds },
+        });
+      }
+    }
 
     if (plan.noChange) {
       const result = this.resultOf(req.transactionId, previousRevision, previousRevision, plan, 'applied');

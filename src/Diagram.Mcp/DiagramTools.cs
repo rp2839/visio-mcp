@@ -187,7 +187,7 @@ public sealed class DiagramTools(PipeClient app)
         return Finish(await Send("docs.importVisio", null, null, Obj(("path", path)), Export, ct));
     }
 
-    [McpServerTool(Name = "show_document"), Description("Puts an open document in front of the person: a document in an editor tab is switched to; one made in the background is moved into the editor window as a new tab and gets a new sessionId (read it from the result). Refused with busy_user_editing while the person is in the middle of dragging or typing: wait a moment and try again. Nothing is saved or exported by this.")]
+    [McpServerTool(Name = "show_document"), Description("Puts an open document in front of the person: a document in an editor tab is switched to; one made in the background is moved into the editor window as a new tab and gets a new sessionId (read it from the result). Refused with busy_user_editing while the person is in the middle of dragging or typing and the view would have to change: wait a moment and try again. A tab that is already in front is simply reported as shown. Nothing is saved or exported by this.")]
     public async Task<CallToolResult> ShowDocument(
         [Description("The documentId from list_documents or create_document.")] string documentId,
         CancellationToken ct = default)
@@ -208,7 +208,7 @@ public sealed class DiagramTools(PipeClient app)
         return Finish(await Send("doc.getObjects", documentId, sessionId, Obj(("ids", new JsonArray(ids.Select(i => (JsonNode)JsonValue.Create(i)!).ToArray())), ("pageId", pageId)), Read, ct));
     }
 
-    [McpServerTool(Name = "apply_operations"), Description("Applies a batch of typed operations as one atomic transaction at baseRevision. Call get_operation_schema first for operation schemas and examples, including text/style fields, units and targeting rules. If the document changed since baseRevision the call fails with revision_conflict and changes nothing. You supply the transactionId: retrying with the same id and payload returns the original result instead of applying twice. " + Identity)]
+    [McpServerTool(Name = "apply_operations"), Description("Applies a batch of typed operations as one atomic transaction at baseRevision. Call get_operation_schema first for operation schemas and examples, including text/style fields, units and targeting rules. If the document changed since baseRevision the call fails with revision_conflict and changes nothing. You supply the transactionId: retrying with the same id and payload returns the original result instead of applying twice. While the person is dragging or typing, only what they are working on is protected (a text edit locks that element's text; a drag locks that shape's size, position and attached connectors): other edits go through, and one that would change protected parts is refused with busy_user_editing and details.lockedIds, so change other elements or retry shortly. " + Identity)]
     public async Task<CallToolResult> ApplyOperations(
         [Description("The document id from get_document_summary.")] string documentId,
         [Description("The session id from get_document_summary.")] string sessionId,

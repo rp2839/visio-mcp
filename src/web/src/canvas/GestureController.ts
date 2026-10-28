@@ -16,6 +16,7 @@ export interface GestureToken {
 }
 
 let tokenCounter = 0;
+const ELEMENT_KINDS: ReadonlySet<GestureKind> = new Set(['move', 'resize', 'rotate', 'bend', 'text']);
 const GESTURE_KINDS: ReadonlySet<GestureKind> = new Set(['guide', 'move', 'resize', 'rotate', 'bend', 'text']);
 
 /**
@@ -43,6 +44,7 @@ export class GestureController {
     const token: GestureToken = { id: ++tokenCounter, kind, scope, ids, startSnapshot, startRevision: startSnapshot.revision };
     const wasActive = this.isActive();
     this.current = { token, operations: [], previewSnapshot: null };
+    if (GESTURE_KINDS.has(kind)) this.engine.holdElements(token.id, kind, ids); // an agent can still edit everything else
     if (!wasActive && this.isActive()) this.onGestureState(true);
     return token;
   }
@@ -64,6 +66,7 @@ export class GestureController {
     if (!cur) return fail('invalid_request', 'this gesture is no longer current');
     const operations = cur.operations;
     this.finish(token);
+    const baseRevision = this.rebasedRevision(token);
     if (!operations.length) {
       const empty: TransactionResult = {
         transactionId: this.newTransactionId(), previousRevision: token.startRevision, revision: this.engine.revision, noChange: true,
@@ -73,12 +76,28 @@ export class GestureController {
       return ok(empty);
     }
     const result = await this.engine.execute({
-      ...token.scope, transactionId: this.newTransactionId(), baseRevision: token.startRevision, atomic: true, operations,
+      ...token.scope, transactionId: this.newTransactionId(), baseRevision, atomic: true, operations,
     }, 'gui');
     if (!result.ok) this.onDiscard(result.error.code === 'revision_conflict'
       ? 'The document changed while you were editing, so your change was discarded.'
       : result.error.message);
     return result;
+  }
+
+  /**
+   * An agent may have edited other parts of the document while the person was dragging or typing. Their gesture was planned against the
+   * revision it started from; it still applies if nothing committed since touched the elements it names. Otherwise the stale revision is
+   * kept, so the engine reports the conflict and the change is discarded rather than applied over newer work.
+   */
+  private rebasedRevision(token: GestureToken): number {
+    const now = this.engine.revision;
+    if (now === token.startRevision) return now;
+    if (!token.ids.length || !ELEMENT_KINDS.has(token.kind)) return token.startRevision; // not about named elements (a guide, say): no way to tell what overlaps
+    const since = this.engine.changesSince(token.startRevision);
+    if (!since) return token.startRevision;
+    const mine = new Set(token.ids);
+    const touched = since.some(s => [...s.changed, ...s.deleted].some(id => mine.has(id)));
+    return touched ? token.startRevision : now;
   }
 
   cancel(token: GestureToken): void {
@@ -93,6 +112,7 @@ export class GestureController {
     if (!this.owned(token)) return;
     const wasActive = this.isActive();
     this.current = null;
+    this.engine.releaseElements(token.id);
     if (wasActive) this.onGestureState(false);
   }
 

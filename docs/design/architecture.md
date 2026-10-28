@@ -147,6 +147,16 @@ outcome not_applied, releasing following requests. Already-admitted mutations ca
 still invalidate a newly started gesture; discard that preview with a clear status
 message as a backstop. Lifecycle barriers explicitly cancel uncommitted gestures.
 
+**Element locks (granular co-editing).** The interlock above applies in full only to scripts, undo and redo, whose effects cannot be
+known beforehand. For `doc.apply` the gate dispatches at once and the command engine decides: each gesture in progress registers a
+lock (`CommandEngine.holdElements`), and an external edit whose resolved diff would change a protected element is refused with
+`busy_user_editing` and `details.lockedIds`; the gate then waits for the gesture to end and retries until the 3 s deadline. A text
+edit protects that element's text (a connector's label) and nothing else. A move, resize, rotate or bend protects the element's
+bounds, rotation, outline, the members of a group, and the ends and route of every connector attached to it; deleting a protected
+element always conflicts. Created elements and everything else stay editable. The person's own edits are never refused. A person's
+gesture commit that finds the revision moved is rebased onto the current revision when nothing committed since touched its element ids
+(`GestureController.rebasedRevision`); gestures that name no elements (guides) keep the discard-on-conflict rule.
+
 Semantic reads capture a snapshot after preceding accepted mutations. Rendering
 labels that snapshot's revision even if later commits occur during rasterisation.
 Save/export takes a snapshot of revision R, completes IO independently and reports R;

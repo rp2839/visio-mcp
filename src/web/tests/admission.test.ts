@@ -166,3 +166,41 @@ describe('admission gate', () => {
     expect(status.error).toBeUndefined();
   });
 });
+
+describe('admission gate with element locks', () => {
+  it('lets an edit to other elements through at once, and holds one that changes the person\'s element until the gesture ends', async () => {
+    const t = createTestEngine();
+    const router = createRequestRouter(t.engine);
+    const controller = new GestureController(t.engine);
+    controller.onGestureState = a => router.setGestureActive(a);
+    const [mine, other] = t.ids.shapes as [string, string];
+    const send = (id: string, target: string, base: number) => router.dispatch({
+      protocolVersion: 1, kind: 'request', requestId: id, method: 'doc.apply', ...t.scope(), origin: { source: 'mcp', connectionId: 'c1' },
+      params: { transactionId: crypto.randomUUID(), baseRevision: base, atomic: true, operations: [{ op: 'move', target, delta: { xPt: 5, yPt: 0 } }] },
+    });
+    const token = controller.begin('move', t.scope(), [mine]);
+    expect((await send('free', other, 0)).error).toBeUndefined(); // no 3 s wait
+    let settled = false;
+    const blocked = send('held', mine, 1).then(r => { settled = true; return r; });
+    await advanceMs(500);
+    expect(settled).toBe(false);
+    controller.preview(token, []);
+    await controller.commit(token); // gesture ends: the held edit is tried again
+    expect((await blocked).error).toBeUndefined();
+  });
+
+  it('refuses with busy_user_editing and the locked ids once the deadline passes', async () => {
+    const t = createTestEngine();
+    const router = createRequestRouter(t.engine);
+    const controller = new GestureController(t.engine);
+    controller.onGestureState = a => router.setGestureActive(a);
+    const mine = t.ids.shape;
+    controller.begin('text', t.scope(), [mine]);
+    const held = router.dispatch({
+      protocolVersion: 1, kind: 'request', requestId: 'x', method: 'doc.apply', ...t.scope(), origin: { source: 'mcp', connectionId: 'c1' },
+      params: { transactionId: crypto.randomUUID(), baseRevision: 0, atomic: true, operations: [{ op: 'set', target: mine, patch: { text: { value: 'x' } } }] },
+    });
+    await advanceMs(3100);
+    expect((await held).error).toMatchObject({ code: 'busy_user_editing', retryable: true, details: { lockedIds: [mine] } });
+  });
+});

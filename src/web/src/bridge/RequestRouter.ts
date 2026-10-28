@@ -14,6 +14,7 @@ export function createRequestRouter(source: CommandEngine | EngineResolver, opts
   const gate = new AdmissionGate(handler, {
     scope: () => resolve(undefined)?.scope() ?? null,
     scopeOf: documentId => resolve(documentId)?.scope() ?? null,
+    granularApply: true,
     ...(opts.isActive ? { isActive: opts.isActive } : {}),
   });
   return {

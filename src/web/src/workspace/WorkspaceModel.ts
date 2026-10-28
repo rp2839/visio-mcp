@@ -425,6 +425,7 @@ export class WorkspaceModel {
   activateById(documentId: string): Result<{ activated: string }> {
     const tab = this.tabs.find(t => t.engine.scope().documentId === documentId);
     if (!tab) return fail('document_mismatch', 'that document is not open in the window', { outcome: 'none' });
+    if (tab === this.active) return ok({ activated: documentId }); // already showing: nothing to switch, so a gesture in progress is no reason to refuse
     if (this.preferences.dialogOpen || this.isBusy()) return fail('busy_user_editing', 'the person is editing; try again in a moment', { retryable: true, outcome: 'none' });
     this.activate(tab);
     return ok({ activated: documentId });

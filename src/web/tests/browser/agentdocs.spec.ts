@@ -45,8 +45,8 @@ test('it is refused while the person is mid-gesture, and an invalid document is 
   expect(await page.evaluate(() => (window as any).__editor.gestureActive())).toBe(true);
   const busy = await app(page, 'app.adoptDocument', { document: await agentDocument(page, '00000000-0000-4000-8000-0000000000d7'), activate: true });
   expect(busy.error?.code).toBe('busy_user_editing');
-  const busyShow = await app(page, 'app.activateDocument', { documentId: (await tabs(page))[0]!.documentId });
-  expect(busyShow.error?.code).toBe('busy_user_editing');
+  const alreadyShowing = await app(page, 'app.activateDocument', { documentId: (await tabs(page))[0]!.documentId });
+  expect(alreadyShowing.error).toBeUndefined(); // the tab is already in front, so there is nothing to switch and nothing to refuse
   await page.mouse.up();
   expect(await tabs(page)).toHaveLength(1); // nothing was opened
   const bad = await app(page, 'app.adoptDocument', { document: { nonsense: true }, activate: true });

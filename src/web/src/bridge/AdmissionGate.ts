@@ -12,6 +12,12 @@ export interface GateOptions {
   scopeOf?: (documentId: string) => Scope | null;
   /** Whether the named document is the one the person is working in. The user-gesture hold applies only to that one; default: yes. */
   isActive?: (documentId: string | undefined) => boolean;
+  /**
+   * Let `doc.apply` through while a gesture is in progress and rely on the engine to refuse only an edit that would change what the
+   * gesture protects. Such a refusal is held and retried until the gesture ends or the deadline passes. Scripts, undo and redo cannot be
+   * checked beforehand, so they are still held for any gesture. Default: off (every mutation is held).
+   */
+  granularApply?: boolean;
   holdMs?: number;
   maxPending?: number;
 }
@@ -77,6 +83,9 @@ export class AdmissionGate {
       try {
         const rejected = this.checkScope(envelope);
         if (rejected) return rejected;
+        if (mutation && this.gestureActive && this.opts.granularApply && envelope.method === 'doc.apply' && (this.opts.isActive?.(envelope.documentId) ?? true)) {
+          return await this.applyAroundGestures(envelope, arrival, admitted);
+        }
         if (mutation && this.gestureActive && (this.opts.isActive?.(envelope.documentId) ?? true)) {
           const timedOut = await this.holdUntilFree(this.holdMs - (Date.now() - arrival));
           if (timedOut) return error(id, { code: 'busy_user_editing', message: 'the user is editing; try again in a moment', retryable: true, outcome: 'none' });
@@ -93,6 +102,20 @@ export class AdmissionGate {
       }
     });
     return run;
+  }
+
+  /** Dispatches an edit now. If the engine says it would change something the person is working on, wait for the gesture to end and try again, up to the deadline. */
+  private async applyAroundGestures(envelope: RequestEnvelope, arrival: number, admitted: () => void): Promise<ResponseEnvelope> {
+    for (;;) {
+      const result = this.dispatch(envelope);
+      admitted();
+      const response = await result;
+      if (response.error?.code !== 'busy_user_editing' || !this.gestureActive) return response;
+      const timedOut = await this.holdUntilFree(this.holdMs - (Date.now() - arrival));
+      if (timedOut) return response; // the answer names the locked ids, so the caller can work elsewhere
+      const again = this.checkScope(envelope);
+      if (again) return again;
+    }
   }
 
   private checkScope(env: RequestEnvelope): ResponseEnvelope | null {

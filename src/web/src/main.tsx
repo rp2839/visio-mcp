@@ -104,7 +104,8 @@ function configure(model: EditorModel, state: DocumentState): void {
 const firstModel = new EditorModel(engine);
 ws = new WorkspaceModel(app, firstModel);
 app.preferences.onSaved = saved => { applyChromeTheme(saved.theme); ws!.applyPreferencesUnits(saved.units); };
-app.preferences.subscribe(() => router?.setGestureActive(app.preferences.dialogOpen));
+let dialogWasOpen = false; // only an opening or closing counts: any other preferences change must not clear a drag or text edit in progress
+app.preferences.subscribe(() => { const open = app.preferences.dialogOpen; if (open !== dialogWasOpen) { dialogWasOpen = open; router?.setGestureActive(open); } });
 ws.configure = configure;
 ws.isBusy = () => !!router?.isGestureActive();
 ws.host = hostApi(host);
