@@ -379,7 +379,7 @@ public sealed class DiagramTools(PipeClient app)
         return Finish(await Send("doc.changes", documentId, sessionId, Obj(("sinceRevision", sinceRevision)), Read, ct));
     }
 
-    [McpServerTool(Name = "export_document"), Description("Exports the document as vsdx (editable Visio), svg, png or jpeg. The file is written inside the open document's folder or the application's export folder; the result gives its path, and for vsdx lists anything Visio could not hold. " + Identity)]
+    [McpServerTool(Name = "export_document"), Description("Exports the document as vsdx (editable Visio), svg, png or jpeg. The file is written inside the open document's folder or the application's export folder; the result gives its path, and for vsdx lists anything Visio could not hold. Works on any open document, active tab or not. " + Identity)]
     public async Task<CallToolResult> ExportDocument(
         [Description("The document id from get_document_summary.")] string documentId,
         [Description("The session id from get_document_summary.")] string sessionId,

@@ -110,6 +110,34 @@ public class AgentViewTests
     }
 
     [Fact]
+    public async Task AnyOpenDocumentCanBeExportedNotJustTheActiveTab()
+    {
+        var exports = Path.Combine(Path.GetTempPath(), "export-bg-" + Guid.NewGuid().ToString("N")); Directory.CreateDirectory(exports);
+        try
+        {
+            await using var h = await Harness.StartAsync(exportRoot: exports);
+            await WaitFor(() => h.Window.RecoveryMgr.SessionId == h.Router.CurrentScope?.SessionId);
+            var bg = await CreateAsync(h, "Pipeline");
+            Assert.NotEqual(bg.DocumentId, h.Router.CurrentScope!.DocumentId);
+            RequestEnvelope Export(Scope s, string format, string path, string? session = null) => new()
+            {
+                RequestId = Guid.NewGuid().ToString(), Method = "doc.export", DocumentId = s.DocumentId, SessionId = session ?? s.SessionId,
+                Params = new JsonObject { ["format"] = format, ["path"] = path },
+            };
+            foreach (var (format, name) in new[] { ("vsdx", "background.vsdx"), ("png", "background.png") })
+            {
+                var r = await h.Window.Exports.HandleAsync(Export(bg, format, name), Harness.Ct(60));
+                Assert.Null(r.Error);
+                Assert.True(File.Exists(Path.Combine(exports, name)));
+            }
+            // a stale session or an unknown document is still refused
+            Assert.Equal("session_mismatch", (await h.Window.Exports.HandleAsync(Export(bg, "vsdx", "stale.vsdx", "old-session"), Harness.Ct(30))).Error!.Code);
+            Assert.Equal("document_mismatch", (await h.Window.Exports.HandleAsync(Export(new Scope { DocumentId = "nope", SessionId = "x" }, "vsdx", "none.vsdx"), Harness.Ct(30))).Error!.Code);
+        }
+        finally { try { Directory.Delete(exports, true); } catch (IOException) { } }
+    }
+
+    [Fact]
     public async Task ListShowsEveryDocumentAndWhereItLives()
     {
         await using var h = await StartAsync();

@@ -15,10 +15,12 @@ namespace Diagram.App;
 public sealed partial class ExportService
 {
     readonly MainWindow window;
+    readonly IExportConsent? consent;
 
     public ExportService(MainWindow window, string exportRoot, IExportConsent? consent = null)
     {
         this.window = window;
+        this.consent = consent;
         Policy = new ExportPathPolicy(exportRoot,
             () => window.Services?.CurrentPath is { } p && Path.GetDirectoryName(p) is { Length: > 0 } dir ? [Path.GetFullPath(dir)] : [],
             () => window.Router.CurrentScope, consent);
@@ -38,9 +40,9 @@ public sealed partial class ExportService
             new() { RequestId = request.RequestId, Error = new AppError { Code = code, Message = message, Retryable = retryable, Details = details } };
         ResponseEnvelope Err2(AppError e) => new() { RequestId = request.RequestId, Error = e };
 
-        var scope = window.Router.CurrentScope;
-        if (scope is null) return Err("not_ready", "the editor has not signalled ready", retryable: true);
-        if (request.DocumentId != scope.DocumentId) return Err("document_mismatch", "the document is not the open one");
+        // Any open document can be exported, not just the active tab: the request names the document and session, and the router knows whether that pair is still open.
+        if (window.Router.Documents.Count == 0) return Err("not_ready", "the editor has not signalled ready", retryable: true);
+        if (request.DocumentId is not { } documentId || window.Router.ScopeOf(documentId) is not { } scope) return Err("document_mismatch", "the document is not the open one");
         if (request.SessionId != scope.SessionId) return Err("session_mismatch", "the session is not the current one");
         var format = request.Params["format"]?.GetValue<string>() ?? "";
         var requested = request.Params["path"]?.GetValue<string>();
@@ -49,11 +51,15 @@ public sealed partial class ExportService
         // the snapshot barrier gives the title and revision this export will be labelled with
         var snap = await window.Router.SnapshotAsync(scope, ct);
         if (!snap.IsOk) return Err2(snap.Error!);
-        var dest = await Policy.ResolveAsync(requested, format, snap.Value.Document.Title, scope, snap.Value.Revision, "MCP client", ct);
+        // the document's own folder is approved, and the destination is rechecked against this document staying open (it need not be the active tab)
+        var policy = new ExportPathPolicy(ExportRoot,
+            () => window.Services?.PathOf(documentId) is { } p && Path.GetDirectoryName(p) is { Length: > 0 } dir ? [Path.GetFullPath(dir)] : [],
+            () => window.Router.ScopeOf(documentId), consent);
+        var dest = await policy.ResolveAsync(requested, format, snap.Value.Document.Title, scope, snap.Value.Revision, "MCP client", ct);
         if (!dest.IsOk) return Err2(dest.Error!);
         var path = Result<string>.Ok(dest.Value.Path);
         Directory.CreateDirectory(Path.GetDirectoryName(path.Value)!);
-        Result<Unit> Revalidate() { var again = Policy.Revalidate(dest.Value, scope); return again.IsOk ? Result<Unit>.Ok(default) : Result<Unit>.Fail(again.Error!); }
+        Result<Unit> Revalidate() { var again = policy.Revalidate(dest.Value, scope); return again.IsOk ? Result<Unit>.Ok(default) : Result<Unit>.Fail(again.Error!); }
 
         if (format == "vsdx")
         {
