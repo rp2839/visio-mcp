@@ -22,7 +22,7 @@ This record is for live observations of one identified build, made by a person o
 | Display resolution and scaling | NOT RUN |
 | Evidence directory / links | NOT RUN |
 
-Record the exact commit used for the running application, or write "unknown". Do not substitute the latest repository commit if the tested binary was built from another revision. If the operator or method differs between rows, record it in the row.
+Record the exact commit used for the running application, or write "unknown"; a row whose build is unknown cannot be PASS. Do not substitute the latest repository commit if the tested binary was built from another revision. If the operator or method differs between rows, record it in the row.
 
 ## Result rules
 
@@ -30,7 +30,7 @@ Use exactly one result for each row: PASS means the named operator (a person, or
 
 Do not mark an item PASS based only on unattended or deterministic automation (browser or prerecorded UI test suites, replayed input, COM or object-model driving), generated screenshots, or a previous acceptance session. An operator directing the mouse and keyboard, including through a tool or small script such as a remote-desktop client, while inspecting screen captures during the interaction is live operation.
 
-Where a pass condition is a subjective aesthetic judgment, the operator records what was observed and a person makes the judgment; leave the row NOT RUN until they have.
+Where a pass condition is a subjective aesthetic judgment, the operator records what was observed and a person makes the judgment; leave the row NOT RUN until they have, then record who decided, when, and what they were shown.
 
 ## A. Editor interaction
 
