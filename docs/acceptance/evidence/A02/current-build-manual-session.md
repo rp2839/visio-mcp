@@ -60,7 +60,7 @@ Use a disposable drawing and preserve the original export.
 
 | ID | Manual action | Pass condition | Result | Observation / evidence |
 |---|---|---|---|---|
-| A02-11 | Export to VSDX and open in the installed Visio UI | Visio opens the export with no repair prompt. A repair prompt fails this step and WA-02; record its exact text | NOT RUN | |
+| A02-11 | Export to VSDX and open in the installed Visio UI | Record whether a repair prompt appears; capture exact text if present | NOT RUN | |
 | A02-12 | Edit text, fill and position of supported exported shapes in Visio | Supported objects are editable and edits are visible | NOT RUN | |
 | A02-13 | Move a shape connected by a glued connector | Connector remains attached at both ends and follows the shape | NOT RUN | |
 | A02-14 | Save the drawing in Visio under a new filename | Save completes; warnings and compatibility prompts are recorded | NOT RUN | |
