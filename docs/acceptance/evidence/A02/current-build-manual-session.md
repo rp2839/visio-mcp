@@ -28,7 +28,7 @@ Record the exact commit used for the running application, or write "unknown"; a 
 
 Use exactly one result for each row: PASS means the named operator (a person, or an agent operating the live system) performed the interaction on the identified build and observed the stated outcome; FAIL means it was performed and did not meet the condition; NOT RUN means it was not performed, the required application was unavailable, or evidence is insufficient. Put the operator, method and any uncertainty in the observation column; if an outcome was inferred rather than seen, say so.
 
-Do not mark an item PASS based only on unattended or deterministic automation (browser or prerecorded UI test suites, replayed input, COM or object-model driving), generated screenshots, or a previous acceptance session. An operator directing the mouse and keyboard, including through a tool or small script such as a remote-desktop client, while inspecting screen captures during the interaction is live operation.
+Do not mark an item PASS based only on unattended or deterministic automation (browser or prerecorded UI test suites, replayed input, COM or object-model driving), generated screenshots, or a previous acceptance session. An operator directing the mouse and keyboard, including through a tool or small script such as a remote-desktop client, while looking at the screen during the interaction (captures are one way) is live operation.
 
 Where a pass condition is a subjective aesthetic judgment, the operator records what was observed and a person makes the judgment; leave the row NOT RUN until they have, then record who decided, when, and what they were shown.
 
