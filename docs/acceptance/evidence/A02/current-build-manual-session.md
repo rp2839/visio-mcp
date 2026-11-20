@@ -30,6 +30,8 @@ Use exactly one result for each row: PASS means the named operator (a person, or
 
 Do not mark an item PASS based only on results nobody visually assessed (automated assertions, API, COM or object-model output read as data, unattended or prerecorded test runs, generated screenshots) or on a previous acceptance session. An operator who uses the running application by mouse and keyboard, a command, a tool or an API call and visually assesses the result on screen, directly or through captures, has made a live check.
 
+Perform the action a row names (a drag, an edit commit); setup can use any method, but an API state change does not stand in for the action. A capture of the live desktop is evidence of the visible UI; an image the application renders itself alone is not. Opening a file with Visio's alerts suppressed cannot show that no repair prompt appeared.
+
 Where a pass condition is a subjective aesthetic judgment, the operator records what was observed and a person makes the judgment; leave the row NOT RUN until they have, then record who decided, when, and what they were shown.
 
 ## A. Editor interaction
