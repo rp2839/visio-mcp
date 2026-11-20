@@ -3,7 +3,7 @@
 Status: NOT RUN  
 Issue: https://github.com/rp2839/visio-mcp/issues/15
 
-This record is for live observations of one identified build, made by a person or by an agent operating the live system under the [live acceptance policy](../../definition-of-done.md#live-acceptance-policy). Automated tests and historical M0 G1 results are supporting evidence only; they do not satisfy this current-build manual session.
+This record is for live observations of one identified build, made by a person or by an agent on the live system under the [live acceptance policy](../../definition-of-done.md#live-acceptance-policy). Automated tests and historical M0 G1 results are supporting evidence only; they do not satisfy this current-build manual session.
 
 ## Session identity
 
@@ -26,9 +26,9 @@ Record the exact commit used for the running application, or write "unknown"; a 
 
 ## Result rules
 
-Use exactly one result for each row: PASS means the named operator (a person, or an agent operating the live system) performed the interaction on the identified build and observed the stated outcome; FAIL means it was performed and did not meet the condition; NOT RUN means it was not performed, the required application was unavailable, or evidence is insufficient. Put the operator, method and any uncertainty in the observation column; if an outcome was inferred rather than seen, say so.
+Use exactly one result for each row: PASS means the named operator (a person, or an agent on the live system) performed the interaction on the identified build and observed the stated outcome; FAIL means it was performed and did not meet the condition; NOT RUN means it was not performed, the required application was unavailable, or evidence is insufficient. Put the operator, method and any uncertainty in the observation column; if an outcome was inferred rather than seen, say so.
 
-Do not mark an item PASS based only on unattended or deterministic automation (browser or prerecorded UI test suites, replayed input, COM or object-model driving), generated screenshots, or a previous acceptance session. An operator directing the mouse and keyboard, including through a tool or small script such as a remote-desktop client, while looking at the screen during the interaction (captures are one way) is live operation.
+Do not mark an item PASS based only on results nobody visually assessed (automated assertions, API, COM or object-model output read as data, unattended or prerecorded test runs, generated screenshots) or on a previous acceptance session. An operator who uses the running application by mouse and keyboard, a command, a tool or an API call and visually assesses the result on screen, directly or through captures, has made a live check.
 
 Where a pass condition is a subjective aesthetic judgment, the operator records what was observed and a person makes the judgment; leave the row NOT RUN until they have, then record who decided, when, and what they were shown.
 
@@ -102,6 +102,6 @@ For each failure, record the step ID, reproduction steps, expected and actual re
 - Date: NOT RUN
 - Commit/build tested: NOT RUN
 - Manual session complete: NO
-- Remaining limitations: All steps remain NOT RUN until they are performed and recorded on the current build by a person or by an agent operating the live system.
+- Remaining limitations: All steps remain NOT RUN until they are performed and recorded on the current build by a person or by an agent on the live system.
 
 This template is not evidence of a successful manual acceptance pass. Update rows only from the operator's direct observations.
