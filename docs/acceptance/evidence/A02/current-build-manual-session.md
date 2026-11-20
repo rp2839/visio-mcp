@@ -3,7 +3,7 @@
 Status: NOT RUN  
 Issue: https://github.com/rp2839/visio-mcp/issues/15
 
-This record is for live observations of one identified build, made by a person or by an agent on the live system under the [live acceptance policy](../../definition-of-done.md#live-acceptance-policy). Automated tests and historical M0 G1 results are supporting evidence only; they do not satisfy this current-build manual session.
+This record is for live observations of one identified build, made by a person or by an agent on the live system under the [live acceptance policy](../../definition-of-done.md#live-acceptance-policy). Automated assertions, runs nobody visually assessed, and historical M0 G1 results are supporting evidence only; they do not satisfy this current-build manual session.
 
 ## Session identity
 
