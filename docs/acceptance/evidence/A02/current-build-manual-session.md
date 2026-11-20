@@ -3,14 +3,15 @@
 Status: NOT RUN  
 Issue: https://github.com/rp2839/visio-mcp/issues/15
 
-This record is for a person's observations on one identified build. Automated tests and historical M0 G1 results are supporting evidence only; they do not satisfy this current-build manual session.
+This record is for live observations of one identified build, made by a person or by an agent operating the live system under the [live acceptance policy](../../definition-of-done.md#live-acceptance-policy). Automated tests and historical M0 G1 results are supporting evidence only; they do not satisfy this current-build manual session.
 
 ## Session identity
 
 | Field | Value |
 |---|---|
 | Session date/time and time zone | NOT RUN |
-| Tester | NOT RUN |
+| Operator (person, or agent and seat) | NOT RUN |
+| Observation method (for example screenshots over remote desktop, watching the screen) | NOT RUN |
 | Repository commit / build identifier | NOT RUN |
 | Build configuration | NOT RUN |
 | Windows edition and version/build | NOT RUN |
@@ -21,13 +22,15 @@ This record is for a person's observations on one identified build. Automated te
 | Display resolution and scaling | NOT RUN |
 | Evidence directory / links | NOT RUN |
 
-Record the exact commit used for the running application. Do not substitute the latest repository commit if the tested binary was built from another revision.
+Record the exact commit used for the running application, or write "unknown". Do not substitute the latest repository commit if the tested binary was built from another revision. If the operator or method differs between rows, record it in the row.
 
 ## Result rules
 
-Use exactly one result for each row: PASS means the named person performed the interaction on the identified build and observed the stated outcome; FAIL means it was performed and did not meet the condition; NOT RUN means it was not performed, the required application was unavailable, or evidence is insufficient.
+Use exactly one result for each row: PASS means the named operator (a person, or an agent operating the live system) performed the interaction on the identified build and observed the stated outcome; FAIL means it was performed and did not meet the condition; NOT RUN means it was not performed, the required application was unavailable, or evidence is insufficient. Put the operator, method and any uncertainty in the observation column; if an outcome was inferred rather than seen, say so.
 
-Do not mark an item PASS based only on browser tests, UI automation, COM automation, generated screenshots, or a previous acceptance session.
+Do not mark an item PASS based only on browser tests, scripted UI automation, COM or object-model automation, generated screenshots, or a previous acceptance session. Operating the real windows with mouse and keyboard and observing the screen is live operation, not scripted automation.
+
+Where a pass condition is a subjective aesthetic judgment, the operator records what was observed and a person makes the judgment; leave the row NOT RUN until they have.
 
 ## A. Editor interaction
 
@@ -57,7 +60,7 @@ Use a disposable drawing and preserve the original export.
 
 | ID | Manual action | Pass condition | Result | Observation / evidence |
 |---|---|---|---|---|
-| A02-11 | Export to VSDX and open in the installed Visio UI | Record whether a repair prompt appears; capture exact text if present | NOT RUN | |
+| A02-11 | Export to VSDX and open in the installed Visio UI | Visio opens the export with no repair prompt. A repair prompt fails this step and WA-02; record its exact text | NOT RUN | |
 | A02-12 | Edit text, fill and position of supported exported shapes in Visio | Supported objects are editable and edits are visible | NOT RUN | |
 | A02-13 | Move a shape connected by a glued connector | Connector remains attached at both ends and follows the shape | NOT RUN | |
 | A02-14 | Save the drawing in Visio under a new filename | Save completes; warnings and compatibility prompts are recorded | NOT RUN | |
@@ -95,10 +98,10 @@ For each failure, record the step ID, reproduction steps, expected and actual re
 
 ## Sign-off
 
-- Tester: NOT RUN
+- Operator: NOT RUN
 - Date: NOT RUN
 - Commit/build tested: NOT RUN
 - Manual session complete: NO
-- Remaining limitations: All steps remain NOT RUN until a person performs and records them on the current build.
+- Remaining limitations: All steps remain NOT RUN until they are performed and recorded on the current build by a person or by an agent operating the live system.
 
-This template is not evidence of a successful manual acceptance pass. Update rows only from the tester's direct observations.
+This template is not evidence of a successful manual acceptance pass. Update rows only from the operator's direct observations.
